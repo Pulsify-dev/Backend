@@ -150,9 +150,8 @@ const userSchema = mongoose.Schema({
 
     google_id: {
         type: String,
-        default: null,
+        unique: true,
         sparse: true,
-        index: true,
     },
     email_verification_token: {
         type: String,
@@ -196,12 +195,11 @@ const userSchema = mongoose.Schema({
     }
 );
 //can add can_upload bool and change tiers enum
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', async function () {
     if (!this.isModified('password') || !this.password) {
-        return next();
+        return;
     }
     this.password = await bcrypt.hash(this.password, 12);
-    next();
 });
 userSchema.methods.comparePassword = async function (typedPassword, userPassword) {
     return await bcrypt.compare(typedPassword, userPassword);
