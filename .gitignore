@@ -5,7 +5,7 @@ Req docs
 node_modules/
 
 # Environment variables
-.env.example
+.env
 .env.local
 
 # Logs
