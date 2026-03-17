@@ -11,7 +11,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // 2. Your routes (add all routes)
 app.use('/auth', authRoutes);
-app.use('/api', profileRoutes);  
+app.use('/users', profileRoutes);  
 
 // 3. 404 handler (AFTER all routes)
 app.use(errorMiddleware.notFound);
