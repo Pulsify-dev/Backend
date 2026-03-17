@@ -2,15 +2,10 @@ import "./src/config/index.js";
 
 import express from "express";
 import connectDB from "./src/config/db.js";
-import authRoutes from "./src/routes/auth.routes.js";
+import app from "./src/app.js";
 
 connectDB();
 
-const app = express();
-
-app.use(express.json());
-
-app.use("/v1/auth", authRoutes);
 
 const PORT = process.env.PORT || 3000;
 
