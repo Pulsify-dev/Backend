@@ -112,7 +112,7 @@ const initiateEmailChange = async (userId, newEmail, currentPassword) => {
 
   const isMatch = await user.comparePassword(currentPassword, user.password);
   if (!isMatch) throw new ForbiddenError("Incorrect current password.");
-
+  if (user.email === newEmail) throw new ConflictError("New email must be different from your current email.")
   const emailInUse = await userRepository.emailExists(newEmail, userId);
   if (emailInUse) throw new ConflictError("Email already in use.");
 
