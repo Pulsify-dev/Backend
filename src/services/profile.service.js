@@ -85,9 +85,6 @@ const updateMyProfile = async (userId, updateData) => {
   if (Object.keys(allowedUpdates).length === 0)
     throw new BadRequestError("No valid fields provided.");
 
-  if (allowedUpdates.bio !== undefined && allowedUpdates.bio.length > 500)
-    throw new Error("Bio cannot exceed 500 characters.");
-
   const updatedUser = await userRepository.updateById(userId, allowedUpdates);
   if (!updatedUser) throw new NotFoundError("User not found.");
 
