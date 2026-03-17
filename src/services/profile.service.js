@@ -1,12 +1,12 @@
 import userRepository from "../repositories/user.repository.js";
 import emailService from "./email.service.js";
 import crypto from "crypto";
-import { 
-  BadRequestError, 
-  NotFoundError, 
-  ForbiddenError, 
-  UnauthorizedError, 
-  ConflictError 
+import {
+  BadRequestError,
+  NotFoundError,
+  ForbiddenError,
+  UnauthorizedError,
+  ConflictError
 } from "../utils/errors.js";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -64,7 +64,7 @@ const getMyProfile = async (userId) => {
   const user = await userRepository.findById(userId);
   if (!user) throw new NotFoundError("User not found.");
   if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
-  
+
   return toPrivateProfile(user);
 };
 
@@ -84,6 +84,8 @@ const updateMyProfile = async (userId, updateData) => {
 
   if (Object.keys(allowedUpdates).length === 0)
     throw new BadRequestError("No valid fields provided.");
+  if (allowedUpdates.bio !== undefined && allowedUpdates.bio.length > 500)
+    throw new BadRequestError("Bio cannot exceed 500 characters.");
 
   const updatedUser = await userRepository.updateById(userId, allowedUpdates);
   if (!updatedUser) throw new NotFoundError("User not found.");
@@ -98,7 +100,7 @@ const deleteMyAccount = async (userId, password) => {
   if (!user) throw new NotFoundError("User not found.");
 
   const isMatch = await user.comparePassword(password, user.password);
-  if (!isMatch) throw new UnauthorizedError("Incorrect password.");
+  if (!isMatch) throw new ForbiddenError("Incorrect password.");
 
   await userRepository.deleteById(userId);
   return { message: "Account successfully deleted." };
@@ -109,7 +111,7 @@ const initiateEmailChange = async (userId, newEmail, currentPassword) => {
   if (!user) throw new NotFoundError("User not found.");
 
   const isMatch = await user.comparePassword(currentPassword, user.password);
-  if (!isMatch) throw new UnauthorizedError("Incorrect current password.");
+  if (!isMatch) throw new ForbiddenError("Incorrect current password.");
 
   const emailInUse = await userRepository.emailExists(newEmail, userId);
   if (emailInUse) throw new ConflictError("Email already in use.");
