@@ -27,3 +27,6 @@ temp/
 
 .postman/
 postman
+
+.postman_collection.json
+.postman_environment.json
