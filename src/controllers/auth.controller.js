@@ -22,16 +22,13 @@ class AuthController {
     }
   };
 
-  login = async (req, res) => {
+  login = async (req, res, next) => {
     try {
       const { email, password } = req.body;
       const result = await this.authService.loginUser(email, password);
       return res.status(200).json(result);
     } catch (error) {
-      if (error.message.includes("Suspended")) {
-        return res.status(403).json({ error: error.message });
-      }
-      return res.status(401).json({ error: error.message });
+      next(error);  // Let error middleware handle it!
     }
   };
 
