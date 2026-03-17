@@ -1,5 +1,12 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import { 
+  BadRequestError, 
+  UnauthorizedError, 
+  ForbiddenError, 
+  ConflictError, 
+  NotFoundError 
+} from "../utils/errors.js";
 class AuthService {
   constructor(userRepository, tokenUtility, emailService, captchaService) {
     this.userRepository = userRepository;
@@ -12,13 +19,13 @@ class AuthService {
     const { email, username, password, captchaToken } = userData;
 
     const isCaptchaValid = await this.captchaService.verify(captchaToken);
-    if (!isCaptchaValid) throw new Error("Invalid CAPTCHA token.");
+    if (!isCaptchaValid) throw new BadRequestError("Invalid CAPTCHA token.");
 
     const isEmailTaken = await this.userRepository.emailExists(email);
     const isUsernameTaken = await this.userRepository.usernameExists(username);
 
     if (isEmailTaken || isUsernameTaken) {
-      throw new Error("Email or username already exists.");
+      throw new ConflictError("Email or username already exists.");
     }
 
     const newUserRecord = { email, username, password, tier: "Free" };
@@ -44,12 +51,12 @@ class AuthService {
 
   async loginUser(email, password) {
     const user = await this.userRepository.findByEmailWithPassword(email);
-    if (!user) throw new Error("Invalid credentials.");
+    if (!user) throw new UnauthorizedError("Invalid credentials.");
 
-    if (user.is_suspended) throw new Error("Forbidden: Suspended account.");
+    if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
 
     const isPasswordValid = await user.comparePassword(password, user.password);
-    if (!isPasswordValid) throw new Error("Invalid credentials.");
+    if (!isPasswordValid) throw new UnauthorizedError("Invalid credentials.");
 
     const accessToken = this.tokenUtility.generateAccessToken({
       user_id: user._id,
@@ -77,11 +84,11 @@ class AuthService {
   async verifyEmail(token) {
     const decoded = this.tokenUtility.verifyToken(token);
     if (!decoded || !decoded.user_id) {
-      throw new Error("Invalid or expired verification token.");
+      throw new BadRequestError("Invalid or expired verification token.");
     }
 
     const user = await this.userRepository.findById(decoded.user_id);
-    if (!user) throw new Error("User not found.");
+    if (!user) throw new NotFoundError("User not found.");
     if (user.is_verified) return { message: "Email is already verified." };
 
     await this.userRepository.updateById(user._id, { is_verified: true });
@@ -92,12 +99,12 @@ class AuthService {
   async refreshUserToken(refreshToken) {
     const decoded = this.tokenUtility.verifyToken(refreshToken, true);
     if (!decoded || !decoded.user_id) {
-      throw new Error("Invalid or expired refresh token. Please log in again.");
+      throw new UnauthorizedError("Invalid or expired refresh token. Please log in again.");
     }
 
     const user = await this.userRepository.findById(decoded.user_id);
-    if (!user) throw new Error("User not found.");
-    if (user.is_suspended) throw new Error("Forbidden: Suspended account.");
+    if (!user) throw new NotFoundError("User not found.");  
+    if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
 
     const newAccessToken = this.tokenUtility.generateAccessToken({
       user_id: user._id,
@@ -139,7 +146,7 @@ class AuthService {
     const user = await this.userRepository.findByPasswordResetToken(token);
 
     if (!user || user.password_reset_expires < Date.now()) {
-      throw new Error("Invalid or expired password reset token.");
+      throw new BadRequestError("Invalid or expired password reset token.");
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
