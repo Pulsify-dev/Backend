@@ -1,6 +1,13 @@
 import userRepository from "../repositories/user.repository.js";
 import emailService from "./email.service.js";
 import crypto from "crypto";
+import { 
+  BadRequestError, 
+  NotFoundError, 
+  ForbiddenError, 
+  UnauthorizedError, 
+  ConflictError 
+} from "../utils/errors.js";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024;   // 5 MB
@@ -34,11 +41,11 @@ const toPrivateProfile = (user) => ({
 });
 
 const validateImageFile = (file, maxBytes) => {
-  if (!file) throw new Error("No file provided.");
+  if (!file) throw new BadRequestError("No file provided.");
   if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype))
-    throw new Error("Invalid file format. Only JPEG, PNG, and WebP are allowed.");
+    throw new BadRequestError("Invalid file format. Only JPEG, PNG, and WebP are allowed.");
   if (file.size > maxBytes)
-    throw new Error(`File exceeds the ${maxBytes / (1024 * 1024)} MB limit.`);
+    throw new BadRequestError(`File exceeds the ${maxBytes / (1024 * 1024)} MB limit.`);
 };
 
 
@@ -48,16 +55,16 @@ const getPublicProfile = async (userId) => {
   // Treat suspended and private profiles the same as not found
   // to avoid leaking internal state to callers
   if (!user || user.is_suspended || user.is_private)
-    throw new Error("User not found or private profile inaccessible.");
+    throw new NotFoundError("User not found or private profile inaccessible.");
 
   return toPublicProfile(user);
 };
 
 const getMyProfile = async (userId) => {
   const user = await userRepository.findById(userId);
-  if (!user) throw new Error("User not found.");
-  if (user.is_suspended) throw new Error("Forbidden: Suspended account.");
-
+  if (!user) throw new NotFoundError("User not found.");
+  if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
+  
   return toPrivateProfile(user);
 };
 
@@ -76,25 +83,25 @@ const updateMyProfile = async (userId, updateData) => {
   );
 
   if (Object.keys(allowedUpdates).length === 0)
-    throw new Error("No valid fields provided.");
+    throw new BadRequestError("No valid fields provided.");
 
   if (allowedUpdates.bio !== undefined && allowedUpdates.bio.length > 500)
     throw new Error("Bio cannot exceed 500 characters.");
 
   const updatedUser = await userRepository.updateById(userId, allowedUpdates);
-  if (!updatedUser) throw new Error("User not found.");
+  if (!updatedUser) throw new NotFoundError("User not found.");
 
   return toPrivateProfile(updatedUser);
 };
 
 const deleteMyAccount = async (userId, password) => {
-  if (!password) throw new Error("Current password is required.");
+  if (!password) throw new BadRequestError("Current password is required.");
 
   const user = await userRepository.findById(userId, "+password");
-  if (!user) throw new Error("User not found.");
+  if (!user) throw new NotFoundError("User not found.");
 
   const isMatch = await user.comparePassword(password, user.password);
-  if (!isMatch) throw new Error("Incorrect password.");
+  if (!isMatch) throw new UnauthorizedError("Incorrect password.");
 
   await userRepository.deleteById(userId);
   return { message: "Account successfully deleted." };
@@ -102,13 +109,13 @@ const deleteMyAccount = async (userId, password) => {
 
 const initiateEmailChange = async (userId, newEmail, currentPassword) => {
   const user = await userRepository.findById(userId, "+password");
-  if (!user) throw new Error("User not found.");
+  if (!user) throw new NotFoundError("User not found.");
 
   const isMatch = await user.comparePassword(currentPassword, user.password);
-  if (!isMatch) throw new Error("Incorrect current password.");
+  if (!isMatch) throw new UnauthorizedError("Incorrect current password.");
 
   const emailInUse = await userRepository.emailExists(newEmail, userId);
-  if (emailInUse) throw new Error("Email already in use.");
+  if (emailInUse) throw new ConflictError("Email already in use.");
 
   const token = crypto.randomBytes(32).toString("hex");
   const expires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
@@ -126,7 +133,7 @@ const initiateEmailChange = async (userId, newEmail, currentPassword) => {
 
 const confirmEmailChange = async (token) => {
   const user = await userRepository.findUserByPendingEmailToken(token);
-  if (!user) throw new Error("Invalid or expired email change token.");
+  if (!user) throw new BadRequestError("Invalid or expired email change token.");
 
   await userRepository.updateById(user._id, {
     email: user.pending_email,

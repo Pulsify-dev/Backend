@@ -1,2 +1,11 @@
-import profileRoutes from "./profile.routes.js";
-app.use("/v1/users", profileRoutes);
+import { Router } from 'express';
+import authRoutes from './auth.routes.js';
+import profileRoutes from './profile.routes.js';
+
+const router = Router();
+
+//all feature routes here
+router.use('/auth', authRoutes);
+router.use('/users', profileRoutes); 
+
+export default router;
