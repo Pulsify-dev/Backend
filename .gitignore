@@ -24,3 +24,9 @@ Thumbs.db
 # Uploads
 uploads/
 temp/
+
+.postman/
+postman
+
+.postman_collection.json
+.postman_environment.json
