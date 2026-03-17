@@ -51,6 +51,23 @@ const searchUsers = async (q, page, limit) => {
 
   return { users, total };
 };
+const create = function (userData) {
+  return User.create(userData);
+};
+const usernameExists = async (username, requestedUserId) => {
+  const query = { username };
+  if (requestedUserId) {
+    query._id = { $ne: requestedUserId };
+  }
+  const exist = await User.findOne(query).lean();
+  return !!exist;
+};
+const findByPasswordResetToken = function (token) {
+  return User.findOne({
+    password_reset_token: token,
+    password_reset_expires: { $gt: Date.now() },
+  });
+};
 export default {
   findById,
   updateById,
@@ -59,4 +76,7 @@ export default {
   deleteById,
   emailExists,
   searchUsers,
+  create,
+  usernameExists,
+  findByPasswordResetToken,
 };
