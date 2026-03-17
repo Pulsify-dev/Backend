@@ -25,11 +25,5 @@ Thumbs.db
 uploads/
 temp/
 
-.postman/
-postman/
-
 # Postman files (local testing only)
-*.postman_collection.json
-*.postman_environment.json
-Local-Development.postman_environment.json
-Pulsify-Profiles-Collection.postman_collection.json
+/Local_Postman
