@@ -69,7 +69,7 @@ const searchQuerySchema = Joi.object({
  */
 const validate = (schema, source = 'body') => {
   return (req, res, next) => {
-    const dataToValidate = req[source];
+    const dataToValidate = req[source] ?? {};
 
     const { error, value } = schema.validate(dataToValidate, {
       abortEarly: false,  // Collect all errors, not just first
@@ -82,8 +82,11 @@ const validate = (schema, source = 'body') => {
     }
 
     // Replace with validated/cleaned data
-    req[source] = value;
-    next();
+    if (source === 'query') {
+      Object.assign(req.query, value);
+    } else {
+      req[source] = value;
+    } next();
   };
 };
 

@@ -1,5 +1,5 @@
 # Requirements Documentation
-Req docs
+ReqDocs
 
 # Dependencies
 node_modules/
@@ -24,3 +24,6 @@ Thumbs.db
 # Uploads
 uploads/
 temp/
+
+# Postman files (local testing only)
+/Local_Postman

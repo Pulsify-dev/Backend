@@ -76,7 +76,7 @@ const initiateEmailChange = async (req, res, next) => {
   }
 };
 
-// GET /auth/confirm-email-change?token=...
+// GET /users/confirm-email-change?token=...
 const confirmEmailChange = async (req, res, next) => {
   try {
     const { token } = req.query;

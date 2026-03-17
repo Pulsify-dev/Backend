@@ -15,24 +15,37 @@
     "url": "git+https://github.com/Pulsify-dev/Backend.git"
   },
   "scripts": {
+<<<<<<< HEAD
     "test": "c8 mocha src/tests/**/*.test.js",
     "start": "node server.js"
+=======
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+>>>>>>> b64afe1363734851d5e783ee6766f151141913b7
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "body-parser": "^2.2.2",
+    "crypto-js": "^4.2.0",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "mongodb": "^7.1.0",
-    "mongoose": "^9.3.0"
+    "mongoose": "^9.3.1",
+    "multer": "^2.1.1"
   },
   "devDependencies": {
+<<<<<<< HEAD
     "c8": "^11.0.0",
     "chai": "^6.2.2",
     "mocha": "^11.7.5",
     "prettier": "^3.8.1",
     "sinon": "^21.0.3"
+=======
+    "nodemon": "^3.1.14",
+    "prettier": "^3.8.1"
+>>>>>>> b64afe1363734851d5e783ee6766f151141913b7
   }
 }
