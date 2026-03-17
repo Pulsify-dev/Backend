@@ -15,6 +15,7 @@ router.post("/me/cover", authMiddleware.requireAuth, coverUpload, profileControl
 router.put("/me/email", authMiddleware.requireAuth, profileController.initiateEmailChange);
 
 //public routes
+router.get("/confirm-email-change", profileController.confirmEmailChange);
 router.get("/", profileController.searchUsers);
 router.get("/:user_id", profileController.getPublicProfile);
 
