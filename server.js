@@ -2,10 +2,10 @@ import "./src/config/index.js";
 
 import express from "express";
 import connectDB from "./src/config/db.js";
-import app from "./src/app.js";
+
+import app from "./src/app.js";  // ← Import configured app
 
 connectDB();
-
 
 const PORT = process.env.PORT || 3000;
 
