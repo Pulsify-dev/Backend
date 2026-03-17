@@ -21,7 +21,7 @@ router.get("/confirm-email-change",
 
 //public routes
 router.get("/confirm-email-change", profileController.confirmEmailChange);
-router.get("/", profileController.searchUsers);
+router.get("/", validationMiddleware.validateSearchQuery, profileController.searchUsers);
 router.get("/:user_id", profileController.getPublicProfile);
 
 export default router;
