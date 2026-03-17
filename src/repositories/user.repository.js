@@ -1,4 +1,4 @@
-import User from "../models/user.model";
+import User from "../models/user.model.js";
 
 const findById = function (id, extraFields = "") {
   return User.findById(id).select(extraFields);
