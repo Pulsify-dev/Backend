@@ -1,4 +1,5 @@
-
+import bcrypt from "bcryptjs";
+import crypto from "crypto";
 class AuthService {
   constructor(userRepository, tokenUtility, emailService, captchaService) {
     this.userRepository = userRepository;
@@ -23,12 +24,13 @@ class AuthService {
     const newUserRecord = { email, username, password, tier: "Free" };
     const createdUser = await this.userRepository.create(newUserRecord);
 
-    // Using the injected utility
-    const verificationToken = this.tokenUtility.generateVerificationToken(createdUser._id);
-    
+    const verificationToken = this.tokenUtility.generateVerificationToken(
+      createdUser._id,
+    );
+
     await this.emailService.sendVerificationEmail(
       createdUser.email,
-      verificationToken
+      verificationToken,
     );
 
     return {
@@ -70,6 +72,86 @@ class AuthService {
         tier: user.tier,
         avatar_url: user.avatar_url,
       },
+    };
+  }
+  async verifyEmail(token) {
+    const decoded = this.tokenUtility.verifyToken(token);
+    if (!decoded || !decoded.user_id) {
+      throw new Error("Invalid or expired verification token.");
+    }
+
+    const user = await this.userRepository.findById(decoded.user_id);
+    if (!user) throw new Error("User not found.");
+    if (user.is_verified) return { message: "Email is already verified." };
+
+    await this.userRepository.updateById(user._id, { is_verified: true });
+
+    return { message: "Email successfully verified." };
+  }
+
+  async refreshUserToken(refreshToken) {
+    const decoded = this.tokenUtility.verifyToken(refreshToken, true);
+    if (!decoded || !decoded.user_id) {
+      throw new Error("Invalid or expired refresh token. Please log in again.");
+    }
+
+    const user = await this.userRepository.findById(decoded.user_id);
+    if (!user) throw new Error("User not found.");
+    if (user.is_suspended) throw new Error("Forbidden: Suspended account.");
+
+    const newAccessToken = this.tokenUtility.generateAccessToken({
+      user_id: user._id,
+      tier: user.tier,
+      role: user.role,
+    });
+
+    const newRefreshToken = this.tokenUtility.generateRefreshToken({
+      user_id: user._id,
+    });
+
+    return {
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+    };
+  }
+
+  async forgotPassword(email) {
+    const user = await this.userRepository.findByEmailWithPassword(email);
+
+    const defaultMessage =
+      "If that email address is in our database, we will send you a link to reset your password.";
+    if (!user) return { message: defaultMessage };
+
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpires = Date.now() + 3600000; // Expires in 1 hour
+
+    await this.userRepository.updateById(user._id, {
+      password_reset_token: resetToken,
+      password_reset_expires: resetTokenExpires,
+    });
+
+    await this.emailService.sendPasswordResetEmail(user.email, resetToken);
+
+    return { message: defaultMessage };
+  }
+
+  async resetPassword(token, newPassword) {
+    const user = await this.userRepository.findByPasswordResetToken(token);
+
+    if (!user || user.password_reset_expires < Date.now()) {
+      throw new Error("Invalid or expired password reset token.");
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    await this.userRepository.updateById(user._id, {
+      password: hashedPassword,
+      password_reset_token: null,
+      password_reset_expires: null,
+    });
+
+    return {
+      message: "Password has been successfully reset. You can now log in.",
     };
   }
 }

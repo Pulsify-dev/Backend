@@ -62,6 +62,12 @@ const usernameExists = async (username, requestedUserId) => {
   const exist = await User.findOne(query).lean();
   return !!exist;
 };
+const findByPasswordResetToken = function (token) {
+  return User.findOne({
+    password_reset_token: token,
+    password_reset_expires: { $gt: Date.now() },
+  });
+};
 export default {
   findById,
   updateById,
@@ -72,4 +78,5 @@ export default {
   searchUsers,
   create,
   usernameExists,
+  findByPasswordResetToken,
 };
