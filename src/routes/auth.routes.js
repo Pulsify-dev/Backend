@@ -4,9 +4,8 @@ import AuthController from "../controllers/auth.controller.js";
 import AuthService from "../services/auth.service.js";
 import userRepository from "../repositories/user.repository.js";
 import tokenUtility from "../utils/jwt.utils.js";
-import emailService from "../infrastructure/email.service.js";
-import captchaService from "../infrastructure/captcha.service.js";
-import profileController from "../controllers/profile.controller.js";
+import emailService from "../services/email.service.js";
+import captchaService from "../services/captcha.service.js";
 
 const router = express.Router();
 
