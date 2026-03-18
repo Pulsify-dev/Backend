@@ -6,12 +6,13 @@ import {
   NotFoundError,
   ForbiddenError,
   UnauthorizedError,
-  ConflictError
+  ConflictError,
 } from "../utils/errors.js";
 
-const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const AVATAR_MAX_BYTES = 5 * 1024 * 1024;   // 5 MB
-const COVER_MAX_BYTES = 10 * 1024 * 1024;  // 10 MB
+import photoUtils from "../utils/photo.utils.js";
+
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+const COVER_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
 const toPublicProfile = (user) => ({
   _id: user._id,
@@ -40,15 +41,6 @@ const toPrivateProfile = (user) => ({
   storage_used_bytes: user.storage_used_bytes,
 });
 
-const validateImageFile = (file, maxBytes) => {
-  if (!file) throw new BadRequestError("No file provided.");
-  if (!ALLOWED_IMAGE_TYPES.includes(file.mimetype))
-    throw new BadRequestError("Invalid file format. Only JPEG, PNG, and WebP are allowed.");
-  if (file.size > maxBytes)
-    throw new BadRequestError(`File exceeds the ${maxBytes / (1024 * 1024)} MB limit.`);
-};
-
-
 const getPublicProfile = async (userId) => {
   const user = await userRepository.findById(userId);
 
@@ -63,7 +55,8 @@ const getPublicProfile = async (userId) => {
 const getMyProfile = async (userId) => {
   const user = await userRepository.findById(userId);
   if (!user) throw new NotFoundError("User not found.");
-  if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
+  if (user.is_suspended)
+    throw new ForbiddenError("Forbidden: Suspended account.");
 
   return toPrivateProfile(user);
 };
@@ -79,7 +72,7 @@ const updateMyProfile = async (userId, updateData) => {
   ];
 
   const allowedUpdates = Object.fromEntries(
-    Object.entries(updateData).filter(([key]) => updatableFields.includes(key))
+    Object.entries(updateData).filter(([key]) => updatableFields.includes(key)),
   );
 
   if (Object.keys(allowedUpdates).length === 0)
@@ -112,7 +105,10 @@ const initiateEmailChange = async (userId, newEmail, currentPassword) => {
 
   const isMatch = await user.comparePassword(currentPassword, user.password);
   if (!isMatch) throw new ForbiddenError("Incorrect current password.");
-  if (user.email === newEmail) throw new ConflictError("New email must be different from your current email.")
+  if (user.email === newEmail)
+    throw new ConflictError(
+      "New email must be different from your current email.",
+    );
   const emailInUse = await userRepository.emailExists(newEmail, userId);
   if (emailInUse) throw new ConflictError("Email already in use.");
 
@@ -132,7 +128,8 @@ const initiateEmailChange = async (userId, newEmail, currentPassword) => {
 
 const confirmEmailChange = async (token) => {
   const user = await userRepository.findUserByPendingEmailToken(token);
-  if (!user) throw new BadRequestError("Invalid or expired email change token.");
+  if (!user)
+    throw new BadRequestError("Invalid or expired email change token.");
 
   await userRepository.updateById(user._id, {
     email: user.pending_email,
@@ -146,14 +143,13 @@ const confirmEmailChange = async (token) => {
 
 const uploadProfileImage = async (userId, file, type) => {
   const maxBytes = type === "avatar" ? AVATAR_MAX_BYTES : COVER_MAX_BYTES;
-  validateImageFile(file, maxBytes);
+  photoUtils.validateImageFile(file, maxBytes);
 
   // Note: Temporary mock URL — replace with real AWS S3 upload once integrated
   const mockCdnUrl = `https://cdn.pulsify.app/mock/${type}_${userId}_${Date.now()}.png`;
 
-  const updateField = type === "avatar"
-    ? { avatar_url: mockCdnUrl }
-    : { cover_url: mockCdnUrl };
+  const updateField =
+    type === "avatar" ? { avatar_url: mockCdnUrl } : { cover_url: mockCdnUrl };
 
   await userRepository.updateById(userId, updateField);
 

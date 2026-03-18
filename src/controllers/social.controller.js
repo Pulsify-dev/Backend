@@ -1,5 +1,4 @@
-import socialService from '../services/social.service.js';
-
+import socialService from "../services/social.service.js";
 
 const followUser = async (req, res, next) => {
   try {
@@ -9,7 +8,7 @@ const followUser = async (req, res, next) => {
     if (followerId.toString() === followingId) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot follow yourself',
+        message: "Cannot follow yourself",
       });
     }
 
@@ -17,7 +16,7 @@ const followUser = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Successfully followed user',
+      message: "Successfully followed user",
       data: follow,
     });
   } catch (error) {
@@ -51,7 +50,7 @@ const getFollowers = async (req, res, next) => {
     if (page < 1 || limit < 1 || limit > 100) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid page or limit parameters',
+        message: "Invalid page or limit parameters",
       });
     }
 
@@ -90,7 +89,7 @@ const getFollowing = async (req, res, next) => {
     if (page < 1 || limit < 1 || limit > 100) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid page or limit parameters',
+        message: "Invalid page or limit parameters",
       });
     }
 
@@ -129,7 +128,7 @@ const getSuggestedUsers = async (req, res, next) => {
     if (page < 1 || limit < 1 || limit > 100) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid page or limit parameters',
+        message: "Invalid page or limit parameters",
       });
     }
 
@@ -144,7 +143,6 @@ const getSuggestedUsers = async (req, res, next) => {
   }
 };
 
-
 const getRelationshipStatus = async (req, res, next) => {
   try {
     const userId1 = req.user._id;
@@ -153,11 +151,14 @@ const getRelationshipStatus = async (req, res, next) => {
     if (userId1.toString() === userId2) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot check relationship with yourself',
+        message: "Cannot check relationship with yourself",
       });
     }
 
-    const relationship = await socialService.getRelationshipStatus(userId1, userId2);
+    const relationship = await socialService.getRelationshipStatus(
+      userId1,
+      userId2,
+    );
 
     return res.status(200).json({
       success: true,
@@ -167,7 +168,6 @@ const getRelationshipStatus = async (req, res, next) => {
     next(error);
   }
 };
-
 
 const getMutualFollowers = async (req, res, next) => {
   try {
@@ -179,18 +179,23 @@ const getMutualFollowers = async (req, res, next) => {
     if (userId1.toString() === userId2) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid,you cannot check mutual followers with yourself',
+        message: "Invalid,you cannot check mutual followers with yourself",
       });
     }
 
     if (page < 1 || limit < 1 || limit > 100) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid page or limit parameters',
+        message: "Invalid page or limit parameters",
       });
     }
 
-    const result = await socialService.getMutualFollowersList(userId1, userId2, page, limit);
+    const result = await socialService.getMutualFollowersList(
+      userId1,
+      userId2,
+      page,
+      limit,
+    );
 
     return res.status(200).json({
       success: true,
@@ -210,14 +215,14 @@ const blockUser = async (req, res, next) => {
     if (blockerId.toString() === blockedId) {
       return res.status(400).json({
         success: false,
-        message: 'Cannot block yourself',
+        message: "Cannot block yourself",
       });
     }
 
     if (reason && reason.length > 500) {
       return res.status(400).json({
         success: false,
-        message: 'Block reason cannot exceed 500 characters',
+        message: "Block reason cannot exceed 500 characters",
       });
     }
 
@@ -225,7 +230,7 @@ const blockUser = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      message: 'User blocked successfully',
+      message: "User blocked successfully",
       data: block,
     });
   } catch (error) {
@@ -259,7 +264,7 @@ const getBlockedUsers = async (req, res, next) => {
     if (page < 1 || limit < 1 || limit > 100) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid page or limit parameters',
+        message: "Invalid page or limit parameters",
       });
     }
 
@@ -298,22 +303,26 @@ const updateBlockReason = async (req, res, next) => {
     if (!reason) {
       return res.status(400).json({
         success: false,
-        message: 'Reason is required',
+        message: "Reason is required",
       });
     }
 
     if (reason.length > 500) {
       return res.status(400).json({
         success: false,
-        message: 'Block reason cannot exceed 500 characters',
+        message: "Block reason cannot exceed 500 characters",
       });
     }
 
-    const result = await socialService.updateBlockReason(blockerId, blockedId, reason);
+    const result = await socialService.updateBlockReason(
+      blockerId,
+      blockedId,
+      reason,
+    );
 
     return res.status(200).json({
       success: true,
-      message: 'Block reason updated',
+      message: "Block reason updated",
       data: result,
     });
   } catch (error) {

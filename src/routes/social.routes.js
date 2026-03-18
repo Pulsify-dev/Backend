@@ -11,18 +11,14 @@
 // //unfollow a user
 // router.delete('/:user_id/follow', authMiddleware, socialController.unfollowUser);
 
-
-// //get followers list 
+// //get followers list
 // router.get('/:user_id/followers', socialController.getFollowers);
-
 
 // //following list
 // router.get('/:user_id/following', socialController.getFollowing);
 
-
 // //siggested users to follow
 // router.get('/suggestions', authMiddleware, socialController.getSuggestedUsers);
-
 
 // // router.get('/:user_id/relationship', authMiddleware, socialController.getRelationshipStatus);
 
@@ -40,7 +36,6 @@
 
 // // blocked users list
 // router.get('/me/blocked', authMiddleware, socialController.getBlockedUsers);
-
 
 // //get user social counts
 // router.get('/:user_id/social-counts', socialController.getUserSocialCounts);

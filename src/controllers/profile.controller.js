@@ -23,7 +23,10 @@ const getMyProfile = async (req, res, next) => {
 // PATCH /users/me
 const updateMyProfile = async (req, res, next) => {
   try {
-    const updated = await profileService.updateMyProfile(req.user.user_id, req.body);
+    const updated = await profileService.updateMyProfile(
+      req.user.user_id,
+      req.body,
+    );
     res.status(200).json(updated);
   } catch (err) {
     next(err);
@@ -34,7 +37,10 @@ const updateMyProfile = async (req, res, next) => {
 const deleteMyAccount = async (req, res, next) => {
   try {
     const { password } = req.body;
-    const result = await profileService.deleteMyAccount(req.user.user_id, password);
+    const result = await profileService.deleteMyAccount(
+      req.user.user_id,
+      password,
+    );
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -44,7 +50,11 @@ const deleteMyAccount = async (req, res, next) => {
 // POST /users/me/avatar
 const uploadAvatar = async (req, res, next) => {
   try {
-    const result = await profileService.uploadProfileImage(req.user.user_id, req.file, "avatar");
+    const result = await profileService.uploadProfileImage(
+      req.user.user_id,
+      req.file,
+      "avatar",
+    );
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -54,7 +64,11 @@ const uploadAvatar = async (req, res, next) => {
 // POST /users/me/cover
 const uploadCover = async (req, res, next) => {
   try {
-    const result = await profileService.uploadProfileImage(req.user.user_id, req.file, "cover");
+    const result = await profileService.uploadProfileImage(
+      req.user.user_id,
+      req.file,
+      "cover",
+    );
     res.status(200).json(result);
   } catch (err) {
     next(err);
@@ -68,7 +82,7 @@ const initiateEmailChange = async (req, res, next) => {
     const result = await profileService.initiateEmailChange(
       req.user.user_id,
       new_email,
-      current_password
+      current_password,
     );
     res.status(200).json(result);
   } catch (err) {
@@ -92,7 +106,11 @@ const confirmEmailChange = async (req, res, next) => {
 const searchUsers = async (req, res, next) => {
   try {
     const { q, page = 1, limit = 20 } = req.query;
-    const result = await profileService.searchUsers(q, parseInt(page), parseInt(limit));
+    const result = await profileService.searchUsers(
+      q,
+      parseInt(page),
+      parseInt(limit),
+    );
     res.status(200).json(result);
   } catch (err) {
     next(err);

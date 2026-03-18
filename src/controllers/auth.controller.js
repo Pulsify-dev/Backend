@@ -15,7 +15,7 @@ class AuthController {
       const result = await this.authService.registerUser(userData);
       return res.status(201).json(result);
     } catch (error) {
-      next(error); 
+      next(error);
     }
   };
 
@@ -25,7 +25,7 @@ class AuthController {
       const result = await this.authService.loginUser(email, password);
       return res.status(200).json(result);
     } catch (error) {
-      next(error); 
+      next(error);
     }
   };
 
@@ -70,7 +70,9 @@ class AuthController {
     try {
       const { token, new_password } = req.body;
       if (!token || !new_password) {
-        return res.status(400).json({ error: "Token and new_password are required." });
+        return res
+          .status(400)
+          .json({ error: "Token and new_password are required." });
       }
 
       const result = await this.authService.resetPassword(token, new_password);

@@ -15,6 +15,10 @@ const deleteById = function (id) {
   return Track.findByIdAndDelete(id);
 };
 
+const createTrack = function (trackData) {
+  return Track.create(trackData);
+};
+
 const findByPermalink = function (permalink, extraFields = "") {
   return Track.findOne({ permalink }).select(extraFields);
 };
@@ -52,4 +56,5 @@ export default {
   searchTracks,
   findByArtistId,
   countByArtistId,
+  createTrack,
 };
