@@ -1,9 +1,9 @@
-import { AppError, NotFoundError } from '../utils/errors.js';
+import { AppError, NotFoundError } from "../utils/errors.js";
 
 const errorHandler = (err, req, res, next) => {
   // Default to 500 internal server error
   let statusCode = 500;
-  let message = 'Internal Server Error';
+  let message = "Internal Server Error";
 
   // 1. Check if it's your custom AppError
   if (err instanceof AppError) {
@@ -12,9 +12,11 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // 2. Check if it's a Mongoose ValidationError
-  else if (err.name === 'ValidationError') {
+  else if (err.name === "ValidationError") {
     statusCode = 400;
-    message = Object.values(err.errors).map(el => el.message).join(', ');
+    message = Object.values(err.errors)
+      .map((el) => el.message)
+      .join(", ");
   }
 
   // 3. Check if it's a MongoDB duplicate key error
@@ -26,12 +28,10 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // 4. Check if it's a Mongoose CastError
-  else if (err.name === 'CastError') {
+  else if (err.name === "CastError") {
     statusCode = 400;
     message = `Invalid ${err.path} format: ${err.value}`;
-  }
-  
-  else if (err.name === "MulterError") {
+  } else if (err.name === "MulterError") {
     if (err.code === "LIMIT_FILE_SIZE") {
       statusCode = 413;
       message = "File exceeds the allowed size limit.";
@@ -42,18 +42,18 @@ const errorHandler = (err, req, res, next) => {
   }
 
   // 5. Log the error (in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.error('Error:', err);
+  if (process.env.NODE_ENV === "development") {
+    console.error("Error:", err);
   }
 
   // 6. Send response
   const errorResponse = {
     error: message,
-    ...(process.env.NODE_ENV === 'development' && {
+    ...(process.env.NODE_ENV === "development" && {
       stack: err.stack,
       name: err.name,
-      statusCode: statusCode
-    })
+      statusCode: statusCode,
+    }),
   };
   res.status(statusCode).json(errorResponse);
 };

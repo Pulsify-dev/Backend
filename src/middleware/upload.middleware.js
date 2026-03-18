@@ -7,7 +7,12 @@ const imageFileFilter = (req, file, cb) => {
   if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new BadRequestError("Invalid file format. Only JPEG, PNG, and WebP are allowed."), false);
+    cb(
+      new BadRequestError(
+        "Invalid file format. Only JPEG, PNG, and WebP are allowed.",
+      ),
+      false,
+    );
   }
 };
 
