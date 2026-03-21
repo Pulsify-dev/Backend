@@ -83,7 +83,6 @@ const getAllFollowers = async (userId) => {
 
   const followers = await Follow.find({
     following_id: userId,
-    status: "active",
   })
     .populate({
       path: "follower_id",
@@ -114,7 +113,6 @@ const getAllFollowing = async (userId) => {
 
   const following = await Follow.find({
     follower_id: userId,
-    status: "active",
   })
     .populate({
       path: "following_id",
@@ -132,7 +130,6 @@ const getSuggestedUsers = async (userId, page = 1, limit = 20) => {
   const skip = (page - 1) * limit;
   const alreadyFollowing = await Follow.find({
     follower_id: userId,
-    status: "active",
   }).select("following_id");
 
   const followingIds = alreadyFollowing.map((f) => f.following_id);
@@ -183,7 +180,6 @@ const getMutualFollowersList = async (
 
   const followersOfUser1 = await Follow.find({
     following_id: userId1,
-    status: "active",
   }).select("follower_id");
 
   const followerIds = followersOfUser1.map((f) => f.follower_id);
@@ -191,7 +187,6 @@ const getMutualFollowersList = async (
   const mutualFollows = await Follow.find({
     follower_id: { $in: followerIds },
     following_id: userId2,
-    status: "active",
   })
     .populate({
       path: "follower_id",
@@ -204,7 +199,6 @@ const getMutualFollowersList = async (
   const totalMutual = await Follow.countDocuments({
     follower_id: { $in: followerIds },
     following_id: userId2,
-    status: "active",
   });
 
   return {

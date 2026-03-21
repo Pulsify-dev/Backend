@@ -29,7 +29,6 @@ const getFollowers = async (userId, page = 1, limit = 20) => {
 
   const followers = await Follow.find({
     following_id: userId,
-    status: "active",
   })
     .populate({
       path: "follower_id",
@@ -40,7 +39,6 @@ const getFollowers = async (userId, page = 1, limit = 20) => {
     .lean();
   const total = await Follow.countDocuments({
     following_id: userId,
-    status: "active",
   });
   return {
     followers: followers.map((f) => f.follower_id),
@@ -55,7 +53,6 @@ const getFollowing = async (userId, page = 1, limit = 20) => {
 
   const following = await Follow.find({
     follower_id: userId,
-    status: "active",
   })
     .populate({
       path: "following_id",
@@ -66,7 +63,6 @@ const getFollowing = async (userId, page = 1, limit = 20) => {
     .lean();
   const total = await Follow.countDocuments({
     follower_id: userId,
-    status: "active",
   });
   return {
     following: following.map((f) => f.following_id),
@@ -80,7 +76,6 @@ const getFollowing = async (userId, page = 1, limit = 20) => {
 const countFollowers = async (userId) => {
   return Follow.countDocuments({
     following_id: userId,
-    status: "active",
   });
 };
 
@@ -88,7 +83,6 @@ const countFollowers = async (userId) => {
 const countFollowing = async (userId) => {
   return Follow.countDocuments({
     follower_id: userId,
-    status: "active",
   });
 };
 
@@ -96,7 +90,6 @@ const isFollowing = async (followerId, followingId) => {
   const follow = await Follow.findOne({
     follower_id: followerId,
     following_id: followingId,
-    status: "active",
   });
   return !!follow;
 };
@@ -107,14 +100,19 @@ const getMutualFollowers = async (userId1, userId2, page = 1, limit = 20) => {
   // Find users following userId1
   const followersOfUser1 = await Follow.find({
     following_id: userId1,
-    status: "active",
   }).select("follower_id");
 
   const followerIds = followersOfUser1.map((f) => f.follower_id);
+  
+  // Get total count BEFORE pagination
+  const total = await Follow.countDocuments({
+    follower_id: { $in: followerIds },
+    following_id: userId2,
+  });
+  
   const mutualFollows = await Follow.find({
     follower_id: { $in: followerIds },
     following_id: userId2,
-    status: "active",
   })
     .populate({
       path: "follower_id",
@@ -123,8 +121,6 @@ const getMutualFollowers = async (userId1, userId2, page = 1, limit = 20) => {
     .skip(skip)
     .limit(limit)
     .lean();
-
-  const total = mutualFollows.length;
 
   return {
     mutualFollowers: mutualFollows.map((f) => f.follower_id),

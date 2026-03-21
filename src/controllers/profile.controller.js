@@ -1,8 +1,23 @@
 import profileService from "../services/profile.service.js";
+import socialService from "../services/social.service.js";
 
 // GET /users/:user_id
 const getPublicProfile = async (req, res, next) => {
   try {
+    const viewerId = req.user?._id;
+    const targetUserId = req.params.user_id;
+
+    // Check if viewer is blocked by target user
+    if (viewerId && viewerId.toString() !== targetUserId) {
+      const canView = await socialService.canViewProfile(viewerId, targetUserId);
+      if (!canView) {
+        return res.status(403).json({
+          success: false,
+          message: "User not found",
+        });
+      }
+    }
+
     const profile = await profileService.getPublicProfile(req.params.user_id);
     res.status(200).json(profile);
   } catch (err) {
