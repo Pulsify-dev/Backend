@@ -14,11 +14,6 @@ const followSchema = mongoose.Schema(
       required: [true, "Following ID is required"],
       index: true,
     },
-    status: {
-      type: String,
-      enum: ["active", "blocked"],
-      default: "active",
-    },
   },
   {
     timestamps: true,

@@ -20,6 +20,12 @@ const followUser = async (req, res, next) => {
       data: follow,
     });
   } catch (error) {
+    if (error.message === "Already following this user") {
+      return res.status(409).json({
+        success: false,
+        message: "Already following this user",
+      });
+    }
     next(error);
   }
 };
@@ -234,6 +240,13 @@ const blockUser = async (req, res, next) => {
       data: block,
     });
   } catch (error) {
+    // Handle "User is already blocked" error - return 409 Conflict
+    if (error.message === "User is already blocked") {
+      return res.status(409).json({
+        success: false,
+        message: "User is already blocked",
+      });
+    }
     next(error);
   }
 };
@@ -345,6 +358,30 @@ const getUserSocialCounts = async (req, res, next) => {
   }
 };
 
+const getBlockers = async (req, res, next) => {
+  try {
+    const userId = req.user._id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    if (page < 1 || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid page or limit parameters",
+      });
+    }
+
+    const result = await socialService.getBlockers(userId, page, limit);
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   followUser,
   unfollowUser,
@@ -359,6 +396,7 @@ export default {
   unblockUser,
   getBlockedUsers,
   getAllBlockedUsers,
+  getBlockers,
   updateBlockReason,
   getUserSocialCounts,
 };
