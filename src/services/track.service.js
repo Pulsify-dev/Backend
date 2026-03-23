@@ -67,7 +67,7 @@ const getTrackById = async (trackId, userId) => {
   if(userId){
   track = await trackRepository.findById(trackId);
   if (!track) throw new NotFoundError("Track not found.");
-  if (track.is_private) {
+  if (track.visibility === "private") {
     if (track.artist_id.toString() === userId.toString()) {
       return track;
     } else {
@@ -101,8 +101,33 @@ const updateTrack = async (trackId, userId, updateData) => {
   return updatedTrack;
 }
 
+const deleteTrack = async (trackId, userId) => {
+  const track = await trackRepository.findById(trackId);
+  if (!track) throw new NotFoundError("Track not found.");
+  if (track.artist_id.toString() !== userId.toString()) {
+    throw new ForbiddenError("You are not the owner of this track.");
+  }
+  // Delete audio and artwork from S3
+  if (track.artwork_url && !track.artwork_url.includes("default-artwork")) {
+    await S3Utils.deleteFromS3(track.artwork_url);
+  }
+  await S3Utils.deleteFromS3(track.audio_url);
+  // Delete track from database
+  await trackRepository.deleteById(trackId);
+  return { message: "Track successfully deleted." };
+};
+
+const getTracksByArtistId = async (artistId, page, limit) => {
+  if (!artistId) throw new BadRequestError("Artist ID is required.");
+  const tracks = await trackRepository.findByArtistId(artistId, page, limit);
+  const total = await trackRepository.countByArtistId(artistId);
+  return { tracks, total };
+}
+
 export default {
   createTrack,
   getTrackById,
   updateTrack,
+  deleteTrack,
+  getTracksByArtistId,
 };

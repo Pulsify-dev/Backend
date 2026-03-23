@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { BadRequestError } from "./errors.js";
 
 const s3 = new S3Client({
@@ -9,6 +9,11 @@ const s3 = new S3Client({
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
+
+const extractS3KeyFromUrl = (url) => {
+  const urlParts = url.split("/");
+  return urlParts.slice(3).join("/"); // Skip the bucket name and region
+}
 
 const uploadToS3 = async (file, folder) => {
   const bucketName = process.env.AWS_S3_BUCKET;
@@ -27,6 +32,21 @@ const uploadToS3 = async (file, folder) => {
   }
 };
 
+const deleteFromS3 = async (fileURL) => {
+  const bucketName = process.env.AWS_S3_BUCKET;
+  const key = extractS3KeyFromUrl(fileURL);
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+  };
+  try {
+    await s3.send(new DeleteObjectCommand(params));
+  } catch (error) {
+    throw new BadRequestError("Failed to delete from S3.");
+  }
+};
+
 export default {
   uploadToS3,
+  deleteFromS3,
 };

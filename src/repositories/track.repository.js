@@ -4,6 +4,9 @@ const findById = function (id, extraFields = "") {
   return Track.findById(id).select(extraFields);
 };
 
+const findPublicById = function (id, extraFields = "") {
+return Track.findOne({ _id: id, visibility: "public", is_hidden: false }).select(extraFields);}
+
 const updateTrackById = function (id, updatedPatch) {
   return Track.findByIdAndUpdate(id, updatedPatch, {
     new: true,
@@ -40,8 +43,10 @@ const searchTracks = async (q, page, limit) => {
   return { tracks, total };
 };
 
-const findByArtistId = function (artistId, extraFields = "") {
-  return Track.find({ artist_id: artistId }).select(extraFields).lean();
+const findByArtistId = function (artistId, page = 1, limit = 20,extraFields = "") {
+  const filter = { artist_id: artistId, is_hidden: false };
+  const skip = (page - 1) * limit;
+  return Track.find(filter).select(extraFields).skip(skip).limit(limit).lean();
 };
 
 const countByArtistId = function (artistId) {
@@ -57,4 +62,5 @@ export default {
   findByArtistId,
   countByArtistId,
   createTrack,
+  findPublicById,
 };
