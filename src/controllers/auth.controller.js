@@ -86,6 +86,21 @@ class AuthController {
       next(error);
     }
   };
+  logout = async (req, res, next) => {
+    try {
+      const { refresh_token } = req.body;
+
+      if (!refresh_token) {
+        return res.status(400).json({ error: "Refresh token is required." });
+      }
+
+      await this.authService.logoutUser(refresh_token);
+
+      return res.status(200).json({ message: "Logged out successfully." });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
 
 export default AuthController;
