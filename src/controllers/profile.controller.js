@@ -116,6 +116,34 @@ const searchUsers = async (req, res, next) => {
     next(err);
   }
 };
+// PUT /users/me/password
+const changePassword = async (req, res, next) => {
+  try {
+    const { old_password, new_password } = req.body;
+
+    if (!old_password || !new_password) {
+      return res
+        .status(400)
+        .json({ message: "old_password and new_password are required." });
+    }
+
+    if (old_password === new_password) {
+      return res.status(400).json({
+        message: "New password must be different from the old password.",
+      });
+    }
+
+    const result = await profileService.changePassword(
+      req.user.user_id,
+      old_password,
+      new_password,
+    );
+
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
 
 export default {
   getPublicProfile,
@@ -127,4 +155,5 @@ export default {
   initiateEmailChange,
   confirmEmailChange,
   searchUsers,
+  changePassword,
 };
