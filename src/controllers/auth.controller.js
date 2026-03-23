@@ -22,6 +22,11 @@ class AuthController {
   login = async (req, res, next) => {
     try {
       const { email, password } = req.body;
+      if (!email || !password) {
+        return res
+          .status(400)
+          .json({ error: "Bad Request: Email and password are required." });
+      }
       const result = await this.authService.loginUser(email, password);
       return res.status(200).json(result);
     } catch (error) {
