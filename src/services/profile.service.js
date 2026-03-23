@@ -10,7 +10,7 @@ import {
 } from "../utils/errors.js";
 
 import photoUtils from "../utils/photo.utils.js";
-
+import bcrypt from "bcryptjs";
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const COVER_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -163,7 +163,21 @@ const searchUsers = async (q, page = 1, limit = 20) => {
     pagination: { page, limit, total },
   };
 };
+const changePassword = async (userId, oldPassword, newPassword) => {
+  const user = await userRepository.findById(userId, "+password");
+  if (!user) throw new NotFoundError("User not found.");
 
+  const isMatch = await user.comparePassword(oldPassword, user.password);
+  if (!isMatch) throw new ForbiddenError("Incorrect old password.");
+
+  const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+  await userRepository.updateById(userId, {
+    password: hashedNewPassword,
+  });
+
+  return { message: "Password updated successfully." };
+};
 export default {
   getPublicProfile,
   getMyProfile,
@@ -173,4 +187,5 @@ export default {
   confirmEmailChange,
   uploadProfileImage,
   searchUsers,
+  changePassword,
 };

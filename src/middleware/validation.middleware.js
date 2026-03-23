@@ -89,7 +89,10 @@ const validate = (schema, source = "body") => {
     next();
   };
 };
-
+const changePasswordSchema = Joi.object({
+  old_password: Joi.string().required(),
+  new_password: Joi.string().min(8).required(),
+});
 export default {
   validateUpdateProfile: validate(updateProfileSchema, "body"),
   validateMongoId: validate(mongoIdSchema, "params"),
@@ -97,4 +100,5 @@ export default {
   validateEmailChange: validate(emailChangeSchema, "body"),
   validateTokenQuery: validate(tokenQuerySchema, "query"),
   validateSearchQuery: validate(searchQuerySchema, "query"),
+  validateChangePassword: validate(changePasswordSchema, "body"),
 };

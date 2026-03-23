@@ -69,6 +69,7 @@ class AuthService {
       user_id: user._id,
     });
 
+    await this.userRepository.updateRefreshToken(user._id, refreshToken);
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -164,6 +165,14 @@ class AuthService {
     return {
       message: "Password has been successfully reset. You can now log in.",
     };
+  }
+  async logoutUser(refreshToken) {
+    const user = await this.userRepository.findByRefreshToken(refreshToken);
+
+    if (user) {
+      await this.userRepository.updateRefreshToken(user._id, null);
+    }
+    return true;
   }
 }
 

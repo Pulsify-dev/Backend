@@ -176,6 +176,10 @@ const userSchema = mongoose.Schema(
       default: null,
       select: false,
     },
+    refresh_token: {
+      type: String,
+      default: null,
+    },
     pending_email: {
       type: String,
       default: null,

@@ -68,6 +68,17 @@ const findByPasswordResetToken = function (token) {
     password_reset_expires: { $gt: Date.now() },
   });
 };
+const findByRefreshToken = function (token) {
+  return User.findOne({ refresh_token: token });
+};
+
+const updateRefreshToken = function (id, token) {
+  return User.findByIdAndUpdate(
+    id,
+    { refresh_token: token },
+    { returnDocument: "after" },
+  );
+};
 export default {
   findById,
   updateById,
@@ -79,4 +90,6 @@ export default {
   create,
   usernameExists,
   findByPasswordResetToken,
+  findByRefreshToken,
+  updateRefreshToken,
 };
