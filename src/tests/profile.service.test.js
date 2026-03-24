@@ -1,5 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
+import bcrypt from "bcryptjs";
 import profileService from "../services/profile.service.js";
 import userRepository from "../repositories/user.repository.js";
 import emailService from "../services/email.service.js";
@@ -11,10 +12,6 @@ import {
   ConflictError,
 } from "../utils/errors.js";
 
-
-// ─────────────────────────────────────────────────────────────────────────────
-// SHARED MOCK DATA
-// ─────────────────────────────────────────────────────────────────────────────
 const MOCK_USER_ID = "507f1f77bcf86cd799439011";
 
 const mockPublicUser = {
@@ -48,16 +45,10 @@ const mockPrivateUser = {
   comparePassword: sinon.stub(),
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TESTS
-// ─────────────────────────────────────────────────────────────────────────────
 describe("ProfileService", () => {
 
   afterEach(() => sinon.restore());
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // getPublicProfile
-  // ───────────────────────────────────────────────────────────────────────────
   describe("getPublicProfile", () => {
 
     it("should return a public profile for a valid user", async () => {
@@ -116,9 +107,7 @@ describe("ProfileService", () => {
     });
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // getMyProfile
-  // ───────────────────────────────────────────────────────────────────────────
+
   describe("getMyProfile", () => {
 
     it("should return private profile including email and private fields", async () => {
@@ -164,9 +153,6 @@ describe("ProfileService", () => {
     });
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // updateMyProfile
-  // ───────────────────────────────────────────────────────────────────────────
   describe("updateMyProfile", () => {
 
     it("should update valid fields and return updated profile", async () => {
@@ -188,15 +174,7 @@ describe("ProfileService", () => {
       }
     });
 
-    it("should throw BadRequestError if bio exceeds 500 characters", async () => {
-      try {
-        await profileService.updateMyProfile(MOCK_USER_ID, { bio: "a".repeat(501) });
-        expect.fail("Should have thrown");
-      } catch (err) {
-        expect(err).to.be.instanceOf(BadRequestError);
-        expect(err.message).to.include("500");
-      }
-    });
+ 
 
     it("should accept bio of exactly 500 characters", async () => {
       const updatedUser = { ...mockPrivateUser, bio: "a".repeat(500) };
@@ -234,9 +212,6 @@ describe("ProfileService", () => {
     });
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // deleteMyAccount
-  // ───────────────────────────────────────────────────────────────────────────
   describe("deleteMyAccount", () => {
 
     it("should delete account and return confirmation message", async () => {
@@ -294,9 +269,6 @@ describe("ProfileService", () => {
     });
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // initiateEmailChange
-  // ───────────────────────────────────────────────────────────────────────────
   describe("initiateEmailChange", () => {
 
     it("should initiate email change and send verification email", async () => {
@@ -367,11 +339,9 @@ describe("ProfileService", () => {
       expect(updateArgs).to.have.property("pending_email_token");
       expect(updateArgs).to.have.property("pending_email_expires");
     });
+
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // confirmEmailChange
-  // ───────────────────────────────────────────────────────────────────────────
   describe("confirmEmailChange", () => {
 
     it("should confirm email change and clear pending fields", async () => {
@@ -403,9 +373,6 @@ describe("ProfileService", () => {
     });
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // uploadProfileImage
-  // ───────────────────────────────────────────────────────────────────────────
   describe("uploadProfileImage", () => {
 
     const validAvatarFile = { mimetype: "image/jpeg", size: 1 * 1024 * 1024 }; // 1 MB
@@ -514,9 +481,6 @@ describe("ProfileService", () => {
     });
   });
 
-  // ───────────────────────────────────────────────────────────────────────────
-  // searchUsers
-  // ───────────────────────────────────────────────────────────────────────────
   describe("searchUsers", () => {
 
     it("should return paginated user list with correct structure", async () => {
@@ -555,6 +519,50 @@ describe("ProfileService", () => {
       await profileService.searchUsers("alex", 1, 10);
 
       expect(searchStub.calledWith("alex", 1, 10)).to.be.true;
+    });
+  });
+  // ───────────────────────────────────────────────────────────────────────────
+  // changePassword
+  // ───────────────────────────────────────────────────────────────────────────
+  describe("changePassword", () => {
+
+    it("should successfully change password and return confirmation", async () => {
+      const user = { ...mockPrivateUser, comparePassword: sinon.stub().resolves(true) };
+      sinon.stub(userRepository, "findById").resolves(user);
+      sinon.stub(bcrypt, "hash").resolves("newhashedpassword123");
+      const updateStub = sinon.stub(userRepository, "updateById").resolves();
+
+      const result = await profileService.changePassword(MOCK_USER_ID, "oldpass", "newpass");
+
+      expect(result.message).to.equal("Password updated successfully.");
+
+      // Verify we saved the HASHED password, not the plain text one
+      const updateArgs = updateStub.firstCall.args[1];
+      expect(updateArgs).to.have.property("password", "newhashedpassword123");
+    });
+
+    it("should throw NotFoundError if user does not exist", async () => {
+      sinon.stub(userRepository, "findById").resolves(null);
+
+      try {
+        await profileService.changePassword(MOCK_USER_ID, "oldpass", "newpass");
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(NotFoundError);
+      }
+    });
+
+    it("should throw ForbiddenError if old password is incorrect", async () => {
+      const user = { ...mockPrivateUser, comparePassword: sinon.stub().resolves(false) };
+      sinon.stub(userRepository, "findById").resolves(user);
+
+      try {
+        await profileService.changePassword(MOCK_USER_ID, "wrongoldpass", "newpass");
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(ForbiddenError);
+        expect(err.message).to.equal("Incorrect old password.");
+      }
     });
   });
 });

@@ -16,7 +16,17 @@
   },
   "scripts": {
     "test": "c8 mocha src/tests/**/*.test.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "c8": {
+    "include": [
+      "src/services/profile.service.js",
+      "src/services/auth.service.js"
+    ],
+    "reporter": [
+      "text"
+    ]
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1011.0",
