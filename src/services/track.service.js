@@ -9,7 +9,7 @@ import {
   ForbiddenError,
   UnauthorizedError,
   ConflictError,
-} from "../utils/errors.js";
+} from "../utils/errors.utils.js";
 
 const ALLOWED_AUDIO_TYPES = [
   "audio/mp3",

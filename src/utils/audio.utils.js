@@ -1,5 +1,5 @@
 import mm from "music-metadata";
-import { BadRequestError } from "../utils/errors.js";
+import { BadRequestError } from "./errors.utils.js";
 
 const extractAudioMetadata = async (audioBuffer) => {
   try {

@@ -1,5 +1,5 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { BadRequestError } from "./errors.js";
+import { BadRequestError } from "./errors.utils.js";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
