@@ -52,7 +52,6 @@ router.get(
 );
 
 //public routes
-router.get("/confirm-email-change", profileController.confirmEmailChange);
 router.get(
   "/",
   validationMiddleware.validateSearchQuery,
