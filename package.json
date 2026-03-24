@@ -15,7 +15,7 @@
     "url": "git+https://github.com/Pulsify-dev/Backend.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "c8 mocha --recursive --exit \"src/tests/**/*.test.js\"",
     "start": "node server.js",
     "dev": "nodemon server.js"
   },
@@ -33,7 +33,11 @@
     "multer": "^2.1.1"
   },
   "devDependencies": {
+    "c8": "^11.0.0",
+    "chai": "^6.2.2",
+    "mocha": "^11.7.5",
     "nodemon": "^3.1.14",
-    "prettier": "^3.8.1"
+    "prettier": "^3.8.1",
+    "sinon": "^21.0.3"
   }
 }
