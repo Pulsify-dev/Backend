@@ -2,7 +2,7 @@ import socialService from "../services/social.service.js";
 
 const followUser = async (req, res, next) => {
   try {
-    const followerId = req.user._id;
+    const followerId = req.user.user_id;
     const followingId = req.params.user_id;
 
     if (followerId.toString() === followingId) {
@@ -20,13 +20,20 @@ const followUser = async (req, res, next) => {
       data: follow,
     });
   } catch (error) {
+    console.error("Follow User Error:", error.message, error.stack);
+    if (error.message === "Already following this user") {
+      return res.status(409).json({
+        success: false,
+        message: "Already following this user",
+      });
+    }
     next(error);
   }
 };
 
 const unfollowUser = async (req, res, next) => {
   try {
-    const followerId = req.user._id;
+    const followerId = req.user.user_id;
     const followingId = req.params.user_id;
 
     const result = await socialService.unfollowUser(followerId, followingId);
@@ -121,7 +128,7 @@ const getAllFollowing = async (req, res, next) => {
 
 const getSuggestedUsers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
 
@@ -145,7 +152,7 @@ const getSuggestedUsers = async (req, res, next) => {
 
 const getRelationshipStatus = async (req, res, next) => {
   try {
-    const userId1 = req.user._id;
+    const userId1 = req.user.user_id;
     const userId2 = req.params.user_id;
 
     if (userId1.toString() === userId2) {
@@ -171,7 +178,7 @@ const getRelationshipStatus = async (req, res, next) => {
 
 const getMutualFollowers = async (req, res, next) => {
   try {
-    const userId1 = req.user._id;
+    const userId1 = req.user.user_id;
     const userId2 = req.params.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -208,7 +215,7 @@ const getMutualFollowers = async (req, res, next) => {
 
 const blockUser = async (req, res, next) => {
   try {
-    const blockerId = req.user._id;
+    const blockerId = req.user.user_id;
     const blockedId = req.params.user_id;
     const { reason } = req.body || {};
 
@@ -234,13 +241,20 @@ const blockUser = async (req, res, next) => {
       data: block,
     });
   } catch (error) {
+    // Handle "User is already blocked" error - return 409 Conflict
+    if (error.message === "User is already blocked") {
+      return res.status(409).json({
+        success: false,
+        message: "User is already blocked",
+      });
+    }
     next(error);
   }
 };
 
 const unblockUser = async (req, res, next) => {
   try {
-    const blockerId = req.user._id;
+    const blockerId = req.user.user_id;
     const blockedId = req.params.user_id;
 
     const result = await socialService.unblockUser(blockerId, blockedId);
@@ -257,7 +271,7 @@ const unblockUser = async (req, res, next) => {
 
 const getBlockedUsers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
 
@@ -281,7 +295,7 @@ const getBlockedUsers = async (req, res, next) => {
 
 const getAllBlockedUsers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
 
     const result = await socialService.getAllBlockedUsers(userId);
 
@@ -296,7 +310,7 @@ const getAllBlockedUsers = async (req, res, next) => {
 
 const updateBlockReason = async (req, res, next) => {
   try {
-    const blockerId = req.user._id;
+    const blockerId = req.user.user_id;
     const blockedId = req.params.user_id;
     const { reason } = req.body;
 
@@ -345,6 +359,30 @@ const getUserSocialCounts = async (req, res, next) => {
   }
 };
 
+const getBlockers = async (req, res, next) => {
+  try {
+    const userId = req.user.user_id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+
+    if (page < 1 || limit < 1 || limit > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid page or limit parameters",
+      });
+    }
+
+    const result = await socialService.getBlockers(userId, page, limit);
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   followUser,
   unfollowUser,
@@ -359,6 +397,7 @@ export default {
   unblockUser,
   getBlockedUsers,
   getAllBlockedUsers,
+  getBlockers,
   updateBlockReason,
   getUserSocialCounts,
 };

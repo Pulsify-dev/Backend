@@ -1,43 +1,48 @@
-// for testing
-// import express from 'express';
-// import socialController from '../controllers/social.controller.js';
-// import authMiddleware from '../middleware/auth.middleware.js';
+import express from 'express';
+import socialController from '../controllers/social.controller.js';
+import authMiddleware from '../middleware/auth.middleware.js';
 
-// const router = express.Router();
+const router = express.Router();
 
-// //follow a user
-// router.post('/:user_id/follow', authMiddleware, socialController.followUser);
 
-// //unfollow a user
-// router.delete('/:user_id/follow', authMiddleware, socialController.unfollowUser);
+//suggested users to follow
+router.get('/me/suggested', authMiddleware.requireAuth, socialController.getSuggestedUsers);
 
-// //get followers list
-// router.get('/:user_id/followers', socialController.getFollowers);
+// blocked users list
+router.get('/me/blocked', authMiddleware.requireAuth, socialController.getBlockedUsers);
 
-// //following list
-// router.get('/:user_id/following', socialController.getFollowing);
+//get users who have blocked you
+router.get('/me/blockers', authMiddleware.requireAuth, socialController.getBlockers);
 
-// //siggested users to follow
-// router.get('/suggestions', authMiddleware, socialController.getSuggestedUsers);
 
-// // router.get('/:user_id/relationship', authMiddleware, socialController.getRelationshipStatus);
+//follow a user
+router.post('/:user_id/follow', authMiddleware.requireAuth, socialController.followUser);
 
-// //mutual followers
-// router.get('/:user_id/mutual-followers', authMiddleware, socialController.getMutualFollowers);
+//unfollow a user
+router.delete('/:user_id/follow', authMiddleware.requireAuth, socialController.unfollowUser);
 
-// //block a user
-// router.post('/:user_id/block', authMiddleware, socialController.blockUser);
+//get followers list
+router.get('/:user_id/followers', socialController.getFollowers);
 
-// //unblock
-// router.delete('/:user_id/block', authMiddleware, socialController.unblockUser);
+//following list
+router.get('/:user_id/following', socialController.getFollowing);
 
-// //update block reason
-// router.patch('/:user_id/block', authMiddleware, socialController.updateBlockReason);
+//get relationship status
+router.get('/:user_id/relationship', authMiddleware.requireAuth, socialController.getRelationshipStatus);
 
-// // blocked users list
-// router.get('/me/blocked', authMiddleware, socialController.getBlockedUsers);
+//mutual followers
+router.get('/:user_id/mutual-followers', authMiddleware.requireAuth, socialController.getMutualFollowers);
 
-// //get user social counts
-// router.get('/:user_id/social-counts', socialController.getUserSocialCounts);
+//block a user
+router.post('/:user_id/block', authMiddleware.requireAuth, socialController.blockUser);
 
-// export default router;
+//unblock
+router.delete('/:user_id/block', authMiddleware.requireAuth, socialController.unblockUser);
+
+//update block reason
+router.patch('/:user_id/block', authMiddleware.requireAuth, socialController.updateBlockReason);
+
+//get user social counts
+router.get('/:user_id/social-counts', socialController.getUserSocialCounts);
+
+export default router;

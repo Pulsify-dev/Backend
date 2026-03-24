@@ -39,6 +39,12 @@ router.put(
   validationMiddleware.validateEmailChange,
   profileController.initiateEmailChange,
 );
+router.put(
+  "/me/password",
+  authMiddleware.requireAuth,
+  validationMiddleware.validateChangePassword,
+  profileController.changePassword,
+);
 router.get(
   "/confirm-email-change",
   validationMiddleware.validateTokenQuery,
