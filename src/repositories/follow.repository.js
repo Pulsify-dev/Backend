@@ -5,7 +5,6 @@ const createFollow = async (followerId, followingId) => {
   const follow = await Follow.create({
     follower_id: followerId,
     following_id: followingId,
-    status: "active",
   });
   return follow;
 };

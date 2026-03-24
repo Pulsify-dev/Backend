@@ -2,7 +2,7 @@ import socialService from "../services/social.service.js";
 
 const followUser = async (req, res, next) => {
   try {
-    const followerId = req.user._id;
+    const followerId = req.user.user_id;
     const followingId = req.params.user_id;
 
     if (followerId.toString() === followingId) {
@@ -20,6 +20,7 @@ const followUser = async (req, res, next) => {
       data: follow,
     });
   } catch (error) {
+    console.error("Follow User Error:", error.message, error.stack);
     if (error.message === "Already following this user") {
       return res.status(409).json({
         success: false,
@@ -32,7 +33,7 @@ const followUser = async (req, res, next) => {
 
 const unfollowUser = async (req, res, next) => {
   try {
-    const followerId = req.user._id;
+    const followerId = req.user.user_id;
     const followingId = req.params.user_id;
 
     const result = await socialService.unfollowUser(followerId, followingId);
@@ -127,7 +128,7 @@ const getAllFollowing = async (req, res, next) => {
 
 const getSuggestedUsers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
 
@@ -151,7 +152,7 @@ const getSuggestedUsers = async (req, res, next) => {
 
 const getRelationshipStatus = async (req, res, next) => {
   try {
-    const userId1 = req.user._id;
+    const userId1 = req.user.user_id;
     const userId2 = req.params.user_id;
 
     if (userId1.toString() === userId2) {
@@ -177,7 +178,7 @@ const getRelationshipStatus = async (req, res, next) => {
 
 const getMutualFollowers = async (req, res, next) => {
   try {
-    const userId1 = req.user._id;
+    const userId1 = req.user.user_id;
     const userId2 = req.params.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
@@ -214,7 +215,7 @@ const getMutualFollowers = async (req, res, next) => {
 
 const blockUser = async (req, res, next) => {
   try {
-    const blockerId = req.user._id;
+    const blockerId = req.user.user_id;
     const blockedId = req.params.user_id;
     const { reason } = req.body || {};
 
@@ -253,7 +254,7 @@ const blockUser = async (req, res, next) => {
 
 const unblockUser = async (req, res, next) => {
   try {
-    const blockerId = req.user._id;
+    const blockerId = req.user.user_id;
     const blockedId = req.params.user_id;
 
     const result = await socialService.unblockUser(blockerId, blockedId);
@@ -270,7 +271,7 @@ const unblockUser = async (req, res, next) => {
 
 const getBlockedUsers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
 
@@ -294,7 +295,7 @@ const getBlockedUsers = async (req, res, next) => {
 
 const getAllBlockedUsers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
 
     const result = await socialService.getAllBlockedUsers(userId);
 
@@ -309,7 +310,7 @@ const getAllBlockedUsers = async (req, res, next) => {
 
 const updateBlockReason = async (req, res, next) => {
   try {
-    const blockerId = req.user._id;
+    const blockerId = req.user.user_id;
     const blockedId = req.params.user_id;
     const { reason } = req.body;
 
@@ -360,7 +361,7 @@ const getUserSocialCounts = async (req, res, next) => {
 
 const getBlockers = async (req, res, next) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.user_id;
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 20;
 

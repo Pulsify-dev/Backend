@@ -29,11 +29,10 @@ const blockSchema = mongoose.Schema(
 blockSchema.index({ blocker_id: 1, blocked_id: 1 }, { unique: true });
 
 //user cant block himself
-blockSchema.pre("save", async function (next) {
+blockSchema.pre("save", async function () {
   if (this.blocker_id.equals(this.blocked_id)) {
     throw new Error("Cannot block yourself");
   }
-  next();
 });
 
 const Block = mongoose.model("Block", blockSchema);
