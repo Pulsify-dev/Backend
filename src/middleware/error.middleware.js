@@ -1,4 +1,4 @@
-import { AppError, NotFoundError } from "../utils/errors.js";
+import { AppError, NotFoundError } from "../utils/errors.utils.js";
 
 const errorHandler = (err, req, res, next) => {
   // Default to 500 internal server error
