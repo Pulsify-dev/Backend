@@ -27,3 +27,10 @@ temp/
 
 # Postman files (local testing only)
 /Local_Postman
+
+# Coverage reports
+coverage/
+
+# Markdown files (except README)
+*.md
+!README.md
