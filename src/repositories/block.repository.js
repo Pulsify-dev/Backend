@@ -117,7 +117,7 @@ const updateBlockReason = async (blockerId, blockedId, reason) => {
       blocked_id: blockedId,
     },
     { reason },
-    { new: true },
+    { returnDocument: 'after' },
   );
 };
 
