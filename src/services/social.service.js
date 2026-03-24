@@ -295,6 +295,11 @@ const unblockUser = async (blockerId, blockedId) => {
 };
 
 const getBlockedUsersList = async (userId, page = 1, limit = 20) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw new Error("User not found");
+  }
+  
   return blockRepository.getBlockedUsers(userId, page, limit);
 };
 
