@@ -10,7 +10,7 @@ import {
   ForbiddenError,
   UnauthorizedError,
   ConflictError,
-} from "../utils/errors.js";
+} from "../utils/errors.utils.js";
 
 const MOCK_USER_ID = "507f1f77bcf86cd799439011";
 

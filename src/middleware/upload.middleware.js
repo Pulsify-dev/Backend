@@ -1,5 +1,5 @@
 import multer from "multer";
-import { BadRequestError } from "../utils/errors.js";
+import { BadRequestError } from "../utils/errors.utils.js";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const ALLOWED_AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/flac", "audio/aac"];
