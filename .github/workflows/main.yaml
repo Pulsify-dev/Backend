@@ -36,7 +36,7 @@ jobs:
               --name pulsify-api \
               -p 3000:3000 \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
-              -e MONGO_URI="${{ secrets.MONGO_URI }}" \
+              -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
               -e PORT=3000 \
               -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
               -e AWS_REGION="${{ secrets.AWS_REGION }}" \
