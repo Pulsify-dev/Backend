@@ -6,7 +6,7 @@ import {
   ForbiddenError,
   ConflictError,
   NotFoundError,
-} from "../utils/errors.js";
+} from "../utils/errors.utils.js";
 class AuthService {
   constructor(userRepository, tokenUtility, emailService, captchaService) {
     this.userRepository = userRepository;

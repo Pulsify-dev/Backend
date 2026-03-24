@@ -7,7 +7,7 @@ import {
   ForbiddenError,
   UnauthorizedError,
   ConflictError,
-} from "../utils/errors.js";
+} from "../utils/errors.utils.js";
 
 import photoUtils from "../utils/photo.utils.js";
 import bcrypt from "bcryptjs";

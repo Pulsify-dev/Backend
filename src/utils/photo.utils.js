@@ -1,4 +1,4 @@
-import { BadRequestError } from "./errors.js";
+import { BadRequestError } from "./errors.utils.js";
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 
 const validateImageFile = (file, maxBytes) => {
