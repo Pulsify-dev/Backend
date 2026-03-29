@@ -1,4 +1,4 @@
-import { BadRequestError } from "../utils/errors.js";
+import { BadRequestError } from "../utils/errors.utils.js";
 
 
 const paginate = (req, res, next) => {

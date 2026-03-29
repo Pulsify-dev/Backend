@@ -50,6 +50,12 @@ export const coverUpload = multer({
   fileFilter: imageFileFilter,
 }).single("file");
 
+export const trackArtworkUpload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB (per API doc for track artwork)
+  fileFilter: imageFileFilter,
+}).single("file");
+
 export const trackUpload = multer({
   storage,
   limits: { fileSize: 30 * 1024 * 1024 }, // 30 MB

@@ -19,6 +19,7 @@ const ALLOWED_AUDIO_TYPES = [
 ];
 const MAX_AUDIO_BYTES = 30 * 1024 * 1024; // 30 MB
 const MAX_COVER_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_ARTWORK_BYTES = 5 * 1024 * 1024; // 5 MB (for artwork replacement per API doc)
 
 const createTrack = async (userId, trackData, audioFile, coverFile) => {
   // Validate audio file
@@ -34,8 +35,12 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     throw new BadRequestError("Cover file is required.");
   }
   photoUtils.validateImageFile(coverFile, MAX_COVER_BYTES);
+
   // ========== STEP 3: EXTRACT AUDIO INFO ==========
   const audioMetadata = await audioUtils.extractAudioMetadata(audioFile.buffer);
+
+  // ========== STEP 3.5: EXTRACT WAVEFORM ==========
+  const waveform = await audioUtils.extractWaveform(audioFile.buffer);
 
   // ========== STEP 4: UPLOAD TO S3 ==========
   const audioUrl = await S3Utils.uploadToS3(audioFile, "audio");
@@ -54,6 +59,7 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     duration: audioMetadata.duration,
     file_size_bytes: audioFile.size,
     bitrate: audioMetadata.bitrate,
+    waveform: waveform,
     status: "finished",
   };
 
@@ -122,7 +128,60 @@ const getTracksByArtistId = async (artistId, page, limit) => {
   const tracks = await trackRepository.findByArtistId(artistId, page, limit);
   const total = await trackRepository.countByArtistId(artistId);
   return { tracks, total };
-}
+};
+
+const getTrackStatus = async (trackId, userId) => {
+  const track = await trackRepository.findById(trackId);
+  if (!track) throw new NotFoundError("Track not found.");
+  if (track.artist_id.toString() !== userId.toString()) {
+    throw new ForbiddenError("You are not the owner of this track.");
+  }
+  return {
+    track_id: track._id,
+    status: track.status,
+    progress_percent: null, // Future: add to model when transcoding is implemented
+    error_message: null,    // Future: add to model when transcoding is implemented
+  };
+};
+
+const getWaveform = async (trackId) => {
+  // Use "+waveform" to include the field that has select: false
+  const track = await trackRepository.findById(trackId, "+waveform");
+  if (!track) throw new NotFoundError("Track not found.");
+  return {
+    track_id: track._id,
+    peaks: track.waveform || [],
+    samples: track.waveform?.length || 0,
+  };
+};
+
+const updateArtwork = async (trackId, userId, artworkFile) => {
+  // Validate artwork file
+  if (!artworkFile) throw new BadRequestError("Artwork file is required.");
+  photoUtils.validateImageFile(artworkFile, MAX_ARTWORK_BYTES);
+
+  // Find track and verify ownership
+  const track = await trackRepository.findById(trackId);
+  if (!track) throw new NotFoundError("Track not found.");
+  if (track.artist_id.toString() !== userId.toString()) {
+    throw new ForbiddenError("You are not the owner of this track.");
+  }
+
+  // Delete old artwork from S3 (if not default)
+  if (track.artwork_url && !track.artwork_url.includes("default-artwork")) {
+    await S3Utils.deleteFromS3(track.artwork_url);
+  }
+
+  // Upload new artwork to S3
+  const newArtworkUrl = await S3Utils.uploadToS3(artworkFile, "artwork");
+
+  // Update track with new artwork URL
+  const updatedTrack = await trackRepository.updateTrackById(trackId, {
+    artwork_url: newArtworkUrl,
+  });
+
+  return { artwork_url: newArtworkUrl };
+};
 
 export default {
   createTrack,
@@ -130,4 +189,7 @@ export default {
   updateTrack,
   deleteTrack,
   getTracksByArtistId,
+  getTrackStatus,
+  getWaveform,
+  updateArtwork,
 };
