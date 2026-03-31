@@ -1,5 +1,6 @@
 import userRepository from "../repositories/user.repository.js";
 import emailService from "./email.service.js";
+import S3Utils from "../utils/s3.utils.js";
 import crypto from "crypto";
 import {
   BadRequestError,
@@ -145,15 +146,24 @@ const uploadProfileImage = async (userId, file, type) => {
   const maxBytes = type === "avatar" ? AVATAR_MAX_BYTES : COVER_MAX_BYTES;
   photoUtils.validateImageFile(file, maxBytes);
 
-  // Note: Temporary mock URL — replace with real AWS S3 upload once integrated
-  const mockCdnUrl = `https://cdn.pulsify.app/mock/${type}_${userId}_${Date.now()}.png`;
+  // Determine S3 folder and which DB field to update
+  const folder = type === "avatar" ? "users/avatars" : "users/covers";
+  const urlField = type === "avatar" ? "avatar_url" : "cover_url";
+  const defaultPlaceholder = type === "avatar" ? "avatar-url.png" : "cover-url.png";
 
-  const updateField =
-    type === "avatar" ? { avatar_url: mockCdnUrl } : { cover_url: mockCdnUrl };
+  // Delete old image from S3 (skip if it's the default placeholder)
+  const user = await userRepository.findById(userId);
+  const oldUrl = user[urlField];
+  if (oldUrl && oldUrl !== defaultPlaceholder) {
+    await S3Utils.deleteFromS3(oldUrl);
+  }
 
-  await userRepository.updateById(userId, updateField);
+  // Upload new image to S3
+  const newUrl = await S3Utils.uploadToS3(file, folder);
 
-  return { url: mockCdnUrl };
+  await userRepository.updateById(userId, { [urlField]: newUrl });
+
+  return { url: newUrl };
 };
 
 const searchUsers = async (q, page = 1, limit = 20) => {

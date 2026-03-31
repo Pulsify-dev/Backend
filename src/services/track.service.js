@@ -43,8 +43,8 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
   const waveform = await audioUtils.extractWaveform(audioFile.buffer);
 
   // ========== STEP 4: UPLOAD TO S3 ==========
-  const audioUrl = await S3Utils.uploadToS3(audioFile, "audio");
-  const artworkUrl = await S3Utils.uploadToS3(coverFile, "artwork");
+  const audioUrl = await S3Utils.uploadToS3(audioFile, "tracks/audio");
+  const artworkUrl = await S3Utils.uploadToS3(coverFile, "tracks/artwork");
 
   // ========== STEP 5: BUILD TRACK OBJECT ==========
   const trackObject = {
@@ -173,7 +173,7 @@ const updateArtwork = async (trackId, userId, artworkFile) => {
   }
 
   // Upload new artwork to S3
-  const newArtworkUrl = await S3Utils.uploadToS3(artworkFile, "artwork");
+  const newArtworkUrl = await S3Utils.uploadToS3(artworkFile, "tracks/artwork");
 
   // Update track with new artwork URL
   const updatedTrack = await trackRepository.updateTrackById(trackId, {
