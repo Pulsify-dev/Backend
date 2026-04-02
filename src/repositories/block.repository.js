@@ -1,6 +1,6 @@
-import Block from '../models/block.model.js';
+import Block from "../models/block.model.js";
 // create block relationship
-const createBlock = async (blockerId, blockedId, reason = '') => {
+const createBlock = async (blockerId, blockedId, reason = "") => {
   const block = await Block.create({
     blocker_id: blockerId,
     blocked_id: blockedId,
@@ -22,7 +22,7 @@ const deleteBlock = async (blockerId, blockedId) => {
     blocked_id: blockedId,
   });
 };
-//get users blocked by a certyain user 
+//get users blocked by a certyain user
 const getBlockedUsers = async (userId, page = 1, limit = 20) => {
   const skip = (page - 1) * limit;
 
@@ -30,8 +30,8 @@ const getBlockedUsers = async (userId, page = 1, limit = 20) => {
     blocker_id: userId,
   })
     .populate({
-      path: 'blocked_id',
-      select: 'id username display_name avatar_url is_verified',
+      path: "blocked_id",
+      select: "id username display_name avatar_url is_verified",
     })
     .skip(skip)
     .limit(limit)
@@ -54,8 +54,8 @@ const getAllBlockedUsers = async (userId) => {
     blocker_id: userId,
   })
     .populate({
-      path: 'blocked_id',
-      select: 'id username display_name avatar_url is_verified',
+      path: "blocked_id",
+      select: "id username display_name avatar_url is_verified",
     })
     .lean();
 
@@ -91,8 +91,8 @@ const getBlockers = async (userId, page = 1, limit = 20) => {
     blocked_id: userId,
   })
     .populate({
-      path: 'blocker_id',
-      select: 'id username display_name avatar_url is_verified',
+      path: "blocker_id",
+      select: "id username display_name avatar_url is_verified",
     })
     .skip(skip)
     .limit(limit)
@@ -117,7 +117,7 @@ const updateBlockReason = async (blockerId, blockedId, reason) => {
       blocked_id: blockedId,
     },
     { reason },
-    { new: true }
+    { returnDocument: 'after' },
   );
 };
 
@@ -126,8 +126,8 @@ const getBlockDetails = async (blockerId, blockedId) => {
     blocker_id: blockerId,
     blocked_id: blockedId,
   })
-    .populate('blocker_id', 'username display_name')
-    .populate('blocked_id', 'username display_name');
+    .populate("blocker_id", "username display_name")
+    .populate("blocked_id", "username display_name");
 };
 
 export default {

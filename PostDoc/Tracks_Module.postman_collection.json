@@ -1,0 +1,505 @@
+{
+  "info": {
+    "name": "4. 🎵 Tracks",
+    "description": "Upload and manage audio tracks, metadata, and artwork. All track audio and artwork files are stored in AWS S3 under `tracks/audio/` and `tracks/artwork/` respectively.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Create Track",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "audio_file", "type": "file", "src": "" },
+            { "key": "artwork_file", "type": "file", "src": "" },
+            { "key": "title", "value": "My Awesome Track", "type": "text" },
+            { "key": "genre", "value": "Electronic", "type": "text" },
+            { "key": "description", "value": "A brand new single from the studio.", "type": "text" },
+            { "key": "tags", "value": "chill", "type": "text" }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tracks",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks"]
+        },
+        "description": "## 1. Create Track\n\nUploads a new audio file and associated artwork to AWS S3, generates a permalink, extracts audio metadata (duration, bitrate, format), generates waveform peaks, and saves the track to the database.\n\n**Authentication:** Required\n\n### Form Data\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `audio_file` | File | Yes | Audio file (MP3, FLAC, WAV, AAC, max 30MB). |\n| `artwork_file` | File | Yes | Cover image (JPEG, PNG, WebP, max 10MB). |\n| `title` | String | Yes | Name of the track (max 100 chars). |\n| `genre` | String | Yes | Genre enum (Electronic, Hip-Hop, Rock, Pop, Jazz, etc.). |\n| `description` | String | No | Track description (max 200 chars). |\n| `tags` | String | No | Up to 20 tags (send multiple form fields with same key). |"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n    \"artist_id\": \"69c2cd6052b177221f688062\",\n    \"title\": \"My Awesome Track\",\n    \"permalink\": \"my-awesome-track-a1b2c3d4\",\n    \"description\": \"A brand new single from the studio.\",\n    \"genre\": \"Electronic\",\n    \"tags\": [\"chill\"],\n    \"audio_url\": \"https://bucket.s3.region.amazonaws.com/tracks/audio/1711843200_track.mp3\",\n    \"artwork_url\": \"https://bucket.s3.region.amazonaws.com/tracks/artwork/1711843200_cover.jpg\",\n    \"format\": \"mp3\",\n    \"duration\": 180,\n    \"file_size_bytes\": 5242880,\n    \"bitrate\": 320000,\n    \"status\": \"finished\",\n    \"visibility\": \"public\",\n    \"playback_state\": \"playable\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"comment_count\": 0,\n    \"trending_score\": 0,\n    \"createdAt\": \"2026-03-31T00:00:00.000Z\",\n    \"updatedAt\": \"2026-03-31T00:00:00.000Z\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Audio File",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Audio file is required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Audio Format",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Invalid audio format. Only MP3, FLAC, WAV, and AAC are allowed.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Audio Too Large",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Audio file exceeds the 30 MB limit.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Cover File",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Cover file is required.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Get Track by ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "description": "Optional — required only for private tracks owned by the caller"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":id"],
+          "variable": [{ "key": "id", "value": "track_id_123" }]
+        },
+        "description": "## 2. Get Track by ID\n\nRetrieves a single track by its ID. Public tracks are accessible without authentication. Private tracks require authentication and can only be viewed by the owner.\n\n**Authentication:** Optional\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"_id\": \"track_id_123\",\n    \"artist_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n    \"title\": \"My Awesome Track\",\n    \"permalink\": \"my-awesome-track-a1b2c3d4\",\n    \"description\": \"A brand new single from the studio.\",\n    \"genre\": \"Electronic\",\n    \"tags\": [],\n    \"audio_url\": \"https://bucket.s3.region.amazonaws.com/tracks/audio/1711843200_track.mp3\",\n    \"artwork_url\": \"https://bucket.s3.region.amazonaws.com/tracks/artwork/1711843200_cover.jpg\",\n    \"format\": \"mp3\",\n    \"duration\": 180,\n    \"file_size_bytes\": 5242880,\n    \"bitrate\": 320000,\n    \"status\": \"finished\",\n    \"visibility\": \"public\",\n    \"playback_state\": \"playable\",\n    \"is_hidden\": false,\n    \"play_count\": 42,\n    \"like_count\": 10,\n    \"repost_count\": 3,\n    \"comment_count\": 5,\n    \"trending_score\": 12.5,\n    \"createdAt\": \"2026-03-31T00:00:00.000Z\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Private Track (Not Owner)",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not the owner of this track.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Update Track Metadata",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"My Updated Track Title\",\n  \"genre\": \"Hip-Hop\",\n  \"description\": \"Updated description for the track.\",\n  \"tags\": [\"chill\", \"vibes\"],\n  \"visibility\": \"private\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":id"],
+          "variable": [{ "key": "id", "value": "track_id_123" }]
+        },
+        "description": "## 3. Update Track Metadata\n\nUpdates one or more metadata fields on a track. Only the track owner can perform this action.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |\n\n### Request Body (All Optional)\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `title` | String | New track title (max 100 chars). |\n| `genre` | String | Must match allowed genre enum. |\n| `description` | String | Max 200 chars. |\n| `tags` | Array | Up to 20 string tags. |\n| `visibility` | String | `public` or `private`. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"_id\": \"track_id_123\",\n    \"artist_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n    \"title\": \"My Updated Track Title\",\n    \"genre\": \"Hip-Hop\",\n    \"description\": \"Updated description for the track.\",\n    \"tags\": [\"chill\", \"vibes\"],\n    \"visibility\": \"private\",\n    \"status\": \"finished\",\n    \"permalink\": \"my-updated-track-title-d4e5f6g7\"\n}"
+        },
+        {
+          "name": "400 Bad Request – No Valid Fields",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"No valid fields to update.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – No Update Data",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"No update data provided.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Not Owner",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not the owner of this track.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Delete Track",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:id",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":id"],
+          "variable": [{ "key": "id", "value": "track_id_123" }]
+        },
+        "description": "## 4. Delete Track\n\nPermanently deletes a track, including its audio file and artwork from AWS S3. Only the track owner can perform this action.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Track successfully deleted.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Not Owner",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not the owner of this track.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Get Track Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:id/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":id", "status"],
+          "variable": [{ "key": "id", "value": "track_id_123" }]
+        },
+        "description": "## 5. Get Track Status\n\nPolls the transcoding status of a track after upload. Only the track owner can view the status. Recommended polling interval: 3-5 seconds.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |\n\n### Possible Status Values\n\n| Status | Description |\n|--------|-------------|\n| `processing` | Track is still being transcoded. |\n| `finished` | Transcoding complete, track is ready. |\n| `failed` | Transcoding failed. Check `error_message`. |"
+      },
+      "response": [
+        {
+          "name": "200 OK – Finished",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"track_id\": \"track_id_123\",\n    \"status\": \"finished\",\n    \"progress_percent\": null,\n    \"error_message\": null\n}"
+        },
+        {
+          "name": "200 OK – Processing",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"track_id\": \"track_id_123\",\n    \"status\": \"processing\",\n    \"progress_percent\": 65,\n    \"error_message\": null\n}"
+        },
+        {
+          "name": "200 OK – Failed",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"track_id\": \"track_id_123\",\n    \"status\": \"failed\",\n    \"progress_percent\": null,\n    \"error_message\": \"Unsupported codec detected.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Not Owner",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not the owner of this track.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "6. Get Waveform",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:id/waveform",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":id", "waveform"],
+          "variable": [{ "key": "id", "value": "track_id_123" }]
+        },
+        "description": "## 6. Get Waveform\n\nReturns the waveform peak data array for the audio player UI visualization. Each value is a float between 0.0 and 1.0. The `samples` field indicates how many data points are in the array (typically 200).\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"track_id\": \"track_id_123\",\n    \"peaks\": [0.12, 0.45, 0.78, 0.93, 0.56, 0.34, 0.67, 0.89, 0.23, 0.55],\n    \"samples\": 200\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "7. Update Track Artwork",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": "" }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:id/artwork",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":id", "artwork"],
+          "variable": [{ "key": "id", "value": "track_id_123" }]
+        },
+        "description": "## 7. Update Track Artwork\n\nReplaces the cover artwork of an existing track. The old artwork is deleted from S3 (unless it is the default). Only the track owner can perform this action.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |\n\n### Form Data\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `file` | File | Yes | New artwork image (JPEG, PNG, WebP, max 5MB). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"artwork_url\": \"https://bucket.s3.region.amazonaws.com/tracks/artwork/1711843200_new-cover.jpg\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing File",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Artwork file is required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Image",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Invalid image file. Only JPEG, PNG, and WebP are allowed.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Not Owner",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not the owner of this track.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "8. Get Artist Tracks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/artists/:id/tracks?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["artists", ":id", "tracks"],
+          "variable": [{ "key": "id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 8. Get Artist Tracks\n\nRetrieves all public, non-hidden tracks by a specific artist. Results are paginated.\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The artist's user ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"tracks\": [\n        {\n            \"_id\": \"track_id_123\",\n            \"artist_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"title\": \"My Awesome Track\",\n            \"permalink\": \"my-awesome-track-a1b2c3d4\",\n            \"genre\": \"Electronic\",\n            \"artwork_url\": \"https://bucket.s3.region.amazonaws.com/tracks/artwork/1711843200_cover.jpg\",\n            \"duration\": 180,\n            \"play_count\": 42,\n            \"like_count\": 10,\n            \"status\": \"finished\",\n            \"visibility\": \"public\",\n            \"createdAt\": \"2026-03-31T00:00:00.000Z\"\n        }\n    ],\n    \"total\": 1\n}"
+        },
+        {
+          "name": "200 OK – Empty Results",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"tracks\": [],\n    \"total\": 0\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Artist ID",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Artist ID is required.\"\n}"
+        }
+      ]
+    }
+  ]
+}

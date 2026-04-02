@@ -1,12 +1,12 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
-import { 
-  BadRequestError, 
-  UnauthorizedError, 
-  ForbiddenError, 
-  ConflictError, 
-  NotFoundError 
-} from "../utils/errors.js";
+import {
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  ConflictError,
+  NotFoundError,
+} from "../utils/errors.utils.js";
 class AuthService {
   constructor(userRepository, tokenUtility, emailService, captchaService) {
     this.userRepository = userRepository;
@@ -53,7 +53,8 @@ class AuthService {
     const user = await this.userRepository.findByEmailWithPassword(email);
     if (!user) throw new UnauthorizedError("Invalid credentials.");
 
-    if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
+    if (user.is_suspended)
+      throw new ForbiddenError("Forbidden: Suspended account.");
 
     const isPasswordValid = await user.comparePassword(password, user.password);
     if (!isPasswordValid) throw new UnauthorizedError("Invalid credentials.");
@@ -68,6 +69,7 @@ class AuthService {
       user_id: user._id,
     });
 
+    await this.userRepository.updateRefreshToken(user._id, refreshToken);
     return {
       access_token: accessToken,
       refresh_token: refreshToken,
@@ -99,12 +101,15 @@ class AuthService {
   async refreshUserToken(refreshToken) {
     const decoded = this.tokenUtility.verifyToken(refreshToken, true);
     if (!decoded || !decoded.user_id) {
-      throw new UnauthorizedError("Invalid or expired refresh token. Please log in again.");
+      throw new UnauthorizedError(
+        "Invalid or expired refresh token. Please log in again.",
+      );
     }
 
     const user = await this.userRepository.findById(decoded.user_id);
-    if (!user) throw new NotFoundError("User not found.");  
-    if (user.is_suspended) throw new ForbiddenError("Forbidden: Suspended account.");
+    if (!user) throw new NotFoundError("User not found.");
+    if (user.is_suspended)
+      throw new ForbiddenError("Forbidden: Suspended account.");
 
     const newAccessToken = this.tokenUtility.generateAccessToken({
       user_id: user._id,
@@ -160,6 +165,14 @@ class AuthService {
     return {
       message: "Password has been successfully reset. You can now log in.",
     };
+  }
+  async logoutUser(refreshToken) {
+    const user = await this.userRepository.findByRefreshToken(refreshToken);
+
+    if (user) {
+      await this.userRepository.updateRefreshToken(user._id, null);
+    }
+    return true;
   }
 }
 
