@@ -6,7 +6,7 @@ const findById = function (id, extraFields = "") {
 
 const updateTrackById = function (id, updatedPatch) {
   return Track.findByIdAndUpdate(id, updatedPatch, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 };

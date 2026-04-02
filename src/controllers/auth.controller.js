@@ -31,7 +31,7 @@ class AuthController {
 
   verifyEmail = async (req, res, next) => {
     try {
-      const { token } = req.body;
+      const token = req.body.token || req.query.token;
       if (!token) return res.status(400).json({ error: "Token is required." });
 
       const result = await this.authService.verifyEmail(token);

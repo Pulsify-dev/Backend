@@ -20,6 +20,7 @@ const authController = new AuthController(authService);
 
 router.post("/register", authController.register);
 router.post("/login", authController.login);
+router.get("/verify-email", authController.verifyEmail);
 router.post("/verify-email", authController.verifyEmail);
 router.post("/refresh", authController.refreshToken);
 router.post("/forgot-password", authController.forgotPassword);
