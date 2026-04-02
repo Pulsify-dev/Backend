@@ -44,25 +44,25 @@
 - 👤 **User Profiles** — Profile management, avatar/cover uploads to S3, search, and privacy controls
 - 🌐 **Social Graph** — Follow/unfollow, blocking, mutual followers, relationship status, and user discovery
 - 🎵 **Track Management** — Audio upload with metadata extraction, waveform generation, and artwork management
-- 🎧 **Playback & Streaming** — Pre-signed URL streaming, play history, and download *(in-progress)*
+- 🎧 **Playback & Streaming** — Pre-signed URL streaming, play history, and download _(in-progress)_
 
 ---
 
 ## 🛠 Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Runtime** | Node.js (ES Modules) |
-| **Framework** | Express 5 |
-| **Database** | MongoDB via Mongoose 9 |
-| **File Storage** | AWS S3 (`@aws-sdk/client-s3`) |
-| **Streaming** | Pre-signed URLs (`@aws-sdk/s3-request-presigner`) |
-| **Auth** | JWT (`jsonwebtoken`) + bcrypt |
-| **File Upload** | Multer (memory storage) |
-| **Audio Processing** | `music-metadata` + `fluent-ffmpeg` |
-| **Validation** | Joi |
-| **Testing** | Mocha + Chai + Sinon + c8 |
-| **Containerization** | Docker |
+| Layer                | Technology                                        |
+| -------------------- | ------------------------------------------------- |
+| **Runtime**          | Node.js (ES Modules)                              |
+| **Framework**        | Express 5                                         |
+| **Database**         | MongoDB via Mongoose 9                            |
+| **File Storage**     | AWS S3 (`@aws-sdk/client-s3`)                     |
+| **Streaming**        | Pre-signed URLs (`@aws-sdk/s3-request-presigner`) |
+| **Auth**             | JWT (`jsonwebtoken`) + bcrypt                     |
+| **File Upload**      | Multer (memory storage)                           |
+| **Audio Processing** | `music-metadata` + `fluent-ffmpeg`                |
+| **Validation**       | Joi                                               |
+| **Testing**          | Mocha + Chai + Sinon + c8                         |
+| **Containerization** | Docker                                            |
 
 ---
 
@@ -71,45 +71,45 @@
 Pulsify follows a **strict layered architecture** with clear separation of concerns. Each layer only communicates with the layer directly below it:
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      CLIENT                             │
-└─────────────────────┬───────────────────────────────────┘
+┌────────────────────────────────────────────────────────┐
+│                      CLIENT                            │
+└─────────────────────┬──────────────────────────────────┘
                       │ HTTP
-┌─────────────────────▼───────────────────────────────────┐
-│                    ROUTES                                │
-│         Route definitions + middleware wiring             │
-├─────────────────────┬───────────────────────────────────┤
-│                 MIDDLEWARE                                │
-│    Auth │ Validation │ Upload │ Pagination │ Error        │
-├─────────────────────┬───────────────────────────────────┤
-│                CONTROLLERS                               │
-│      Parse request → Call service → Send response         │
-├─────────────────────┬───────────────────────────────────┤
-│                 SERVICES                                 │
-│     Business logic, validation rules, orchestration       │
-├─────────────────────┬───────────────────────────────────┤
-│               REPOSITORIES                               │
-│          Database queries (Mongoose operations)           │
-├─────────────────────┬───────────────────────────────────┤
-│                  MODELS                                  │
-│         Mongoose schemas, indexes, hooks                  │
-├─────────────────────┬───────────────────────────────────┤
-│               UTILITIES                                  │
-│     S3 │ JWT │ Audio │ Photo │ Errors │ Email             │
-└─────────────────────┴───────────────────────────────────┘
+┌─────────────────────▼──────────────────────────────────┐
+│                       ROUTES                           │
+│         Route definitions + middleware wiring          │
+├─────────────────────┬──────────────────────────────────┤
+│                     MIDDLEWARE                         │
+│    Auth │ Validation │ Upload │ Pagination │ Error     │
+├────────────────────────────────────────────────────────┤
+│                    CONTROLLERS                         │
+│      Parse request → Call service → Send response      │
+├────────────────────────────────────────────────────────┤
+│                     SERVICES                           │
+│     Business logic, validation rules, orchestration    │
+├────────────────────────────────────────────────────────┤
+│                    REPOSITORIES                        │
+│          Database queries (Mongoose operations)        │
+├────────────────────────────────────────────────────────┤
+│                      MODELS                            │
+│         Mongoose schemas, indexes, hooks               │
+├────────────────────────────────────────────────────────┤
+│                     UTILITIES                          │
+│     S3 │ JWT │ Audio │ Photo │ Errors │ Email          │
+└────────────────────────────────────────────────────────┘
 ```
 
 ### Layer Responsibilities
 
-| Layer | Responsibility | Example |
-|-------|---------------|---------|
-| **Routes** | Map HTTP methods/paths to controllers, attach middleware | `router.post("/tracks", authMiddleware, uploadMiddleware, trackController.createTrack)` |
-| **Middleware** | Cross-cutting concerns: auth, validation, file parsing, pagination | `auth.middleware.js`, `upload.middleware.js` |
-| **Controllers** | Parse `req` params/body → delegate to service → format `res` | Thin — no business logic |
-| **Services** | All business logic: validation rules, S3 orchestration, data transformation | Track upload flow, password hashing, email change flow |
-| **Repositories** | Database abstraction — CRUD operations on models | `findById()`, `createTrack()`, `searchUsers()` |
-| **Models** | Mongoose schemas with field types, defaults, indexes, and hooks | `track.model.js`, `user.model.js` |
-| **Utilities** | Reusable helpers shared across layers | S3 upload/delete/presign, JWT sign/verify, audio metadata |
+| Layer            | Responsibility                                                              | Example                                                                                 |
+| ---------------- | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| **Routes**       | Map HTTP methods/paths to controllers, attach middleware                    | `router.post("/tracks", authMiddleware, uploadMiddleware, trackController.createTrack)` |
+| **Middleware**   | Cross-cutting concerns: auth, validation, file parsing, pagination          | `auth.middleware.js`, `upload.middleware.js`                                            |
+| **Controllers**  | Parse `req` params/body → delegate to service → format `res`                | Thin — no business logic                                                                |
+| **Services**     | All business logic: validation rules, S3 orchestration, data transformation | Track upload flow, password hashing, email change flow                                  |
+| **Repositories** | Database abstraction — CRUD operations on models                            | `findById()`, `createTrack()`, `searchUsers()`                                          |
+| **Models**       | Mongoose schemas with field types, defaults, indexes, and hooks             | `track.model.js`, `user.model.js`                                                       |
+| **Utilities**    | Reusable helpers shared across layers                                       | S3 upload/delete/presign, JWT sign/verify, audio metadata                               |
 
 ---
 
@@ -199,58 +199,62 @@ Backend/
 ## 🔌 API Modules
 
 ### Module 1 — 🔐 Authentication (`/auth`)
-| # | Method | Endpoint | Auth | Description |
-|---|--------|----------|------|-------------|
-| 1 | POST | `/auth/register` | ❌ | Create account + email verification |
-| 2 | POST | `/auth/login` | ❌ | Get access + refresh tokens |
-| 3 | POST | `/auth/verify-email` | ❌ | Verify email via JWT token |
-| 4 | POST | `/auth/refresh` | ❌ | Rotate token pair |
-| 5 | POST | `/auth/forgot-password` | ❌ | Send reset email |
-| 6 | POST | `/auth/reset-password` | ❌ | Apply new password |
-| 7 | POST | `/auth/logout` | ✅ | Invalidate refresh token |
+
+| #   | Method | Endpoint                | Auth | Description                         |
+| --- | ------ | ----------------------- | ---- | ----------------------------------- |
+| 1   | POST   | `/auth/register`        | ❌   | Create account + email verification |
+| 2   | POST   | `/auth/login`           | ❌   | Get access + refresh tokens         |
+| 3   | POST   | `/auth/verify-email`    | ❌   | Verify email via JWT token          |
+| 4   | POST   | `/auth/refresh`         | ❌   | Rotate token pair                   |
+| 5   | POST   | `/auth/forgot-password` | ❌   | Send reset email                    |
+| 6   | POST   | `/auth/reset-password`  | ❌   | Apply new password                  |
+| 7   | POST   | `/auth/logout`          | ✅   | Invalidate refresh token            |
 
 ### Module 2 — 👤 User Profiles (`/users`)
-| # | Method | Endpoint | Auth | Description |
-|---|--------|----------|------|-------------|
-| 1 | GET | `/users/me` | ✅ | Get own full profile |
-| 2 | PATCH | `/users/me` | ✅ | Update profile fields |
-| 3 | DELETE | `/users/me` | ✅ | Permanently delete account |
-| 4 | POST | `/users/me/avatar` | ✅ | Upload avatar (5MB max) |
-| 5 | POST | `/users/me/cover` | ✅ | Upload cover photo (10MB max) |
-| 6 | PUT | `/users/me/email` | ✅ | Initiate email change |
-| 7 | PUT | `/users/me/password` | ✅ | Change password |
-| 8 | GET | `/users/confirm-email-change` | ❌ | Confirm email change via token |
-| 9 | GET | `/users` | ❌ | Search users |
-| 10 | GET | `/users/:user_id` | ⚪ | Get public profile |
+
+| #   | Method | Endpoint                      | Auth | Description                    |
+| --- | ------ | ----------------------------- | ---- | ------------------------------ |
+| 1   | GET    | `/users/me`                   | ✅   | Get own full profile           |
+| 2   | PATCH  | `/users/me`                   | ✅   | Update profile fields          |
+| 3   | DELETE | `/users/me`                   | ✅   | Permanently delete account     |
+| 4   | POST   | `/users/me/avatar`            | ✅   | Upload avatar (5MB max)        |
+| 5   | POST   | `/users/me/cover`             | ✅   | Upload cover photo (10MB max)  |
+| 6   | PUT    | `/users/me/email`             | ✅   | Initiate email change          |
+| 7   | PUT    | `/users/me/password`          | ✅   | Change password                |
+| 8   | GET    | `/users/confirm-email-change` | ❌   | Confirm email change via token |
+| 9   | GET    | `/users`                      | ❌   | Search users                   |
+| 10  | GET    | `/users/:user_id`             | ⚪   | Get public profile             |
 
 ### Module 3 — 🌐 Social & Interactions (`/users`)
-| # | Method | Endpoint | Auth | Description |
-|---|--------|----------|------|-------------|
-| 1 | GET | `/users/me/suggested` | ✅ | Suggested users to follow |
-| 2 | GET | `/users/me/blocked` | ✅ | Blocked users list |
-| 3 | GET | `/users/me/blockers` | ✅ | Users who blocked you |
-| 4 | POST | `/users/:user_id/follow` | ✅ | Follow a user |
-| 5 | DELETE | `/users/:user_id/follow` | ✅ | Unfollow a user |
-| 6 | GET | `/users/:user_id/followers` | ❌ | Follower list (paginated) |
-| 7 | GET | `/users/:user_id/following` | ❌ | Following list (paginated) |
-| 8 | GET | `/users/:user_id/relationship` | ✅ | Full relationship status |
-| 9 | GET | `/users/:user_id/mutual-followers` | ✅ | Mutual followers |
-| 10 | POST | `/users/:user_id/block` | ✅ | Block user |
-| 11 | DELETE | `/users/:user_id/block` | ✅ | Unblock user |
-| 12 | PATCH | `/users/:user_id/block` | ✅ | Update block reason |
-| 13 | GET | `/users/:user_id/social-counts` | ❌ | Social counters |
+
+| #   | Method | Endpoint                           | Auth | Description                |
+| --- | ------ | ---------------------------------- | ---- | -------------------------- |
+| 1   | GET    | `/users/me/suggested`              | ✅   | Suggested users to follow  |
+| 2   | GET    | `/users/me/blocked`                | ✅   | Blocked users list         |
+| 3   | GET    | `/users/me/blockers`               | ✅   | Users who blocked you      |
+| 4   | POST   | `/users/:user_id/follow`           | ✅   | Follow a user              |
+| 5   | DELETE | `/users/:user_id/follow`           | ✅   | Unfollow a user            |
+| 6   | GET    | `/users/:user_id/followers`        | ❌   | Follower list (paginated)  |
+| 7   | GET    | `/users/:user_id/following`        | ❌   | Following list (paginated) |
+| 8   | GET    | `/users/:user_id/relationship`     | ✅   | Full relationship status   |
+| 9   | GET    | `/users/:user_id/mutual-followers` | ✅   | Mutual followers           |
+| 10  | POST   | `/users/:user_id/block`            | ✅   | Block user                 |
+| 11  | DELETE | `/users/:user_id/block`            | ✅   | Unblock user               |
+| 12  | PATCH  | `/users/:user_id/block`            | ✅   | Update block reason        |
+| 13  | GET    | `/users/:user_id/social-counts`    | ❌   | Social counters            |
 
 ### Module 4 — 🎵 Tracks
-| # | Method | Endpoint | Auth | Description |
-|---|--------|----------|------|-------------|
-| 1 | POST | `/tracks` | ✅ | Upload track + artwork |
-| 2 | GET | `/tracks/:id` | ⚪ | Get track by ID |
-| 3 | PATCH | `/tracks/:id` | ✅ | Update metadata |
-| 4 | DELETE | `/tracks/:id` | ✅ | Delete track + S3 files |
-| 5 | GET | `/tracks/:id/status` | ✅ | Poll transcoding status |
-| 6 | GET | `/tracks/:id/waveform` | ❌ | Get waveform peaks |
-| 7 | PUT | `/tracks/:id/artwork` | ✅ | Replace cover artwork |
-| 8 | GET | `/artists/:id/tracks` | ❌ | Artist's public tracks |
+
+| #   | Method | Endpoint               | Auth | Description             |
+| --- | ------ | ---------------------- | ---- | ----------------------- |
+| 1   | POST   | `/tracks`              | ✅   | Upload track + artwork  |
+| 2   | GET    | `/tracks/:id`          | ⚪   | Get track by ID         |
+| 3   | PATCH  | `/tracks/:id`          | ✅   | Update metadata         |
+| 4   | DELETE | `/tracks/:id`          | ✅   | Delete track + S3 files |
+| 5   | GET    | `/tracks/:id/status`   | ✅   | Poll transcoding status |
+| 6   | GET    | `/tracks/:id/waveform` | ❌   | Get waveform peaks      |
+| 7   | PUT    | `/tracks/:id/artwork`  | ✅   | Replace cover artwork   |
+| 8   | GET    | `/artists/:id/tracks`  | ❌   | Artist's public tracks  |
 
 > ✅ = Required &nbsp; ⚪ = Optional &nbsp; ❌ = Not required
 
@@ -277,13 +281,13 @@ erDiagram
 
 ### Key Models
 
-| Model | Purpose | Key Fields |
-|-------|---------|------------|
-| `User` | Account & profile | `username`, `email`, `tier`, `avatar_url`, `is_verified`, `is_suspended` |
-| `Track` | Audio content | `artist_id`, `audio_url`, `artwork_url`, `duration`, `waveform`, `playback_state` |
-| `Follow` | Social graph edges | `follower_id`, `following_id` |
-| `Block` | Block relationships | `blocker_id`, `blocked_id`, `reason` |
-| `PlayHistory` | Listening records | `user_id`, `track_id`, `duration_played_ms`, `is_completed` |
+| Model         | Purpose             | Key Fields                                                                        |
+| ------------- | ------------------- | --------------------------------------------------------------------------------- |
+| `User`        | Account & profile   | `username`, `email`, `tier`, `avatar_url`, `is_verified`, `is_suspended`          |
+| `Track`       | Audio content       | `artist_id`, `audio_url`, `artwork_url`, `duration`, `waveform`, `playback_state` |
+| `Follow`      | Social graph edges  | `follower_id`, `following_id`                                                     |
+| `Block`       | Block relationships | `blocker_id`, `blocked_id`, `reason`                                              |
+| `PlayHistory` | Listening records   | `user_id`, `track_id`, `duration_played_ms`, `is_completed`                       |
 
 ---
 
