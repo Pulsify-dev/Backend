@@ -13,9 +13,15 @@ import {
 
 const ALLOWED_AUDIO_TYPES = [
   "audio/mp3",
+  "audio/mpeg",        // standard MIME type for MP3
   "audio/flac",
+  "audio/x-flac",      // common alternative for FLAC
   "audio/wav",
+  "audio/wave",         // alternative for WAV
+  "audio/x-wav",        // alternative for WAV
   "audio/aac",
+  "audio/x-aac",        // alternative for AAC
+  "audio/mp4",          // AAC in MP4 container
 ];
 const MAX_AUDIO_BYTES = 30 * 1024 * 1024; // 30 MB
 const MAX_COVER_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -39,6 +45,23 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
   // ========== STEP 3: EXTRACT AUDIO INFO ==========
   const audioMetadata = await audioUtils.extractAudioMetadata(audioFile.buffer);
 
+  // Map music-metadata container names to our model's format enum
+  const FORMAT_MAP = {
+    MPEG: "mp3",
+    MP3: "mp3",
+    WAVE: "wav",
+    WAV: "wav",
+    FLAC: "flac",
+    AAC: "aac",
+    MP4: "aac",
+  };
+  const normalizedFormat =
+    FORMAT_MAP[audioMetadata.format.toUpperCase()] ||
+    audioMetadata.format.toLowerCase();
+
+  // Round duration to integer (music-metadata returns float)
+  const roundedDuration = Math.round(audioMetadata.duration);
+
   // ========== STEP 3.5: EXTRACT WAVEFORM ==========
   const waveform = await audioUtils.extractWaveform(audioFile.buffer);
 
@@ -55,8 +78,8 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     tags: trackData.tags || [],
     audio_url: audioUrl,
     artwork_url: artworkUrl,
-    format: audioMetadata.format,
-    duration: audioMetadata.duration,
+    format: normalizedFormat,
+    duration: roundedDuration,
     file_size_bytes: audioFile.size,
     bitrate: audioMetadata.bitrate,
     waveform: waveform,
@@ -64,8 +87,15 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
   };
 
   // ========== STEP 6: SAVE TO DATABASE ==========
-  const savedTrack = await trackRepository.createTrack(trackObject);
-  return savedTrack;
+  try {
+    const savedTrack = await trackRepository.createTrack(trackObject);
+    return savedTrack;
+  } catch (error) {
+    // Rollback: delete orphaned S3 files if DB save fails
+    await S3Utils.deleteFromS3(audioUrl).catch(() => {});
+    await S3Utils.deleteFromS3(artworkUrl).catch(() => {});
+    throw error;
+  }
 };
 
 const getTrackById = async (trackId, userId) => {
