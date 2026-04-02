@@ -138,6 +138,10 @@ const updateTrack = async (trackId, userId, updateData) => {
 }
 
 const deleteTrack = async (trackId, userId) => {
+  if(!userId){
+    throw new UnauthorizedError("You are not logged in. Please log in to get access.");
+    return;
+  }
   const track = await trackRepository.findById(trackId);
   if (!track) throw new NotFoundError("Track not found.");
   if (track.artist_id.toString() !== userId.toString()) {
