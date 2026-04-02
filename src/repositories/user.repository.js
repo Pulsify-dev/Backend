@@ -5,7 +5,7 @@ const findById = function (id, extraFields = "") {
 };
 const updateById = function (id, updatedPatch) {
   return User.findByIdAndUpdate(id, updatedPatch, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 };

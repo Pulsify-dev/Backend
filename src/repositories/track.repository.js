@@ -9,7 +9,7 @@ return Track.findOne({ _id: id, visibility: "public", is_hidden: false }).select
 
 const updateTrackById = function (id, updatedPatch) {
   return Track.findByIdAndUpdate(id, updatedPatch, {
-    new: true,
+    returnDocument: "after",
     runValidators: true,
   });
 };

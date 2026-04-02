@@ -21,27 +21,27 @@ const followUser = async (followerId, followingId) => {
     if (isFollowerBlocked) {
       throw new Error("Cannot follow a user who has blocked you");
     }
-    
+
     const targetUser = await User.findById(followingId);
     if (!targetUser) {
       throw new Error("User not found");
     }
-    
+
     const follow = await followRepository.createFollow(followerId, followingId);
 
     const updateResults = await Promise.all([
       User.findByIdAndUpdate(
         followerId,
         { $inc: { following_count: 1 } },
-        { new: true },
+        { returnDocument: "after" },
       ),
       User.findByIdAndUpdate(
         followingId,
         { $inc: { followers_count: 1 } },
-        { new: true },
+        { returnDocument: "after" },
       ),
     ]);
-    
+
     return follow;
   } catch (error) {
     throw error;
@@ -62,12 +62,12 @@ const unfollowUser = async (followerId, followingId) => {
     User.findByIdAndUpdate(
       followerId,
       { $inc: { following_count: -1 } },
-      { new: true },
+      { returnDocument: "after" },
     ),
     User.findByIdAndUpdate(
       followingId,
       { $inc: { followers_count: -1 } },
-      { new: true },
+      { returnDocument: "after" },
     ),
   ]);
 
@@ -246,37 +246,32 @@ const blockUser = async (blockerId, blockedId, reason = "") => {
     }
 
     // Create block
-    const block = await blockRepository.createBlock(blockerId, blockedId, reason);
-    
+    const block = await blockRepository.createBlock(
+      blockerId,
+      blockedId,
+      reason,
+    );
+
     // Remove follows in both directions
     const follow = await followRepository.findFollow(blockerId, blockedId);
     if (follow) {
       await followRepository.deleteFollow(blockerId, blockedId);
       // Update counters
-      await User.findByIdAndUpdate(
-        blockerId,
-        { $inc: { following_count: -1 } },
-      );
-      await User.findByIdAndUpdate(
-        blockedId,
-        { $inc: { followers_count: -1 } },
-      );
+      await User.findByIdAndUpdate(blockerId, { $inc: { following_count: -1 } });
+      await User.findByIdAndUpdate(blockedId, { $inc: { followers_count: -1 } });
     }
 
-    const reverseFollow = await followRepository.findFollow(blockedId, blockerId);
+    const reverseFollow = await followRepository.findFollow(
+      blockedId,
+      blockerId,
+    );
     if (reverseFollow) {
       await followRepository.deleteFollow(blockedId, blockerId);
       // Update counters
-      await User.findByIdAndUpdate(
-        blockedId,
-        { $inc: { following_count: -1 } },
-      );
-      await User.findByIdAndUpdate(
-        blockerId,
-        { $inc: { followers_count: -1 } },
-      );
+      await User.findByIdAndUpdate(blockedId, { $inc: { following_count: -1 } });
+      await User.findByIdAndUpdate(blockerId, { $inc: { followers_count: -1 } });
     }
-    
+
     return block;
   } catch (error) {
     throw error;
@@ -299,7 +294,7 @@ const getBlockedUsersList = async (userId, page = 1, limit = 20) => {
   if (!user) {
     throw new Error("User not found");
   }
-  
+
   return blockRepository.getBlockedUsers(userId, page, limit);
 };
 
