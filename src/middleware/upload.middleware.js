@@ -2,8 +2,18 @@ import multer from "multer";
 import { BadRequestError } from "../utils/errors.utils.js";
 
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const ALLOWED_AUDIO_TYPES = ["audio/mpeg", "audio/wav", "audio/flac", "audio/aac"];
-// Note: "audio/mpeg" is the MIME type for MP3 files
+const ALLOWED_AUDIO_TYPES = [
+  "audio/mp3",          // non-standard but sent by some clients
+  "audio/mpeg",         // standard MIME type for MP3
+  "audio/flac",
+  "audio/x-flac",       // common alternative for FLAC
+  "audio/wav",
+  "audio/wave",          // alternative for WAV
+  "audio/x-wav",         // alternative for WAV
+  "audio/aac",
+  "audio/x-aac",         // alternative for AAC
+  "audio/mp4",           // AAC in MP4 container
+];
 const trackFileFilter = (req, file, cb) => {
   if (file.fieldname === "audio_file") {
     if (ALLOWED_AUDIO_TYPES.includes(file.mimetype)) {
