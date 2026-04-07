@@ -195,6 +195,16 @@ const userSchema = mongoose.Schema(
       default: null,
       select: false,
     },
+    facebook_id: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    apple_id: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
   },
   {
     timestamps: true,
