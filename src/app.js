@@ -1,8 +1,21 @@
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
 import errorMiddleware from "./middleware/error.middleware.js";
 import routes from "./routes/index.js";
 const app = express();
+
+// ── CORS Configuration ──────────────────────────────────────
+// This tells the browser that requests from these specific origins are safe.
+app.use(cors({
+  origin: [
+    "https://pulsify.page",
+    "https://www.pulsify.page",
+    "http://localhost:5173",  // Vite default port
+    "http://127.0.0.1:5173"
+  ],
+  credentials: true // Required so the frontend can send cookies/Authorization headers
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

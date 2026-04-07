@@ -25,10 +25,9 @@ const createTrack = async (req, res, next) => {
 // GET /tracks/:id - Get a single track by ID
 const getTrackById = async (req, res, next) => {
   try {
-    // req.user?.user_id - optional auth (user might not be logged in)
     const track = await trackService.getTrackById(
       req.params.id,
-      req.user?.user_id
+      req.user.user_id
     );
     res.status(200).json(track);
   } catch (err) {
