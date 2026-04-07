@@ -101,20 +101,13 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
 };
 
 const getTrackById = async (trackId, userId) => {
-  let track;
-  if(userId){
-  track = await trackRepository.findById(trackId);
+  const track = await trackRepository.findById(trackId);
   if (!track) throw new NotFoundError("Track not found.");
-  if (track.visibility === "private") {
-    if (track.artist_id.toString() === userId.toString()) {
-      return track;
-    } else {
-      throw new ForbiddenError("You are not the owner of this track.");
-    } 
-  }} else {
-    track = await trackRepository.findPublicById(trackId);
-    if (!track) throw new NotFoundError("Track not found.");
+
+  if (track.visibility === "private" && track.artist_id.toString() !== userId.toString()) {
+    throw new ForbiddenError("You do not have access to this private track.");
   }
+
   return track;
 };
 const updateTrack = async (trackId, userId, updateData) => {

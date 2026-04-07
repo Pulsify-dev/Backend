@@ -97,8 +97,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": "Bearer {{accessToken}}",
-            "description": "Optional — required only for private tracks owned by the caller"
+            "value": "Bearer {{accessToken}}"
           }
         ],
         "url": {
@@ -107,7 +106,7 @@
           "path": ["tracks", ":id"],
           "variable": [{ "key": "id", "value": "track_id_123" }]
         },
-        "description": "## 2. Get Track by ID\n\nRetrieves a single track by its ID. Public tracks are accessible without authentication. Private tracks require authentication and can only be viewed by the owner.\n\n**Authentication:** Optional\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
+        "description": "## 2. Get Track by ID\n\nRetrieves a single track by its ID. Private tracks can only be viewed by the owner.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
       },
       "response": [
         {
@@ -136,6 +135,15 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not the owner of this track.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
         }
       ]
     },
@@ -346,14 +354,16 @@
       "name": "6. Get Waveform",
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
         "url": {
           "raw": "{{baseUrl}}/tracks/:id/waveform",
           "host": ["{{baseUrl}}"],
           "path": ["tracks", ":id", "waveform"],
           "variable": [{ "key": "id", "value": "track_id_123" }]
         },
-        "description": "## 6. Get Waveform\n\nReturns the waveform peak data array for the audio player UI visualization. Each value is a float between 0.0 and 1.0. The `samples` field indicates how many data points are in the array (typically 200).\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
+        "description": "## 6. Get Waveform\n\nReturns the waveform peak data array for the audio player UI visualization. Each value is a float between 0.0 and 1.0. The `samples` field indicates how many data points are in the array (typically 200).\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The track's ObjectId. |"
       },
       "response": [
         {
@@ -373,6 +383,15 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
         }
       ]
     },
@@ -458,7 +477,9 @@
       "name": "8. Get Artist Tracks",
       "request": {
         "method": "GET",
-        "header": [],
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
         "url": {
           "raw": "{{baseUrl}}/artists/:id/tracks?page=1&limit=20",
           "host": ["{{baseUrl}}"],
@@ -469,7 +490,7 @@
             { "key": "limit", "value": "20" }
           ]
         },
-        "description": "## 8. Get Artist Tracks\n\nRetrieves all public, non-hidden tracks by a specific artist. Results are paginated.\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The artist's user ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page. |"
+        "description": "## 8. Get Artist Tracks\n\nRetrieves all public, non-hidden tracks by a specific artist. Results are paginated.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The artist's user ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page. |"
       },
       "response": [
         {
@@ -498,6 +519,15 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Artist ID is required.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
         }
       ]
     }

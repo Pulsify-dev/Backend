@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "5. 🎧 Streaming & Play History",
-    "description": "Playback & Streaming Engine — generate pre-signed S3 URLs for audio streaming/download, record play events, and manage listening history. Audio files are stored in a **private** S3 bucket (`pulsify-s3-dev`); clients receive temporary signed URLs that expire after 15 minutes (stream) or 1 hour (download).",
+    "description": "Playback & Streaming Engine — stream audio, download tracks, record play events, and manage listening history. Audio files are stored in a **public** S3 bucket (`pulsify-s3-dev`); clients receive direct audio URLs. Access control is handled by the backend middleware validating tokens before returning the URL.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -18,7 +18,7 @@
           "path": ["tracks", ":track_id", "stream-url"],
           "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
         },
-        "description": "## 1. Get Stream URL\n\nGenerates a short-lived pre-signed S3 URL for audio streaming (valid for 15 minutes). Also returns the track's `playback_state` and, if the track is in `preview` mode, a `preview_duration_seconds` value for client-side gating.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Playback States\n\n| State | Behavior |\n|-------|----------|\n| `playable` | Full access — signed URL returned. |\n| `preview` | Signed URL returned with `preview_duration_seconds: 30` for client enforcement. |\n| `blocked` | 403 Forbidden — no URL returned. |\n\n### How to Test the Signed URL\n\n1. Copy the `url` from the response.\n2. Paste it in your browser.\n3. The MP3 should play or download directly from S3."
+        "description": "## 1. Get Stream URL\n\nReturns the direct public S3 URL for audio streaming. Also returns the track's `playback_state` and, if the track is in `preview` mode, a `preview_duration_seconds` value for client-side gating.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Playback States\n\n| State | Behavior |\n|-------|----------|\n| `playable` | Full access — audio URL returned. |\n| `preview` | Audio URL returned with `preview_duration_seconds: 30` for client enforcement. |\n| `blocked` | 403 Forbidden — no URL returned. |\n\n### How to Test the URL\n\n1. Copy the `url` from the response.\n2. Paste it in your browser.\n3. The MP3 should play or download directly from S3."
       },
       "response": [
         {
@@ -28,7 +28,7 @@
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA...&X-Amz-Date=20260407T...&X-Amz-Expires=900&X-Amz-Signature=abc123...\",\n    \"expires_at\": \"2026-04-07T01:15:00.000Z\",\n    \"playback_state\": \"playable\",\n    \"preview_duration_seconds\": null\n}"
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\",\n    \"playback_state\": \"playable\",\n    \"preview_duration_seconds\": null\n}"
         },
         {
           "name": "200 OK – Preview Mode",
@@ -37,7 +37,7 @@
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/...?X-Amz-Signature=...\",\n    \"expires_at\": \"2026-04-07T01:15:00.000Z\",\n    \"playback_state\": \"preview\",\n    \"preview_duration_seconds\": 30\n}"
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\",\n    \"playback_state\": \"preview\",\n    \"preview_duration_seconds\": 30\n}"
         },
         {
           "name": "403 Forbidden – Track Blocked",
@@ -47,6 +47,15 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track is blocked.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Private Track (Not Owner)",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You do not have access to this private track.\"\n}"
         },
         {
           "name": "404 Not Found",
@@ -81,7 +90,7 @@
           "path": ["tracks", ":track_id", "stream"],
           "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
         },
-        "description": "## 2. Stream Redirect\n\nValidates auth and playback state, then issues a **302 redirect** to the pre-signed S3 URL. This endpoint is designed to be used as a direct `<audio src>` target in HTML players — the browser follows the redirect and streams audio from S3.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Postman Tip\n\nDisable **\"Automatically follow redirects\"** in Postman Settings to see the raw 302 response with the `Location` header. Otherwise Postman will follow the redirect and return the audio binary."
+        "description": "## 2. Stream Redirect\n\nValidates auth and playback state, then issues a **302 redirect** to the direct public S3 URL. This endpoint is designed to be used as a direct `<audio src>` target in HTML players — the browser follows the redirect and streams audio from S3.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Postman Tip\n\nDisable **\"Automatically follow redirects\"** in Postman Settings to see the raw 302 response with the `Location` header. Otherwise Postman will follow the redirect and return the audio binary."
       },
       "response": [
         {
@@ -90,7 +99,7 @@
           "code": 302,
           "_postman_previewlanguage": "text",
           "header": [
-            { "key": "Location", "value": "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/...?X-Amz-Signature=..." }
+            { "key": "Location", "value": "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3" }
           ],
           "cookie": [],
           "body": ""
@@ -103,6 +112,15 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track is blocked.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Private Track (Not Owner)",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You do not have access to this private track.\"\n}"
         },
         {
           "name": "404 Not Found",
@@ -137,7 +155,7 @@
           "path": ["tracks", ":track_id", "download"],
           "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
         },
-        "description": "## 3. Download Track\n\nGenerates a pre-signed S3 URL for offline download. The URL expires after **1 hour** (longer than the 15-minute stream URL).\n\n**Authentication:** Required\n\n**Authorization:** Only users on the **ArtistPro** plan can download. All other tiers receive a 403.\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Plan Restriction\n\n| Plan | Access |\n|------|--------|\n| Free | ❌ 403 Forbidden |\n| Artist | ❌ 403 Forbidden |\n| ArtistPro | ✅ Download URL returned |"
+        "description": "## 3. Download Track\n\nReturns the direct S3 URL for offline download.\n\n**Authentication:** Required\n\n**Authorization:** Only users on the **ArtistPro** plan can download. All other tiers receive a 403. The backend middleware enforces this rule before returning the URL.\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Plan Restriction\n\n| Plan | Access |\n|------|--------|\n| Free | ❌ 403 Forbidden |\n| Artist | ❌ 403 Forbidden |\n| ArtistPro | ✅ Download URL returned |"
       },
       "response": [
         {
@@ -147,7 +165,7 @@
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/...?X-Amz-Expires=3600&X-Amz-Signature=...\"\n}"
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\"\n}"
         },
         {
           "name": "403 Forbidden – Not ArtistPro",
@@ -157,6 +175,15 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Requires ArtistPro plan.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Private Track (Not Owner)",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You do not have access to this private track.\"\n}"
         },
         {
           "name": "404 Not Found",
