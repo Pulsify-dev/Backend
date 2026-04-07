@@ -47,7 +47,7 @@ jobs:
               -e EMAIL_PORT="${{secrets.EMAIL_PORT}}" \
               -e EMAIL_USER="${{secrets.EMAIL_USER}}" \
               -e EMAIL_PASS="${{secrets.EMAIL_PASS}}" \
-              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
+              -e EMAIL_FROM='${{secrets.EMAIL_FROM}}' \
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
@@ -66,7 +66,7 @@ jobs:
               -e EMAIL_PORT="${{secrets.EMAIL_PORT}}" \
               -e EMAIL_USER="${{secrets.EMAIL_USER}}" \
               -e EMAIL_PASS="${{secrets.EMAIL_PASS}}" \
-              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
+              -e EMAIL_FROM='${{secrets.EMAIL_FROM}}' \
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
@@ -85,7 +85,7 @@ jobs:
               -e EMAIL_PORT="${{secrets.EMAIL_PORT}}" \
               -e EMAIL_USER="${{secrets.EMAIL_USER}}" \
               -e EMAIL_PASS="${{secrets.EMAIL_PASS}}" \
-              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
+              -e EMAIL_FROM='${{secrets.EMAIL_FROM}}' \
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
