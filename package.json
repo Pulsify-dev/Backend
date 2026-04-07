@@ -23,7 +23,9 @@
     "include": [
       "src/services/profile.service.js",
       "src/services/auth.service.js",
-      "src/services/track.service.js"
+      "src/services/track.service.js",
+      "src/services/streaming.service.js",
+      "src/services/social.service.js"
     ],
     "reporter": [
       "text"

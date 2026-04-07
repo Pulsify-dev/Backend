@@ -4,6 +4,7 @@ import bcrypt from "bcryptjs";
 import profileService from "../services/profile.service.js";
 import userRepository from "../repositories/user.repository.js";
 import emailService from "../services/email.service.js";
+import S3Utils from "../utils/s3.utils.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -377,6 +378,12 @@ describe("ProfileService", () => {
 
     const validAvatarFile = { mimetype: "image/jpeg", size: 1 * 1024 * 1024 }; // 1 MB
     const validCoverFile = { mimetype: "image/png", size: 5 * 1024 * 1024 }; // 5 MB
+
+    beforeEach(() => {
+      sinon.stub(userRepository, "findById").resolves({ avatar_url: "avatar-url.png", cover_url: "cover-url.png" });
+      sinon.stub(S3Utils, "uploadToS3").callsFake(async (file, folder) => `https://s3.amazonaws.com/${folder}/file.jpg`);
+      sinon.stub(S3Utils, "deleteFromS3").resolves();
+    });
 
     it("should upload avatar and return a CDN URL", async () => {
       sinon.stub(userRepository, "updateById").resolves();
