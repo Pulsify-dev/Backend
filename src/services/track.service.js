@@ -35,12 +35,12 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
       "Invalid audio format. Only MP3, FLAC, WAV, and AAC are allowed.",
     );
   if (audioFile.size > MAX_AUDIO_BYTES)
-    throw new BadRequestError("Audio file exceeds the 30 MB limit.");
+     throw new BadRequestError("Audio file exceeds the 30 MB limit.");
 
-  if (!coverFile) {
-    throw new BadRequestError("Cover file is required.");
+  // Validate cover file only if provided (cover is optional)
+  if (coverFile) {
+    photoUtils.validateImageFile(coverFile, MAX_COVER_BYTES);
   }
-  photoUtils.validateImageFile(coverFile, MAX_COVER_BYTES);
 
   // ========== STEP 3: EXTRACT AUDIO INFO ==========
   const audioMetadata = await audioUtils.extractAudioMetadata(audioFile.buffer);
@@ -67,7 +67,9 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
 
   // ========== STEP 4: UPLOAD TO S3 ==========
   const audioUrl = await S3Utils.uploadToS3(audioFile, "tracks/audio");
-  const artworkUrl = await S3Utils.uploadToS3(coverFile, "tracks/artwork");
+  const artworkUrl = coverFile
+    ? await S3Utils.uploadToS3(coverFile, "tracks/artwork")
+    : undefined; // Model defaults to "default-artwork.png"
 
   // ========== STEP 5: BUILD TRACK OBJECT ==========
   const trackObject = {
