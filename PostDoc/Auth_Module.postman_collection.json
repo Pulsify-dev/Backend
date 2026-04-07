@@ -9,9 +9,7 @@
       "name": "1. Register",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"username\": \"johndoe\",\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"captcha_token\": \"mock-token\"\n}"
@@ -89,9 +87,7 @@
       ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"email\": \"johndoe@example.com\",\n  \"password\": \"SecurePass123!\"\n}"
@@ -146,9 +142,7 @@
       "name": "3. Verify Email",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\"\n}"
@@ -212,9 +206,7 @@
       "name": "4. Refresh Token",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"refresh_token\": \"dGhpcyBpcyBhIHJlZnJlc2ggdG9rZW4...\"\n}"
@@ -278,9 +270,7 @@
       "name": "5. Forgot Password",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"email\": \"johndoe@example.com\"\n}"
@@ -326,9 +316,7 @@
       "name": "6. Reset Password",
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"token\": \"reset-token-from-email\",\n  \"new_password\": \"NewSecurePass456!\"\n}"
@@ -416,6 +404,77 @@
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "8. Social Login (Dynamic)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// Automatically save tokens upon successful social login\r",
+              "if (pm.response.code === 200) {\r",
+              "    var jsonData = pm.response.json();\r",
+              "    if (jsonData.access_token) pm.environment.set(\"accessToken\", jsonData.access_token);\r",
+              "    if (jsonData.refresh_token) pm.environment.set(\"refreshToken\", jsonData.refresh_token);\r",
+              "    if (jsonData.user && jsonData.user.user_id) pm.environment.set(\"user_id\", jsonData.user.user_id);\r",
+              "    console.log(\"Social session tokens saved to environment!\");\r",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"<PASTE_SOCIAL_TOKEN_HERE>\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/social/:provider",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "social", ":provider"],
+          "variable": [
+            {
+              "key": "provider",
+              "value": "google",
+              "description": "Options: google, facebook, apple"
+            }
+          ]
+        },
+        "description": "## 8. Social Login / Registration\n\nA unified endpoint for Google, Facebook, and Apple. If the user does not exist, they are automatically registered. If they do exist, they are logged in.\n\n**Authentication:** Not required (uses Provider Token)\n\n### Path Variables\n\n| Variable | Description |\n|----------|-------------|\n| `provider` | The social platform (`google`, `facebook`, or `apple`). |\n\n### Request Body\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `token` | String | The JWT or Access Token received from the social provider's SDK. |"
+      },
+      "response": [
+        {
+          "name": "200 OK - Successful Social Auth",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"access_token\": \"eyJhbGciOiJIUzI1Ni...\",\n    \"refresh_token\": \"eyJhbGciOiJIUzI1Ni...\",\n    \"user\": {\n        \"user_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n        \"username\": \"google_user_1234\",\n        \"email\": \"user@gmail.com\",\n        \"display_name\": \"John Doe\",\n        \"tier\": \"Free\"\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request - Missing Token",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Token is required.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized - Invalid Provider Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Invalid Google ID token.\"\n}"
         }
       ]
     }
