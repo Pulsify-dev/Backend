@@ -79,6 +79,15 @@ const updateRefreshToken = function (id, token) {
     { returnDocument: "after" },
   );
 };
+const findByProviderId = function (providerName, providerId) {
+  const query = {};
+  query[`${providerName}_id`] = providerId; 
+  return User.findOne(query);
+};
+
+const findByEmail = function (email) {
+  return User.findOne({ email });
+};
 export default {
   findById,
   updateById,
@@ -92,4 +101,6 @@ export default {
   findByPasswordResetToken,
   findByRefreshToken,
   updateRefreshToken,
+  findByProviderId,
+  findByEmail,
 };
