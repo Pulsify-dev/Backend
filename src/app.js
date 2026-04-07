@@ -9,7 +9,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // ── DevOps health probes ────────────────────────────────────
 
-app.get("/api", (req, res) => res.status(200).send("Pulsify API is Live!"));
+app.get("/v1", (req, res) => {
+  console.log("Pulsify API is Live!");
+  res.status(200).send("Pulsify API is Live!")});
 
 // Deep health check – pokes the DB to verify full-stack readiness
 app.get("/v1/health", async (req, res) => {
