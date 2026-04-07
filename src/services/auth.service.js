@@ -1,5 +1,6 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import OAuthFactory from "./oauth/oauth-factory.service.js";
 import {
   BadRequestError,
   UnauthorizedError,
@@ -70,6 +71,72 @@ class AuthService {
     });
 
     await this.userRepository.updateRefreshToken(user._id, refreshToken);
+    return {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      user: {
+        user_id: user._id,
+        username: user.username,
+        email: user.email,
+        display_name: user.display_name,
+        tier: user.tier,
+        avatar_url: user.avatar_url,
+      },
+    };
+  }
+  async socialLogin(providerName, token) {
+    // 1. Get the right verifier (Google, FB, or Apple)
+    const oauthStrategy = OAuthFactory.getStrategy(providerName);
+
+    const { providerId, email, displayName, avatarUrl } =
+      await oauthStrategy.verifyToken(token);
+
+    let user = await this.userRepository.findByProviderId(
+      providerName,
+      providerId,
+    );
+
+    if (!user) {
+      // 4. Check if account exists via email to link them
+      user = await this.userRepository.findByEmail(email);
+
+      if (user) {
+        // Link new provider to existing account
+        const updatePatch = {};
+        updatePatch[`${providerName}_id`] = providerId;
+        user = await this.userRepository.updateById(user._id, updatePatch);
+      } else {
+        // 5. Create brand new user
+        const generatedUsername = `${email.split("@")[0]}_${Date.now().toString().slice(-4)}`;
+        const newUserRecord = {
+          email,
+          username: generatedUsername,
+          display_name: displayName,
+          avatar_url: avatarUrl || "avatar-url.png",
+          is_verified: true,
+          tier: "Free",
+        };
+        newUserRecord[`${providerName}_id`] = providerId;
+
+        user = await this.userRepository.create(newUserRecord);
+      }
+    }
+
+    if (user.is_suspended)
+      throw new ForbiddenError("Forbidden: Suspended account.");
+
+    // 6. Generate Pulsify Tokens
+    const accessToken = this.tokenUtility.generateAccessToken({
+      user_id: user._id,
+      tier: user.tier,
+      role: user.role,
+    });
+    const refreshToken = this.tokenUtility.generateRefreshToken({
+      user_id: user._id,
+    });
+
+    await this.userRepository.updateRefreshToken(user._id, refreshToken);
+
     return {
       access_token: accessToken,
       refresh_token: refreshToken,

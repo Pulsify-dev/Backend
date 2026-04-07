@@ -33,6 +33,19 @@ class AuthController {
       next(error);
     }
   };
+  socialLogin = async (req, res, next) => {
+    try {
+      const { provider } = req.params; // this will be 'google', 'facebook', or 'apple'
+      const { token } = req.body;
+
+      if (!token) return res.status(400).json({ error: "Token is required." });
+
+      const result = await this.authService.socialLogin(provider, token);
+      return res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
 
   verifyEmail = async (req, res, next) => {
     try {
