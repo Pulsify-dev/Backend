@@ -4,6 +4,7 @@ import profileRoutes from "./profile.routes.js";
 import socialRoutes from "./social.routes.js";
 import trackRoutes from "./track.routes.js";
 import streamingRoutes from "./streaming.routes.js";
+import engagementRoutes from "./engagement.routes.js";
 
 const router = Router();
 
@@ -19,5 +20,8 @@ router.use("/", trackRoutes);
 
 // Module 5: Playback & Streaming (handles /tracks/:track_id/... and /users/me/...)
 router.use("/", streamingRoutes);
+
+// Module 6: Engagement & Social Interactions (Likes, Reposts, Comments)
+router.use("/", engagementRoutes);
 
 export default router;
