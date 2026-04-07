@@ -47,7 +47,6 @@ jobs:
               -e SMTP_PORT="${{secrets.EMAIL_PORT}}" \
               -e SMTP_USER="${{secrets.EMAIL_USER}}" \
               -e SMTP_PASS="${{secrets.EMAIL_PASS}}" \
-              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e GOOGLE_CLIENT_SECRET="${{secrets.GOOGLE_CLIENT_SECRET}}" \
@@ -69,7 +68,6 @@ jobs:
               -e SMTP_PORT="${{secrets.EMAIL_PORT}}" \
               -e SMTP_USER="${{secrets.EMAIL_USER}}" \
               -e SMTP_PASS="${{secrets.EMAIL_PASS}}" \
-              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e GOOGLE_CLIENT_SECRET="${{secrets.GOOGLE_CLIENT_SECRET}}" \
@@ -91,7 +89,6 @@ jobs:
               -e SMTP_PORT="${{secrets.EMAIL_PORT}}" \
               -e SMTP_USER="${{secrets.EMAIL_USER}}" \
               -e SMTP_PASS="${{secrets.EMAIL_PASS}}" \
-              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e GOOGLE_CLIENT_SECRET="${{secrets.GOOGLE_CLIENT_SECRET}}" \
