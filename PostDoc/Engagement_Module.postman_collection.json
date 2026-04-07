@@ -1,0 +1,375 @@
+{
+  "info": {
+    "name": "Module 6 - Engagement & Social Interactions",
+    "description": "API collection for Likes, Reposts, and Timestamped Comments",
+    "version": "1.0.0"
+  },
+  "variables": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": "YOUR_ACCESS_TOKEN_HERE"
+    },
+    {
+      "key": "trackId",
+      "value": "65d8f7b2c1a2b3c4d5e6f7g8"
+    },
+    {
+      "key": "commentId",
+      "value": "65d8f7b2c1a2b3c4d5e6f7c1"
+    }
+  ],
+  "item": [
+    {
+      "name": "LIKES",
+      "item": [
+        {
+          "name": "Like a Track",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "like"]
+            },
+            "description": "Like a track (one-tap action)"
+          },
+          "response": []
+        },
+        {
+          "name": "Unlike a Track",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "like"]
+            },
+            "description": "Remove like from a track"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Track's Likers (Engagement List)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/likes?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "likes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get paginated list of users who liked this track"
+          },
+          "response": []
+        },
+        {
+          "name": "Check if User Liked Track",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/liked",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "liked"]
+            },
+            "description": "Check if current user has liked this track"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "REPOSTS",
+      "item": [
+        {
+          "name": "Repost a Track",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/repost",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "repost"]
+            },
+            "description": "Share a track to user's feed/profile"
+          },
+          "response": []
+        },
+        {
+          "name": "Unrepost a Track",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/repost",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "repost"]
+            },
+            "description": "Remove repost from user's feed"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Track's Reposters (Engagement List)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/reposts?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "reposts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get paginated list of users who reposted this track"
+          },
+          "response": []
+        },
+        {
+          "name": "Check if User Reposted Track",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/reposted",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "reposted"]
+            },
+            "description": "Check if current user has reposted this track"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "COMMENTS",
+      "item": [
+        {
+          "name": "Create a Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Love this drop at 1:30!\",\n  \"timestamp_seconds\": 90\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "comments"]
+            },
+            "description": "Leave a timestamped comment on a track"
+          },
+          "response": []
+        },
+        {
+          "name": "Create a Comment Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"I completely agree!\",\n  \"timestamp_seconds\": 90,\n  \"parent_comment_id\": \"{{commentId}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/comments",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "comments"]
+            },
+            "description": "Reply to a comment (include parent_comment_id)"
+          },
+          "response": []
+        },
+        {
+          "name": "Update a Comment",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Updated: Even better on second listen!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "{{commentId}}"]
+            },
+            "description": "Edit your own comment"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete a Comment",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "{{commentId}}"]
+            },
+            "description": "Delete your own comment (soft delete)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Comments on Track",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tracks/{{trackId}}/comments?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["tracks", "{{trackId}}", "comments"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get paginated comments on a track (sorted by timestamp)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comment Replies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}/replies?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["comments", "{{commentId}}", "replies"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all replies to a specific comment"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
