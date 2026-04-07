@@ -2,7 +2,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Professional tip: Throw an error if essential keys are missing
-const requiredEnvs = ["JWT_SECRET", "JWT_REFRESH_SECRET", "MONGODB_URI"];
+const requiredEnvs = [
+  "JWT_SECRET",
+  "JWT_REFRESH_SECRET",
+  "MONGODB_URI",
+  "GOOGLE_CLIENT_ID",
+];
 requiredEnvs.forEach((name) => {
   if (!process.env[name]) {
     throw new Error(`❌ Missing required environment variable: ${name}`);
