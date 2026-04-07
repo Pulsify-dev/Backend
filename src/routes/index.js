@@ -4,7 +4,6 @@ import profileRoutes from "./profile.routes.js";
 import socialRoutes from "./social.routes.js";
 import trackRoutes from "./track.routes.js";
 import streamingRoutes from "./streaming.routes.js";
-import playHistoryRoutes from "./play-history.routes.js";
 import engagementRoutes from "./engagement.routes.js";
 
 const router = Router();
