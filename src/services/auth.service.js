@@ -85,33 +85,42 @@ class AuthService {
     };
   }
   async socialLogin(providerName, token) {
-    // 1. Get the right verifier (Google, FB, or Apple)
     const oauthStrategy = OAuthFactory.getStrategy(providerName);
-
     const { providerId, email, displayName, avatarUrl } =
       await oauthStrategy.verifyToken(token);
 
+    // ARCHITECT CHECK: Ensure we actually got an email
+    if (!email) {
+      throw new BadRequestError(
+        `Your ${providerName} account must have a verified email to use Pulsify.`,
+      );
+    }
+
+    // 1. Check if user exists via this provider ID
+    // Ensure you added this to user.repository.js!
     let user = await this.userRepository.findByProviderId(
       providerName,
       providerId,
     );
 
     if (!user) {
-      // 4. Check if account exists via email to link them
+      // 2. Check if account exists via email to link them
       user = await this.userRepository.findByEmail(email);
 
       if (user) {
-        // Link new provider to existing account
         const updatePatch = {};
         updatePatch[`${providerName}_id`] = providerId;
         user = await this.userRepository.updateById(user._id, updatePatch);
       } else {
-        // 5. Create brand new user
-        const generatedUsername = `${email.split("@")[0]}_${Date.now().toString().slice(-4)}`;
+        // 3. Create brand new user
+        // We use a fallback if displayName is missing
+        const namePart = email.split("@")[0];
+        const generatedUsername = `${namePart.slice(0, 10)}_${Math.random().toString(36).slice(-4)}`;
+
         const newUserRecord = {
           email,
           username: generatedUsername,
-          display_name: displayName,
+          display_name: displayName || generatedUsername,
           avatar_url: avatarUrl || "avatar-url.png",
           is_verified: true,
           tier: "Free",
