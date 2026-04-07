@@ -51,9 +51,9 @@ jobs:
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e GOOGLE_CLIENT_SECRET="${{secrets.GOOGLE_CLIENT_SECRET}}" \
-              -e CLIENT_URL="${{secrets.CLIENT_URL}}"
-              -e RECAPTCHA_SITE_KEY="${{secrets.RECAPTCHA_SITE_KEY}}"
-              -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}"
+              -e CLIENT_URL="${{secrets.CLIENT_URL}}" \
+              -e RECAPTCHA_SITE_KEY="${{secrets.RECAPTCHA_SITE_KEY}}" \
+              -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
             sudo docker run -d --name pulsify-api-2 -p 5002:3000 \
@@ -73,9 +73,9 @@ jobs:
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e GOOGLE_CLIENT_SECRET="${{secrets.GOOGLE_CLIENT_SECRET}}" \
-              -e CLIENT_URL="${{secrets.CLIENT_URL}}"
-              -e RECAPTCHA_SITE_KEY="${{secrets.RECAPTCHA_SITE_KEY}}"
-              -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}"
+              -e CLIENT_URL="${{secrets.CLIENT_URL}}" \
+              -e RECAPTCHA_SITE_KEY="${{secrets.RECAPTCHA_SITE_KEY}}" \
+              -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
             sudo docker run -d --name pulsify-api-3 -p 5003:3000 \
@@ -95,7 +95,7 @@ jobs:
               -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
               -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
               -e GOOGLE_CLIENT_SECRET="${{secrets.GOOGLE_CLIENT_SECRET}}" \
-              -e CLIENT_URL="${{secrets.CLIENT_URL}}"
-              -e RECAPTCHA_SITE_KEY="${{secrets.RECAPTCHA_SITE_KEY}}"
-              -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}"
+              -e CLIENT_URL="${{secrets.CLIENT_URL}}" \
+              -e RECAPTCHA_SITE_KEY="${{secrets.RECAPTCHA_SITE_KEY}}" \
+              -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
