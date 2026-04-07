@@ -43,6 +43,14 @@ jobs:
               -e AWS_S3_BUCKET="${{ secrets.AWS_BUCKET }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              -e EMAIL_HOST="${{secrets.EMAIL_HOST}}" \
+              -e EMAIL_PORT="${{secrets.EMAIL_PORT}}" \
+              -e EMAIL_USER="${{secrets.EMAIL_USER}}" \
+              -e EMAIL_PASS="${{secrets.EMAIL_PASS}}" \
+              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
+              -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
+              -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
+              -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
             sudo docker run -d --name pulsify-api-2 -p 5002:3000 \
@@ -54,6 +62,14 @@ jobs:
               -e AWS_S3_BUCKET="${{ secrets.AWS_BUCKET }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              -e EMAIL_HOST="${{secrets.EMAIL_HOST}}" \
+              -e EMAIL_PORT="${{secrets.EMAIL_PORT}}" \
+              -e EMAIL_USER="${{secrets.EMAIL_USER}}" \
+              -e EMAIL_PASS="${{secrets.EMAIL_PASS}}" \
+              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
+              -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
+              -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
+              -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
             sudo docker run -d --name pulsify-api-3 -p 5003:3000 \
@@ -65,4 +81,12 @@ jobs:
               -e AWS_S3_BUCKET="${{ secrets.AWS_BUCKET }}" \
               -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
               -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              -e EMAIL_HOST="${{secrets.EMAIL_HOST}}" \
+              -e EMAIL_PORT="${{secrets.EMAIL_PORT}}" \
+              -e EMAIL_USER="${{secrets.EMAIL_USER}}" \
+              -e EMAIL_PASS="${{secrets.EMAIL_PASS}}" \
+              -e EMAIL_FROM="${{secrets.EMAIL_FROM}}" \
+              -e CAPTCHA_SECRET_KEY="${{secrets.CAPTCHA_SECRET_KEY}}" \
+              -e GOOGLE_CLIENT_ID="${{secrets.GOOGLE_CLIENT_ID}}" \
+              -e APPLE_CLIENT_ID="${{secrets.APPLE_CLIENT_ID}}" \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
