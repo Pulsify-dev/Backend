@@ -1,0 +1,68 @@
+name: Deploy Pulsify Backend
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest .
+          docker push ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
+
+      - name: Deploy to Azure VM via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.AZURE_IP }}
+          username: ${{ secrets.AZURE_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
+
+            sudo docker stop pulsify-api-1 pulsify-api-2 pulsify-api-3 || true
+            sudo docker rm pulsify-api-1 pulsify-api-2 pulsify-api-3 || true
+
+            sudo docker run -d --name pulsify-api-1 -p 5001:3000 \
+              -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
+              -e PORT=3000 \
+              -e AWS_REGION="${{ secrets.AWS_REGION }}" \
+              -e AWS_S3_BUCKET="${{ secrets.AWS_BUCKET }}" \
+              -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
+
+            sudo docker run -d --name pulsify-api-2 -p 5002:3000 \
+              -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
+              -e PORT=3000 \
+              -e AWS_REGION="${{ secrets.AWS_REGION }}" \
+              -e AWS_S3_BUCKET="${{ secrets.AWS_BUCKET }}" \
+              -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
+
+            sudo docker run -d --name pulsify-api-3 -p 5003:3000 \
+              -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
+              -e PORT=3000 \
+              -e AWS_REGION="${{ secrets.AWS_REGION }}" \
+              -e AWS_S3_BUCKET="${{ secrets.AWS_BUCKET }}" \
+              -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
+              -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
+              ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest

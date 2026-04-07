@@ -1,0 +1,618 @@
+{
+  "info": {
+    "name": "2. 👤 User Profiles",
+    "description": "Profile retrieval, updates, media uploads, and account management. Avatar and cover images are stored in AWS S3 under `users/avatars/` and `users/covers/` respectively.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get My Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me"]
+        },
+        "description": "## 1. Get My Profile\n\nReturns the complete profile of the currently authenticated user, including private fields like `email`, `playlist_count`, and `storage_used_bytes`.\n\n**Authentication:** Required"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"_id\": \"69c2cd6052b177221f688062\",\n    \"username\": \"testuser\",\n    \"display_name\": \"testuser\",\n    \"bio\": \"\",\n    \"is_verified\": false,\n    \"avatar_url\": \"avatar-url.png\",\n    \"cover_url\": \"cover-url.png\",\n    \"track_count\": 0,\n    \"followers_count\": 0,\n    \"following_count\": 0,\n    \"social_links\": {\n        \"instagram\": \"\",\n        \"x\": \"\",\n        \"facebook\": \"\",\n        \"website\": \"\"\n    },\n    \"tier\": \"Free\",\n    \"favorite_genres\": [],\n    \"created_at\": \"2026-03-24T17:44:00.161Z\",\n    \"email\": \"test@test.com\",\n    \"is_private\": false,\n    \"playlist_count\": 0,\n    \"upload_duration_used_seconds\": 0,\n    \"storage_used_bytes\": 0\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Suspended Account",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Forbidden: Suspended account.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"User not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Update My Profile",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"display_name\": \"John Doe\",\n  \"bio\": \"Music lover and producer 🎵🎧\",\n  \"location\": \"Cairo\",\n  \"favorite_genres\": [\"Electronic\", \"House\"],\n  \"social_links\": {\n    \"instagram\": \"johndoe_ig\",\n    \"x\": \"johndoe_x\"\n  },\n  \"is_private\": false\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me"]
+        },
+        "description": "## 2. Update My Profile\n\nUpdates one or more fields on the authenticated user's profile. Only valid fields included in the request body will be modified. Any fields not listed below are silently ignored.\n\n**Authentication:** Required\n\n### Request Body (All Optional)\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `display_name` | String | Max 50 chars. |\n| `bio` | String | Max 500 chars. |\n| `location` | String | Max 100 chars. |\n| `favorite_genres` | Array | Array of string genres. |\n| `social_links` | Object | Keys: `instagram`, `x`, `facebook`, `website`. |\n| `is_private` | Boolean | Toggles profile visibility. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"_id\": \"69c2cd6052b177221f688062\",\n    \"username\": \"testuser\",\n    \"display_name\": \"John Doe\",\n    \"bio\": \"Music lover and producer 🎵🎧\",\n    \"is_verified\": false,\n    \"location\": \"Cairo\",\n    \"avatar_url\": \"avatar-url.png\",\n    \"cover_url\": \"cover-url.png\",\n    \"track_count\": 0,\n    \"followers_count\": 0,\n    \"following_count\": 0,\n    \"social_links\": {\n        \"instagram\": \"johndoe_ig\",\n        \"x\": \"johndoe_x\",\n        \"facebook\": \"\",\n        \"website\": \"\"\n    },\n    \"tier\": \"Free\",\n    \"favorite_genres\": [\"Electronic\", \"House\"],\n    \"created_at\": \"2026-03-24T17:44:00.161Z\",\n    \"email\": \"test@test.com\",\n    \"is_private\": false,\n    \"playlist_count\": 0,\n    \"upload_duration_used_seconds\": 0,\n    \"storage_used_bytes\": 0\n}"
+        },
+        {
+          "name": "400 Bad Request – No Valid Fields",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"No valid fields provided.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Bio Too Long",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Bio cannot exceed 500 characters.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"User not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Delete My Account",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"password\": \"SecurePass123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/me",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me"]
+        },
+        "description": "## 3. Delete My Account\n\nPermanently deletes the authenticated user's account. This action requires the current password for confirmation and is irreversible.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `password` | String | Yes | The user's current password. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Account successfully deleted.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Password",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Current password is required.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Incorrect Password",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Incorrect password.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"User not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Upload Avatar",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": "" }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/me/avatar",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "avatar"]
+        },
+        "description": "## 4. Upload Avatar\n\nUploads a new profile picture to S3. Replaces the existing avatar (old one is deleted from S3 unless it is the default placeholder). Max file size: 5 MB.\n\n**Authentication:** Required\n\n### Form Data\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `file` | File | Yes | JPG, PNG, or WebP image (max 5MB). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"url\": \"https://bucket.s3.region.amazonaws.com/users/avatars/1711843200_avatar.png\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing File",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Image file is required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Image Type",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Invalid image file. Only JPEG, PNG, and WebP are allowed.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – File Too Large",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"File size exceeds the 5 MB limit.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Upload Cover Photo",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            { "key": "file", "type": "file", "src": "" }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/me/cover",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "cover"]
+        },
+        "description": "## 5. Upload Cover Photo\n\nUploads a new cover banner to S3. Replaces the existing cover (old one is deleted from S3 unless it is the default placeholder). Max file size: 10 MB.\n\n**Authentication:** Required\n\n### Form Data\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `file` | File | Yes | JPG, PNG, or WebP image (max 10MB). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"url\": \"https://bucket.s3.region.amazonaws.com/users/covers/1711843200_cover.png\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing File",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Image file is required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Image Type",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Invalid image file. Only JPEG, PNG, and WebP are allowed.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – File Too Large",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"File size exceeds the 10 MB limit.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "6. Initiate Email Change",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"new_email\": \"newemail@example.com\",\n  \"current_password\": \"SecurePass123!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/me/email",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "email"]
+        },
+        "description": "## 6. Initiate Email Change\n\nStarts the process of changing the account email. A confirmation link is sent to the new email. The change is only applied once the link is clicked (see endpoint 8).\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `new_email` | String | Yes | The new email address. |\n| `current_password` | String | Yes | Current password for verification. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Check new inbox for verification link.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Incorrect Password",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Incorrect current password.\"\n}"
+        },
+        {
+          "name": "409 Conflict – Same Email",
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"New email must be different from your current email.\"\n}"
+        },
+        {
+          "name": "409 Conflict – Email Already In Use",
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Email already in use.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"User not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "7. Change Password",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"old_password\": \"SecurePass123!\",\n  \"new_password\": \"NewSecurePass456!\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/me/password",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "password"]
+        },
+        "description": "## 7. Change Password\n\nUpdates the authenticated user's password. Requires the current password for verification.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `old_password` | String | Yes | The user's existing password. |\n| `new_password` | String | Yes | The new password (min 8 chars). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Password updated successfully.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Fields",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"old_password and new_password are required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Same Password",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"New password must be different from the old password.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Incorrect Old Password",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Incorrect old password.\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"User not found.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "8. Confirm Email Change",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/confirm-email-change?token=email-change-token",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "confirm-email-change"],
+          "query": [
+            { "key": "token", "value": "email-change-token" }
+          ]
+        },
+        "description": "## 8. Confirm Email Change\n\nFinalizes the email change process via the token sent to the user's new email inbox. The token expires after 24 hours.\n\n**Authentication:** Not required (token-based)\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `token` | String | Yes | The email change verification token. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Email address updated successfully.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Token",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Token is required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid/Expired Token",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Invalid or expired email change token.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "9. Search Users",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users?q=test&page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users"],
+          "query": [
+            { "key": "q", "value": "test" },
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 9. Search Users\n\nSearches public profiles by username or display name. Private, suspended, and blocked users are excluded from results.\n\n**Authentication:** Not required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `q` | String | - | Search query (matches username and display_name). |\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK – Results Found",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"data\": [\n        {\n            \"_id\": \"69c2cd6052b177221f688062\",\n            \"username\": \"testuser\",\n            \"display_name\": \"Test User\",\n            \"bio\": \"Hello I am a test user\",\n            \"tier\": \"Free\",\n            \"avatar_url\": \"https://bucket.s3.region.amazonaws.com/users/avatars/1711843200_avatar.png\",\n            \"followers_count\": 0,\n            \"track_count\": 0,\n            \"location\": \"Cairo\"\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"limit\": 20,\n        \"total\": 1\n    }\n}"
+        },
+        {
+          "name": "200 OK – No Results",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"data\": [],\n    \"pagination\": {\n        \"page\": 1,\n        \"limit\": 20,\n        \"total\": 0\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "10. Get Public Profile",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}",
+            "description": "Optional — used to check if the viewer is blocked by the target"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id"],
+          "variable": [
+            { "key": "user_id", "value": "69c30486407962289f53a06b" }
+          ]
+        },
+        "description": "## 10. Get Public Profile\n\nRetrieves a user's public profile data. Returns 404 if the profile is private or suspended (intentionally hides the real reason). Returns 403 if the viewer is blocked by the target user.\n\n**Authentication:** Optional (used for block-check)\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"_id\": \"69c30486407962289f53a06b\",\n    \"username\": \"testuser\",\n    \"display_name\": \"testuser\",\n    \"bio\": \"\",\n    \"is_verified\": false,\n    \"avatar_url\": \"avatar-url.png\",\n    \"cover_url\": \"cover-url.png\",\n    \"track_count\": 0,\n    \"followers_count\": 0,\n    \"following_count\": 0,\n    \"social_links\": {\n        \"instagram\": \"\",\n        \"x\": \"\",\n        \"facebook\": \"\",\n        \"website\": \"\"\n    },\n    \"tier\": \"Free\",\n    \"favorite_genres\": [],\n    \"created_at\": \"2026-03-24T21:39:18.926Z\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Blocked by Target User",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"User not found\"\n}"
+        },
+        {
+          "name": "404 Not Found – User Not Found / Private / Suspended",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"User not found or private profile inaccessible.\"\n}"
+        }
+      ]
+    }
+  ]
+}

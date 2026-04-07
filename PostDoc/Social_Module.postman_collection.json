@@ -1,0 +1,655 @@
+{
+  "info": {
+    "name": "3. 🌐 Social & Interactions",
+    "description": "Follow/unfollow operations, blocking, mutual followers, relationship status, and social discovery. Blocking a user automatically removes follow relationships in both directions.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get Suggested Users",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me/suggested?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "suggested"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 1. Get Suggested Users\n\nReturns a list of users the authenticated user doesn't follow, excluding blocked and private users. Sorted by follower count (most popular first).\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"suggestedUsers\": [\n            {\n                \"_id\": \"69c2f987e25af8423c9e4851\",\n                \"username\": \"topproducer\",\n                \"display_name\": \"Top Producer\",\n                \"avatar_url\": \"avatar-url.png\",\n                \"is_verified\": true,\n                \"followers_count\": 1200,\n                \"track_count\": 45\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Pagination",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Get Blocked Users (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me/blocked?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "blocked"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 2. Get Blocked Users (Paginated)\n\nRetrieves a paginated list of users that the authenticated user has blocked.\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"blockedUsers\": [\n            {\n                \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                \"username\": \"spamuser\",\n                \"display_name\": \"Spam User\",\n                \"avatar_url\": \"avatar-url.png\",\n                \"reason\": \"Spam and harassment\",\n                \"blockedAt\": \"2026-03-31T00:00:00.000Z\"\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Pagination",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Get Blockers",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me/blockers?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "blockers"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 3. Get Blockers\n\nRetrieves a paginated list of users who have blocked the authenticated user.\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"blockers\": [\n            {\n                \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                \"username\": \"someuser\",\n                \"display_name\": \"Some User\",\n                \"avatar_url\": \"avatar-url.png\"\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Pagination",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Follow User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/follow",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "follow"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 4. Follow a User\n\nFollows the target user. Increments the follower count of the target and the following count of the authenticated user. Cannot follow yourself or someone who has blocked you.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"message\": \"Successfully followed user\",\n    \"data\": {\n        \"follower_id\": \"69c1f5f40b84ec88a762f037\",\n        \"following_id\": \"69c2f987e25af8423c9e4851\",\n        \"_id\": \"69c314e6ae8f7709b0826bda\",\n        \"createdAt\": \"2026-03-24T22:49:10.807Z\",\n        \"updatedAt\": \"2026-03-24T22:49:10.807Z\"\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Follow Yourself",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Cannot follow yourself\"\n}"
+        },
+        {
+          "name": "409 Conflict – Already Following",
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Already following this user\"\n}"
+        },
+        {
+          "name": "500 Internal – Blocked by Target",
+          "status": "Internal Server Error",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"error\",\n    \"message\": \"Cannot follow a user who has blocked you\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Unfollow User",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/follow",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "follow"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 5. Unfollow a User\n\nRemoves the follow relationship with the target user. Decrements both follower and following counts.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"message\": \"Unfollowed successfully\",\n    \"data\": {\n        \"success\": true,\n        \"message\": \"Unfollowed successfully\"\n    }\n}"
+        },
+        {
+          "name": "500 Internal – Not Following",
+          "status": "Internal Server Error",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"error\",\n    \"message\": \"Not following this user\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "6. Get Followers (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/followers?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "followers"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 6. Get Followers (Paginated)\n\nRetrieves a paginated list of users following the target user.\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"followers\": [\n            {\n                \"_id\": \"69c1f5f40b84ec88a762f037\",\n                \"username\": \"johndoe\",\n                \"display_name\": \"John Doe\",\n                \"avatar_url\": \"avatar-url.png\",\n                \"is_verified\": false,\n                \"followers_count\": 12\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Pagination",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "7. Get Following (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/following?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "following"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 7. Get Following (Paginated)\n\nRetrieves a paginated list of users that the target user follows.\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"following\": [\n            {\n                \"_id\": \"69c2f987e25af8423c9e4851\",\n                \"username\": \"janedoe\",\n                \"display_name\": \"Jane Doe\",\n                \"avatar_url\": \"avatar-url.png\",\n                \"is_verified\": true,\n                \"followers_count\": 340\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Pagination",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "8. Get Relationship Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/relationship",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "relationship"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 8. Get Relationship Status\n\nReturns the full relationship status between the authenticated user and the target user, including follow direction, mutual status, and block status in both directions.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK – Mutual Follow",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"isFollowing\": true,\n        \"isFollowedBy\": true,\n        \"isMutual\": true,\n        \"isBlockedByMe\": false,\n        \"isBlockedByThem\": false\n    }\n}"
+        },
+        {
+          "name": "200 OK – No Relationship",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"isFollowing\": false,\n        \"isFollowedBy\": false,\n        \"isMutual\": false,\n        \"isBlockedByMe\": false,\n        \"isBlockedByThem\": false\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Check Self",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Cannot check relationship with yourself\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "9. Get Mutual Followers",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/mutual-followers?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "mutual-followers"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 9. Get Mutual Followers\n\nRetrieves users who follow both the authenticated user and the target user.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"mutualFollowers\": [\n            {\n                \"_id\": \"69c1f5f40b84ec88a762f037\",\n                \"username\": \"sharedconnection\",\n                \"display_name\": \"Shared Connection\",\n                \"avatar_url\": \"avatar-url.png\",\n                \"is_verified\": false,\n                \"followers_count\": 50\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Check Self",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid,you cannot check mutual followers with yourself\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Pagination",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "10. Block User",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Spam and harassment\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/block",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "block"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 10. Block User\n\nBlocks the target user. Automatically removes all follow relationships in both directions and updates follower/following counts. The blocked user will not be able to follow or view the blocker's profile.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |\n\n### Request Body (Optional)\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `reason` | String | Reason for blocking (max 500 chars). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"message\": \"User blocked successfully\",\n    \"data\": {\n        \"blocker_id\": \"69c1f5f40b84ec88a762f037\",\n        \"blocked_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n        \"reason\": \"Spam and harassment\",\n        \"_id\": \"69c41a2b3c4d5e6f7a8b9c0d\",\n        \"createdAt\": \"2026-03-31T00:00:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Block Yourself",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Cannot block yourself\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Reason Too Long",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Block reason cannot exceed 500 characters\"\n}"
+        },
+        {
+          "name": "409 Conflict – Already Blocked",
+          "status": "Conflict",
+          "code": 409,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"User is already blocked\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "11. Unblock User",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/block",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "block"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 11. Unblock User\n\nRemoves the block on the target user. They can now follow and view your profile again.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"message\": \"Unblocked successfully\",\n    \"data\": {\n        \"success\": true,\n        \"message\": \"Unblocked successfully\"\n    }\n}"
+        },
+        {
+          "name": "500 Internal – Not Blocked",
+          "status": "Internal Server Error",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"error\",\n    \"message\": \"User is not blocked\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "12. Update Block Reason",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"reason\": \"Updated reason: repeated harassment\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/block",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "block"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 12. Update Block Reason\n\nUpdates the reason for an existing block.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The blocked user's ObjectId. |\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `reason` | String | Yes | New reason (max 500 chars). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"message\": \"Block reason updated\",\n    \"data\": {\n        \"blocker_id\": \"69c1f5f40b84ec88a762f037\",\n        \"blocked_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n        \"reason\": \"Updated reason: repeated harassment\"\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Reason",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Reason is required\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Reason Too Long",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": false,\n    \"message\": \"Block reason cannot exceed 500 characters\"\n}"
+        },
+        {
+          "name": "500 Internal – User Not Blocked",
+          "status": "Internal Server Error",
+          "code": 500,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"error\",\n    \"message\": \"User is not blocked\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "13. Get Social Counts",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/users/:user_id/social-counts",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", ":user_id", "social-counts"],
+          "variable": [{ "key": "user_id", "value": "64f1a2b3c4d5e6f7a8b9c0d1" }]
+        },
+        "description": "## 13. Get Social Counts\n\nRetrieves the follower, following, and blocked user counts for a user.\n\n**Authentication:** Not required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `user_id` | String | Yes | The target user's ObjectId. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"followers_count\": 120,\n        \"following_count\": 85,\n        \"blocked_count\": 3\n    }\n}"
+        }
+      ]
+    }
+  ]
+}

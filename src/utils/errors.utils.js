@@ -6,6 +6,18 @@ class AppError extends Error {
   }
 }
 
+class ServerError extends AppError {
+  constructor(message = "Internal server error") {
+    super(message, 500);
+  }
+}
+
+class ServiceUnavailableError extends AppError {
+  constructor(message = "Service unavailable") {
+    super(message, 503);
+  }
+}
+
 class NotFoundError extends AppError {
   constructor(message = "Resource not found") {
     super(message, 404);

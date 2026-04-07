@@ -1,5 +1,5 @@
 # Requirements Documentation
-Req docs
+ReqDocs
 
 # Dependencies
 node_modules/
@@ -25,14 +25,12 @@ Thumbs.db
 uploads/
 temp/
 
-.postman/
-postman
+# Postman files (local testing only)
+/Local_Postman
 
-.postman_collection.json
-.postman_environment.json
+# Coverage reports
+coverage/
 
-Project Features.md
-FAQs.md
-Main project.md
-schema.md
-api docs.md
+# Markdown files (except README)
+*.md
+!README.md
