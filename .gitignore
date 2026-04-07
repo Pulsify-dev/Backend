@@ -1,5 +1,6 @@
 # Requirements Documentation
 ReqDocs
+Docs
 
 # Dependencies
 node_modules/
@@ -26,7 +27,7 @@ uploads/
 temp/
 
 # Postman files (local testing only)
-/Local_Postman
+/Local_Postman[OLD]
 
 # Coverage reports
 coverage/

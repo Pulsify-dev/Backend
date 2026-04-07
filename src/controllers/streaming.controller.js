@@ -1,56 +1,50 @@
-class StreamingController {
-  constructor(streamingService) {
-    this.streamingService = streamingService;
+import streamingService from "../services/streaming.service.js";
+
+// GET /v1/tracks/:track_id/stream-url
+const getStreamUrl = async (req, res, next) => {
+  try {
+    const { track_id } = req.params;
+    const user = req.user;
+
+    const result = await streamingService.getStreamUrl(track_id, user);
+
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
   }
+};
 
-  /**
-   * GET /v1/tracks/:track_id/stream-url
-   */
-  getStreamUrl = async (req, res, next) => {
-    try {
-      const { track_id } = req.params;
-      const user = req.user;
+// GET /v1/tracks/:track_id/stream
+const streamRedirect = async (req, res, next) => {
+  try {
+    const { track_id } = req.params;
+    const user = req.user;
 
-      const result = await this.streamingService.getStreamUrl(track_id, user);
+    const result = await streamingService.getStreamUrl(track_id, user);
 
-      res.status(200).json(result);
-    } catch (err) {
-      next(err);
-    }
-  };
+    // Redirect to signed S3 URL
+    res.redirect(302, result.url);
+  } catch (err) {
+    next(err);
+  }
+};
 
-  /**
-   * GET /v1/tracks/:track_id/stream
-   */
-  streamRedirect = async (req, res, next) => {
-    try {
-      const { track_id } = req.params;
-      const user = req.user;
+// GET /v1/tracks/:track_id/download
+const download = async (req, res, next) => {
+  try {
+    const { track_id } = req.params;
+    const user = req.user;
 
-      const result = await this.streamingService.getStreamUrl(track_id, user);
+    const result = await streamingService.getDownloadUrl(track_id, user);
 
-      // Redirect to signed S3 URL
-      res.redirect(302, result.url);
-    } catch (err) {
-      next(err);
-    }
-  };
+    res.status(200).json(result);
+  } catch (err) {
+    next(err);
+  }
+};
 
-  /**
-   * GET /v1/tracks/:track_id/download
-   */
-  download = async (req, res, next) => {
-    try {
-      const { track_id } = req.params;
-      const user = req.user;
-
-      const result = await this.streamingService.getDownloadUrl(track_id, user);
-
-      res.status(200).json(result);
-    } catch (err) {
-      next(err);
-    }
-  };
-}
-
-export default StreamingController;
+export default {
+  getStreamUrl,
+  streamRedirect,
+  download,
+};

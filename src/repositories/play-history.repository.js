@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import PlayHistory from "../models/play-history.model.js";
 
 /**
@@ -57,7 +58,7 @@ const getRecentlyPlayed = async (userId, page = 1, limit = 20) => {
     const skip = (page - 1) * limit;
 
     const pipeline = [
-        { $match: { user_id: userId } },
+        { $match: { user_id: new mongoose.Types.ObjectId(userId) } },
         { $sort: { played_at: -1 } },
         // Keep only the latest play per track
         {

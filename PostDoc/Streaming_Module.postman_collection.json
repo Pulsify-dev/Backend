@@ -1,0 +1,381 @@
+{
+  "info": {
+    "name": "5. 🎧 Streaming & Play History",
+    "description": "Playback & Streaming Engine — generate pre-signed S3 URLs for audio streaming/download, record play events, and manage listening history. Audio files are stored in a **private** S3 bucket (`pulsify-s3-dev`); clients receive temporary signed URLs that expire after 15 minutes (stream) or 1 hour (download).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get Stream URL",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:track_id/stream-url",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":track_id", "stream-url"],
+          "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
+        },
+        "description": "## 1. Get Stream URL\n\nGenerates a short-lived pre-signed S3 URL for audio streaming (valid for 15 minutes). Also returns the track's `playback_state` and, if the track is in `preview` mode, a `preview_duration_seconds` value for client-side gating.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Playback States\n\n| State | Behavior |\n|-------|----------|\n| `playable` | Full access — signed URL returned. |\n| `preview` | Signed URL returned with `preview_duration_seconds: 30` for client enforcement. |\n| `blocked` | 403 Forbidden — no URL returned. |\n\n### How to Test the Signed URL\n\n1. Copy the `url` from the response.\n2. Paste it in your browser.\n3. The MP3 should play or download directly from S3."
+      },
+      "response": [
+        {
+          "name": "200 OK – Playable",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIA...&X-Amz-Date=20260407T...&X-Amz-Expires=900&X-Amz-Signature=abc123...\",\n    \"expires_at\": \"2026-04-07T01:15:00.000Z\",\n    \"playback_state\": \"playable\",\n    \"preview_duration_seconds\": null\n}"
+        },
+        {
+          "name": "200 OK – Preview Mode",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/...?X-Amz-Signature=...\",\n    \"expires_at\": \"2026-04-07T01:15:00.000Z\",\n    \"playback_state\": \"preview\",\n    \"preview_duration_seconds\": 30\n}"
+        },
+        {
+          "name": "403 Forbidden – Track Blocked",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track is blocked.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Stream Redirect",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:track_id/stream",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":track_id", "stream"],
+          "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
+        },
+        "description": "## 2. Stream Redirect\n\nValidates auth and playback state, then issues a **302 redirect** to the pre-signed S3 URL. This endpoint is designed to be used as a direct `<audio src>` target in HTML players — the browser follows the redirect and streams audio from S3.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Postman Tip\n\nDisable **\"Automatically follow redirects\"** in Postman Settings to see the raw 302 response with the `Location` header. Otherwise Postman will follow the redirect and return the audio binary."
+      },
+      "response": [
+        {
+          "name": "302 Found – Redirect to S3",
+          "status": "Found",
+          "code": 302,
+          "_postman_previewlanguage": "text",
+          "header": [
+            { "key": "Location", "value": "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/...?X-Amz-Signature=..." }
+          ],
+          "cookie": [],
+          "body": ""
+        },
+        {
+          "name": "403 Forbidden – Track Blocked",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track is blocked.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Download Track",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:track_id/download",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":track_id", "download"],
+          "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
+        },
+        "description": "## 3. Download Track\n\nGenerates a pre-signed S3 URL for offline download. The URL expires after **1 hour** (longer than the 15-minute stream URL).\n\n**Authentication:** Required\n\n**Authorization:** Only users on the **ArtistPro** plan can download. All other tiers receive a 403.\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Plan Restriction\n\n| Plan | Access |\n|------|--------|\n| Free | ❌ 403 Forbidden |\n| Artist | ❌ 403 Forbidden |\n| ArtistPro | ✅ Download URL returned |"
+      },
+      "response": [
+        {
+          "name": "200 OK – Download URL",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/...?X-Amz-Expires=3600&X-Amz-Signature=...\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Not ArtistPro",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Requires ArtistPro plan.\"\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Record Play Event",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"duration_played_ms\": 200000\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tracks/:track_id/play",
+          "host": ["{{baseUrl}}"],
+          "path": ["tracks", ":track_id", "play"],
+          "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
+        },
+        "description": "## 4. Record Play Event\n\nRegisters that the authenticated user played a track. Uses a **two-tier threshold system**:\n\n### Tier 1: Counts as a Play (history + play_count)\n\nA play is only recorded if the user listened to **≥ 50% of the track OR ≥ 30 seconds** (whichever comes first). If neither threshold is met, the response returns `counted: false` and nothing is saved.\n\n### Tier 2: Completion Flag (analytics)\n\nWithin recorded plays, `is_completed = true` only if the user listened to **≥ 90%** of the track. This feeds into admin analytics (play-through rate) and trending score quality.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `duration_played_ms` | Integer | Yes | Milliseconds of audio that the user actually listened to. |\n\n### Example: Test Track (duration = 232s = 232000ms)\n\n| duration_played_ms | Counts as play? | is_completed? | Why |\n|--------------------|-----------------|---------------|-----|\n| `10000` (10s) | ❌ No | — | Below 30s AND below 50% (116000ms) |\n| `35000` (35s) | ✅ Yes | ❌ No | ≥ 30 seconds threshold met |\n| `120000` (2min) | ✅ Yes | ❌ No | ≥ 50% threshold met (51.7%) |\n| `210000` (3.5min) | ✅ Yes | ✅ Yes | ≥ 90% threshold met (90.5%) |"
+      },
+      "response": [
+        {
+          "name": "200 OK – Play Recorded (Completed)",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Play recorded successfully\",\n    \"counted\": true,\n    \"data\": {\n        \"_id\": \"661a2b3c4d5e6f7a8b9c0d12\",\n        \"user_id\": \"69c30486407962289f53a06b\",\n        \"track_id\": \"69cebfb5cfc180cf7a1100f6\",\n        \"duration_played_ms\": 210000,\n        \"is_completed\": true,\n        \"played_at\": \"2026-04-07T01:00:00.000Z\",\n        \"createdAt\": \"2026-04-07T01:00:00.000Z\",\n        \"updatedAt\": \"2026-04-07T01:00:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "200 OK – Play Recorded (Not Completed)",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Play recorded successfully\",\n    \"counted\": true,\n    \"data\": {\n        \"_id\": \"661a2b3c4d5e6f7a8b9c0d13\",\n        \"user_id\": \"69c30486407962289f53a06b\",\n        \"track_id\": \"69cebfb5cfc180cf7a1100f6\",\n        \"duration_played_ms\": 50000,\n        \"is_completed\": false,\n        \"played_at\": \"2026-04-07T01:05:00.000Z\",\n        \"createdAt\": \"2026-04-07T01:05:00.000Z\",\n        \"updatedAt\": \"2026-04-07T01:05:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "200 OK – Too Short (Not Counted)",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"Play not recorded — must listen to at least 50% of the track or 30 seconds.\",\n    \"counted\": false\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Track not found\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Get Listening History",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me/history?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "history"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 5. Get Listening History\n\nReturns the authenticated user's full listening history, sorted newest first. Each entry includes the play event details and populated track information (title, artwork, duration, genre, etc.).\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page number. |\n| `limit` | Number | `20` | Number of results per page. |\n\n### Notes\n\n- Unlike \"Recently Played\", this returns **all plays including duplicates** — if you played the same track 5 times, it appears 5 times.\n- Each entry is populated with track details via Mongoose `.populate()`."
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"history\": [\n        {\n            \"_id\": \"661a2b3c4d5e6f7a8b9c0d12\",\n            \"user_id\": \"69c30486407962289f53a06b\",\n            \"track_id\": {\n                \"_id\": \"69cebfb5cfc180cf7a1100f6\",\n                \"title\": \"5aleek M3ayaaa\",\n                \"artwork_url\": \"default-artwork.png\",\n                \"duration\": 232,\n                \"genre\": null,\n                \"artist_id\": \"69ceb4dac65280182638c8cb\",\n                \"play_count\": 5,\n                \"like_count\": 0\n            },\n            \"duration_played_ms\": 210000,\n            \"is_completed\": true,\n            \"played_at\": \"2026-04-07T01:00:00.000Z\",\n            \"createdAt\": \"2026-04-07T01:00:00.000Z\",\n            \"updatedAt\": \"2026-04-07T01:00:00.000Z\"\n        }\n    ],\n    \"total\": 1,\n    \"page\": 1,\n    \"limit\": 20\n}"
+        },
+        {
+          "name": "200 OK – Empty History",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"history\": [],\n    \"total\": 0,\n    \"page\": 1,\n    \"limit\": 20\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "6. Get Recently Played",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me/recently-played?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "recently-played"],
+          "query": [
+            { "key": "page", "value": "1" },
+            { "key": "limit", "value": "20" }
+          ]
+        },
+        "description": "## 6. Get Recently Played\n\nReturns the most recently played **unique** tracks for the authenticated user. Unlike the full history, this endpoint **deduplicates** by `track_id` — if you played the same track 5 times, it appears only once (with the most recent play time).\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page number. |\n| `limit` | Number | `20` | Number of unique tracks per page. |\n\n### How Deduplication Works\n\nUses a MongoDB aggregation pipeline:\n1. `$match` — filter by user\n2. `$sort` — newest first\n3. `$group` by `track_id` — keeps only the latest play per track\n4. `$lookup` — joins track details from the `tracks` collection"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"tracks\": [\n        {\n            \"track_id\": \"69cebfb5cfc180cf7a1100f6\",\n            \"played_at\": \"2026-04-07T01:00:00.000Z\",\n            \"duration_played_ms\": 210000,\n            \"is_completed\": true,\n            \"track\": {\n                \"title\": \"5aleek M3ayaaa\",\n                \"artwork_url\": \"default-artwork.png\",\n                \"duration\": 232,\n                \"genre\": null,\n                \"artist_id\": \"69ceb4dac65280182638c8cb\",\n                \"play_count\": 5,\n                \"like_count\": 0\n            }\n        }\n    ],\n    \"total\": 1,\n    \"page\": 1,\n    \"limit\": 20\n}"
+        },
+        {
+          "name": "200 OK – No History",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"tracks\": [],\n    \"total\": 0,\n    \"page\": 1,\n    \"limit\": 20\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "7. Clear Listening History",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/users/me/history",
+          "host": ["{{baseUrl}}"],
+          "path": ["users", "me", "history"]
+        },
+        "description": "## 7. Clear Listening History\n\nPermanently deletes **all** play history entries for the authenticated user. This action cannot be undone.\n\n**Authentication:** Required\n\n### Notes\n\n- This does NOT affect the track's `play_count` — those are already committed.\n- After clearing, both the history and recently-played endpoints will return empty arrays."
+      },
+      "response": [
+        {
+          "name": "200 OK – History Cleared",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"History cleared successfully\"\n}"
+        },
+        {
+          "name": "401 Unauthorized – No Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You are not logged in. Please log in to get access.\"\n}"
+        }
+      ]
+    }
+  ]
+}
