@@ -14,7 +14,6 @@ const authService = new AuthService(
   tokenUtility,
   emailService,
   captchaService,
-  
 );
 
 const authController = new AuthController(authService);

@@ -3,8 +3,19 @@ class AuthController {
     this.authService = authService;
   }
 
+  // src/controllers/auth.controller.js
+
   register = async (req, res, next) => {
+    console.log("📦 INCOMING DATA FROM POSTMAN:", req.body); // Useful for debugging
+
     try {
+      // 1. ARCHITECT CHECK: Validate required fields immediately
+      if (!req.body.email || !req.body.password || !req.body.username) {
+        return res.status(400).json({
+          error: "Bad Request: email, username, and password are required.",
+        });
+      }
+
       const userData = {
         email: req.body.email,
         username: req.body.username,
@@ -18,7 +29,6 @@ class AuthController {
       next(error);
     }
   };
-
   login = async (req, res, next) => {
     try {
       const { email, password } = req.body;
@@ -47,18 +57,41 @@ class AuthController {
     }
   };
 
-  verifyEmail = async (req, res, next) => {
-    try {
-      const token = req.body.token || req.query.token;
-      if (!token) return res.status(400).json({ error: "Token is required." });
+  // src/controllers/auth.controller.js
 
-      const result = await this.authService.verifyEmail(token);
-      return res.status(200).json(result);
+  // src/controllers/auth.controller.js
+
+  verifyEmail = async (req, res, next) => {
+    console.log("➡️ [1] Verification route hit!");
+
+    // Fallback URL to prevent undefined crashes
+    const loginPage = process.env.CLIENT_URL
+      ? `${process.env.CLIENT_URL}/login`
+      : "https://pulsify.page/login";
+
+    try {
+      const token = req.query.token || req.body.token;
+      console.log("➡️ [2] Token received:", token ? "Yes" : "No");
+
+      if (!token) {
+        console.log("❌ [Error] No token provided.");
+        return res.redirect(`${loginPage}?error=missing_token`);
+      }
+
+      console.log("➡️ [3] Calling AuthService...");
+      await this.authService.verifyEmail(token);
+
+      console.log("✅ [4] Database updated! Redirecting to frontend...");
+      return res.redirect(`${loginPage}?verified=true`);
     } catch (error) {
-      next(error);
+      // CRITICAL FIX: Do NOT use next(error) here.
+      // If the token is invalid or expired, we must gracefully redirect the user, not crash the server.
+      console.error("❌ [5] Crash inside verifyEmail:", error.message);
+      console.error(error.stack); // This prints the exact line number of the crash
+
+      return res.redirect(`${loginPage}?error=invalid_token`);
     }
   };
-
   refreshToken = async (req, res, next) => {
     try {
       const { refresh_token } = req.body;
