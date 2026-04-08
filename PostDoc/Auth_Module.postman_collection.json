@@ -203,7 +203,62 @@
       ]
     },
     {
-      "name": "4. Refresh Token",
+      "name": "4. Resend Verification",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"johndoe@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/resend-verification",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "resend-verification"]
+        },
+        "description": "## 4. Resend Verification Email\n\nResends the verification email with a new JWT token if the previous one expired or was lost. Fails if the user is already verified.\n\n**Authentication:** Not required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `email` | String | Yes | Registered email address. |"
+      },
+      "response": [
+        {
+          "name": "200 OK – Email Sent",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"A new verification email has been sent. Please check your inbox.\"\n}"
+        },
+        {
+          "name": "200 OK – User Not Found (Security Fallback)",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"message\": \"If that email is registered, a new verification link has been sent.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Email",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Email is required.\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Already Verified",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"error\": \"This account is already verified. Please log in.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Refresh Token",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -216,7 +271,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["auth", "refresh"]
         },
-        "description": "## 4. Refresh Token\n\nGenerates a new pair of access and refresh tokens using a valid refresh token. Use this to keep the user's session alive without forcing a re-login.\n\n**Authentication:** Not required (uses refresh token in body)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refresh_token` | String | Yes | Valid refresh token from login. |"
+        "description": "## 5. Refresh Token\n\nGenerates a new pair of access and refresh tokens using a valid refresh token. Use this to keep the user's session alive without forcing a re-login.\n\n**Authentication:** Not required (uses refresh token in body)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refresh_token` | String | Yes | Valid refresh token from login. |"
       },
       "response": [
         {
@@ -267,7 +322,7 @@
       ]
     },
     {
-      "name": "5. Forgot Password",
+      "name": "6. Forgot Password",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -280,7 +335,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["auth", "forgot-password"]
         },
-        "description": "## 5. Forgot Password\n\nInitiates the password reset flow. Sends a reset link to the email provided. For security, this endpoint always returns the same message regardless of whether the email exists in the database.\n\n**Authentication:** Not required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `email` | String | Yes | Registered email address. |\n\n### Security Note\n\nThe response is intentionally identical for both existing and non-existing emails to prevent email enumeration attacks."
+        "description": "## 6. Forgot Password\n\nInitiates the password reset flow. Sends a reset link to the email provided. For security, this endpoint always returns the same message regardless of whether the email exists in the database.\n\n**Authentication:** Not required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `email` | String | Yes | Registered email address. |\n\n### Security Note\n\nThe response is intentionally identical for both existing and non-existing emails to prevent email enumeration attacks."
       },
       "response": [
         {
@@ -313,7 +368,7 @@
       ]
     },
     {
-      "name": "6. Reset Password",
+      "name": "7. Reset Password",
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
@@ -326,7 +381,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["auth", "reset-password"]
         },
-        "description": "## 6. Reset Password\n\nApplies a new password using the reset token sent via email. The token is single-use and expires after 1 hour.\n\n**Authentication:** Not required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `token` | String | Yes | Reset token from the email link. |\n| `new_password` | String | Yes | The new secure password (min 8 chars). |"
+        "description": "## 7. Reset Password\n\nApplies a new password using the reset token sent via email. The token is single-use and expires after 1 hour.\n\n**Authentication:** Not required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `token` | String | Yes | Reset token from the email link. |\n| `new_password` | String | Yes | The new secure password (min 8 chars). |"
       },
       "response": [
         {
@@ -359,7 +414,7 @@
       ]
     },
     {
-      "name": "7. Logout",
+      "name": "8. Logout",
       "request": {
         "method": "POST",
         "header": [
@@ -375,7 +430,7 @@
           "host": ["{{baseUrl}}"],
           "path": ["auth", "logout"]
         },
-        "description": "## 7. Logout\n\nInvalidates the user's refresh token on the server, ending the session. The access token will naturally expire but cannot be used to generate new tokens after logout.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refresh_token` | String | Yes | Active refresh token to be cleared. |\n\n### Note\n\nLogout is idempotent — if the refresh token is already invalid or belongs to no user, the endpoint still returns 200 OK."
+        "description": "## 8. Logout\n\nInvalidates the user's refresh token on the server, ending the session. The access token will naturally expire but cannot be used to generate new tokens after logout.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `refresh_token` | String | Yes | Active refresh token to be cleared. |\n\n### Note\n\nLogout is idempotent — if the refresh token is already invalid or belongs to no user, the endpoint still returns 200 OK."
       },
       "response": [
         {
@@ -408,7 +463,7 @@
       ]
     },
     {
-      "name": "8. Social Login (Dynamic)",
+      "name": "9. Social Login (Dynamic)",
       "event": [
         {
           "listen": "test",
@@ -446,7 +501,7 @@
             }
           ]
         },
-        "description": "## 8. Social Login / Registration\n\nA unified endpoint for Google, Facebook, and Apple. If the user does not exist, they are automatically registered. If they do exist, they are logged in.\n\n**Authentication:** Not required (uses Provider Token)\n\n### Path Variables\n\n| Variable | Description |\n|----------|-------------|\n| `provider` | The social platform (`google`, `facebook`, or `apple`). |\n\n### Request Body\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `token` | String | The JWT or Access Token received from the social provider's SDK. |"
+        "description": "## 9. Social Login / Registration\n\nA unified endpoint for Google, Facebook, and Apple. If the user does not exist, they are automatically registered. If they do exist, they are logged in.\n\n**Authentication:** Not required (uses Provider Token)\n\n### Path Variables\n\n| Variable | Description |\n|----------|-------------|\n| `provider` | The social platform (`google`, `facebook`, or `apple`). |\n\n### Request Body\n\n| Field | Type | Description |\n|-------|------|-------------|\n| `token` | String | The JWT or Access Token received from the social provider's SDK. |"
       },
       "response": [
         {

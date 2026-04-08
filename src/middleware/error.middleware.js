@@ -5,10 +5,10 @@ const errorHandler = (err, req, res, next) => {
   let statusCode = 500;
   let message = "Internal Server Error";
 
-  // 1. Check if it's your custom AppError
-  if (err instanceof AppError) {
-    statusCode = err.statusCode;
-    message = err.message;
+  // 1. ARCHITECT FIX: Check if it's a custom AppError OR has a statusCode manually attached
+  if (err instanceof AppError || err.statusCode) {
+    statusCode = err.statusCode || 500;
+    message = err.message || "An unexpected error occurred.";
   }
 
   // 2. Check if it's a Mongoose ValidationError
@@ -23,11 +23,11 @@ const errorHandler = (err, req, res, next) => {
   else if (err.code === 11000) {
     statusCode = 409;
     const field = Object.keys(err.keyValue)[0];
-    const value = err.keyValue[field];
+    // const value = err.keyValue[field]; // (Optional: can use value in message if needed)
     message = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
   }
 
-  // 4. Check if it's a Mongoose CastError
+  // 4. Check if it's a Mongoose CastError or MulterError
   else if (err.name === "CastError") {
     statusCode = 400;
     message = `Invalid ${err.path} format: ${err.value}`;
@@ -39,11 +39,6 @@ const errorHandler = (err, req, res, next) => {
       statusCode = 400;
       message = err.message;
     }
-  }
-
-  // 5. Log the error (in development)
-  if (process.env.NODE_ENV === "development") {
-    console.error("Error:", err);
   }
 
   // 6. Send response
