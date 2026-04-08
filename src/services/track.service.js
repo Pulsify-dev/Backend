@@ -59,8 +59,9 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     FORMAT_MAP[audioMetadata.format.toUpperCase()] ||
     audioMetadata.format.toLowerCase();
 
-  // Round duration to integer (music-metadata returns float)
+  // Round duration and bitrate to integer (music-metadata may return floats)
   const roundedDuration = Math.round(audioMetadata.duration);
+  const roundedBitrate = Math.round(audioMetadata.bitrate || 0);
 
   // ========== STEP 3.5: EXTRACT WAVEFORM ==========
   const waveform = await audioUtils.extractWaveform(audioFile.buffer);
@@ -83,7 +84,7 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     format: normalizedFormat,
     duration: roundedDuration,
     file_size_bytes: audioFile.size,
-    bitrate: audioMetadata.bitrate,
+    bitrate: roundedBitrate,
     waveform: waveform,
     status: "finished",
   };
