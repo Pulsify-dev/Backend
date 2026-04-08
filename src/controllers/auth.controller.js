@@ -57,14 +57,9 @@ class AuthController {
     }
   };
 
-  // src/controllers/auth.controller.js
-
-  // src/controllers/auth.controller.js
-
   verifyEmail = async (req, res, next) => {
     console.log("➡️ [1] Verification route hit!");
 
-    // Fallback URL to prevent undefined crashes
     const loginPage = process.env.CLIENT_URL
       ? `${process.env.CLIENT_URL}/login`
       : "https://pulsify.page/login";
@@ -84,10 +79,8 @@ class AuthController {
       console.log("✅ [4] Database updated! Redirecting to frontend...");
       return res.redirect(`${loginPage}?verified=true`);
     } catch (error) {
-      // CRITICAL FIX: Do NOT use next(error) here.
-      // If the token is invalid or expired, we must gracefully redirect the user, not crash the server.
       console.error("❌ [5] Crash inside verifyEmail:", error.message);
-      console.error(error.stack); // This prints the exact line number of the crash
+      console.error(error.stack);
 
       return res.redirect(`${loginPage}?error=invalid_token`);
     }
@@ -143,6 +136,24 @@ class AuthController {
       await this.authService.logoutUser(refresh_token);
 
       return res.status(200).json({ message: "Logged out successfully." });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resendVerification = async (req, res, next) => {
+    console.log("🔄 [Auth] Resend verification requested for:", req.body.email);
+
+    try {
+      if (!req.body.email) {
+        return res.status(400).json({ error: "Email is required." });
+      }
+
+      const result = await this.authService.resendVerificationEmail(
+        req.body.email,
+      );
+
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }

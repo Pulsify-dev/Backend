@@ -240,6 +240,42 @@ class AuthService {
     }
     return true;
   }
+  // src/services/auth.service.js
+
+  async resendVerificationEmail(email) {
+    // 1. Find the user
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      return {
+        message:
+          "If that email is registered, a new verification link has been sent.",
+      };
+    }
+
+    if (user.is_verified) {
+      const error = new Error(
+        "This account is already verified. Please log in.",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const newVerificationToken = this.tokenUtility.generateVerificationToken(
+      user._id,
+    );
+
+    console.log("🛠️ [AuthService] Resending email to:", user.email);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      newVerificationToken,
+    );
+
+    return {
+      message:
+        "A new verification email has been sent. Please check your inbox.",
+    };
+  }
 }
 
 export default AuthService;
