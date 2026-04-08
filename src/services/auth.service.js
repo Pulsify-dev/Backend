@@ -23,8 +23,11 @@ class AuthService {
   async registerUser(userData) {
     const { email, username, password, captchaToken } = userData;
 
-    // ... validation ...
+    const isCaptchaValid = await this.captchaService.verify(captchaToken);
 
+    if (!isCaptchaValid) {
+      throw new BadRequestError("Invalid or expired CAPTCHA token.");
+    }
     const newUserRecord = { email, username, password, tier: "Free" };
     const createdUser = await this.userRepository.create(newUserRecord);
 
@@ -32,7 +35,6 @@ class AuthService {
       createdUser._id,
     );
 
-    console.log("🛠️ [AuthService] Passing email to EmailService:", email); // ADD THIS LOG
 
     // ARCHITECT FIX: Make sure you are passing 'email', NOT 'createdUser.email'
     await this.emailService.sendVerificationEmail(email, verificationToken);

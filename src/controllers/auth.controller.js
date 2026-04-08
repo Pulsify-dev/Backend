@@ -6,10 +6,7 @@ class AuthController {
   // src/controllers/auth.controller.js
 
   register = async (req, res, next) => {
-    console.log("📦 INCOMING DATA FROM POSTMAN:", req.body); // Useful for debugging
-
     try {
-      // 1. ARCHITECT CHECK: Validate required fields immediately
       if (!req.body.email || !req.body.password || !req.body.username) {
         return res.status(400).json({
           error: "Bad Request: email, username, and password are required.",
@@ -58,18 +55,14 @@ class AuthController {
   };
 
   verifyEmail = async (req, res, next) => {
-    console.log("➡️ [1] Verification route hit!");
-
     const loginPage = process.env.CLIENT_URL
       ? `${process.env.CLIENT_URL}/login`
       : "https://pulsify.page/login";
 
     try {
       const token = req.query.token || req.body.token;
-      console.log("➡️ [2] Token received:", token ? "Yes" : "No");
 
       if (!token) {
-        console.log("❌ [Error] No token provided.");
         return res.redirect(`${loginPage}?error=missing_token`);
       }
 
@@ -79,7 +72,6 @@ class AuthController {
       console.log("✅ [4] Database updated! Redirecting to frontend...");
       return res.redirect(`${loginPage}?verified=true`);
     } catch (error) {
-      console.error("❌ [5] Crash inside verifyEmail:", error.message);
       console.error(error.stack);
 
       return res.redirect(`${loginPage}?error=invalid_token`);
@@ -142,8 +134,6 @@ class AuthController {
   };
 
   resendVerification = async (req, res, next) => {
-    console.log("🔄 [Auth] Resend verification requested for:", req.body.email);
-
     try {
       if (!req.body.email) {
         return res.status(400).json({ error: "Email is required." });
