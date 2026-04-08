@@ -3,8 +3,16 @@ class AuthController {
     this.authService = authService;
   }
 
+  // src/controllers/auth.controller.js
+
   register = async (req, res, next) => {
     try {
+      if (!req.body.email || !req.body.password || !req.body.username) {
+        return res.status(400).json({
+          error: "Bad Request: email, username, and password are required.",
+        });
+      }
+
       const userData = {
         email: req.body.email,
         username: req.body.username,
@@ -18,7 +26,6 @@ class AuthController {
       next(error);
     }
   };
-
   login = async (req, res, next) => {
     try {
       const { email, password } = req.body;
@@ -48,17 +55,28 @@ class AuthController {
   };
 
   verifyEmail = async (req, res, next) => {
-    try {
-      const token = req.body.token || req.query.token;
-      if (!token) return res.status(400).json({ error: "Token is required." });
+    const loginPage = process.env.CLIENT_URL
+      ? `${process.env.CLIENT_URL}/login`
+      : "https://pulsify.page/login";
 
-      const result = await this.authService.verifyEmail(token);
-      return res.status(200).json(result);
+    try {
+      const token = req.query.token || req.body.token;
+
+      if (!token) {
+        return res.redirect(`${loginPage}?error=missing_token`);
+      }
+
+      console.log("➡️ [3] Calling AuthService...");
+      await this.authService.verifyEmail(token);
+
+      console.log("✅ [4] Database updated! Redirecting to frontend...");
+      return res.redirect(`${loginPage}?verified=true`);
     } catch (error) {
-      next(error);
+      console.error(error.stack);
+
+      return res.redirect(`${loginPage}?error=invalid_token`);
     }
   };
-
   refreshToken = async (req, res, next) => {
     try {
       const { refresh_token } = req.body;
@@ -110,6 +128,22 @@ class AuthController {
       await this.authService.logoutUser(refresh_token);
 
       return res.status(200).json({ message: "Logged out successfully." });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resendVerification = async (req, res, next) => {
+    try {
+      if (!req.body.email) {
+        return res.status(400).json({ error: "Email is required." });
+      }
+
+      const result = await this.authService.resendVerificationEmail(
+        req.body.email,
+      );
+
+      return res.status(200).json(result);
     } catch (error) {
       next(error);
     }

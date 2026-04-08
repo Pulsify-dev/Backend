@@ -14,12 +14,12 @@ const authService = new AuthService(
   tokenUtility,
   emailService,
   captchaService,
-  
 );
 
 const authController = new AuthController(authService);
 
 router.post("/register", authController.register);
+router.post("/resend-verification", authController.resendVerification);
 router.post("/login", authController.login);
 router.post("/social/:provider", authController.socialLogin);
 router.get("/verify-email", authController.verifyEmail);

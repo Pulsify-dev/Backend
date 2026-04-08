@@ -16,19 +16,18 @@ class AuthService {
     this.captchaService = captchaService;
   }
 
+  // src/services/auth.service.js
+
+  // src/services/auth.service.js
+
   async registerUser(userData) {
     const { email, username, password, captchaToken } = userData;
 
     const isCaptchaValid = await this.captchaService.verify(captchaToken);
-    if (!isCaptchaValid) throw new BadRequestError("Invalid CAPTCHA token.");
 
-    const isEmailTaken = await this.userRepository.emailExists(email);
-    const isUsernameTaken = await this.userRepository.usernameExists(username);
-
-    if (isEmailTaken || isUsernameTaken) {
-      throw new ConflictError("Email or username already exists.");
+    if (!isCaptchaValid) {
+      throw new BadRequestError("Invalid or expired CAPTCHA token.");
     }
-
     const newUserRecord = { email, username, password, tier: "Free" };
     const createdUser = await this.userRepository.create(newUserRecord);
 
@@ -36,16 +35,15 @@ class AuthService {
       createdUser._id,
     );
 
-    await this.emailService.sendVerificationEmail(
-      createdUser.email,
-      verificationToken,
-    );
+
+    // ARCHITECT FIX: Make sure you are passing 'email', NOT 'createdUser.email'
+    await this.emailService.sendVerificationEmail(email, verificationToken);
 
     return {
       user_id: createdUser._id,
-      email: createdUser.email,
-      username: createdUser.username,
-      tier: createdUser.tier,
+      email: email,
+      username: username,
+      tier: "Free",
       message: "Registration successful. Please check your email to verify.",
     };
   }
@@ -203,26 +201,20 @@ class AuthService {
     };
   }
 
+  // src/services/auth.service.js
   async forgotPassword(email) {
-    const user = await this.userRepository.findByEmailWithPassword(email);
-
-    const defaultMessage =
-      "If that email address is in our database, we will send you a link to reset your password.";
-    if (!user) return { message: defaultMessage };
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) return { message: "Email sent if account exists." };
 
     const resetToken = crypto.randomBytes(32).toString("hex");
-    const resetTokenExpires = Date.now() + 3600000; // Expires in 1 hour
-
     await this.userRepository.updateById(user._id, {
       password_reset_token: resetToken,
-      password_reset_expires: resetTokenExpires,
+      password_reset_expires: Date.now() + 3600000,
     });
 
     await this.emailService.sendPasswordResetEmail(user.email, resetToken);
-
-    return { message: defaultMessage };
+    return { message: "Check your email." };
   }
-
   async resetPassword(token, newPassword) {
     const user = await this.userRepository.findByPasswordResetToken(token);
 
@@ -249,6 +241,42 @@ class AuthService {
       await this.userRepository.updateRefreshToken(user._id, null);
     }
     return true;
+  }
+  // src/services/auth.service.js
+
+  async resendVerificationEmail(email) {
+    // 1. Find the user
+    const user = await this.userRepository.findByEmail(email);
+
+    if (!user) {
+      return {
+        message:
+          "If that email is registered, a new verification link has been sent.",
+      };
+    }
+
+    if (user.is_verified) {
+      const error = new Error(
+        "This account is already verified. Please log in.",
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const newVerificationToken = this.tokenUtility.generateVerificationToken(
+      user._id,
+    );
+
+    console.log("🛠️ [AuthService] Resending email to:", user.email);
+    await this.emailService.sendVerificationEmail(
+      user.email,
+      newVerificationToken,
+    );
+
+    return {
+      message:
+        "A new verification email has been sent. Please check your inbox.",
+    };
   }
 }
 

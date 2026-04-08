@@ -5,7 +5,6 @@ import { avatarUpload, coverUpload } from "../middleware/upload.middleware.js";
 import validationMiddleware from "../middleware/validation.middleware.js";
 
 const router = Router();
-
 //protected routes
 
 router.get("/me", authMiddleware.requireAuth, profileController.getMyProfile);
