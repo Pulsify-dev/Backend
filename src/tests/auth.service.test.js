@@ -1,51 +1,53 @@
 import { expect } from "chai";
 import sinon from "sinon";
+import bcrypt from "bcryptjs";
 import AuthService from "../services/auth.service.js";
+import OAuthFactory from "../services/oauth/oauth-factory.service.js";
+import {
+  BadRequestError,
+  UnauthorizedError,
+  ForbiddenError,
+  NotFoundError,
+} from "../utils/errors.utils.js";
 
-describe("AuthService Business Logic", () => {
+describe("AuthService - 100% Coverage Suite", () => {
   let authService;
-  let mockUserRepository;
-  let mockTokenUtility;
-  let mockEmailService;
-  let mockCaptchaService;
+  let mockUserRepo, mockTokenUtil, mockEmailSvc, mockCaptchaSvc;
 
   beforeEach(() => {
-    // Repository Mocks (Includes all Module 1 methods)
-    mockUserRepository = {
-      emailExists: sinon.stub(),
-      usernameExists: sinon.stub(),
+    mockUserRepo = {
       create: sinon.stub(),
+      findByEmail: sinon.stub(),
       findByEmailWithPassword: sinon.stub(),
       findById: sinon.stub(),
       updateById: sinon.stub(),
       findByPasswordResetToken: sinon.stub(),
       findByRefreshToken: sinon.stub(),
       updateRefreshToken: sinon.stub(),
+      findByProviderId: sinon.stub(),
     };
 
-    // Utility & Service Mocks
-    mockTokenUtility = {
+    mockTokenUtil = {
       generateVerificationToken: sinon.stub(),
       generateAccessToken: sinon.stub(),
       generateRefreshToken: sinon.stub(),
       verifyToken: sinon.stub(),
     };
 
-    mockEmailService = {
+    mockEmailSvc = {
       sendVerificationEmail: sinon.stub(),
       sendPasswordResetEmail: sinon.stub(),
     };
 
-    mockCaptchaService = {
+    mockCaptchaSvc = {
       verify: sinon.stub(),
     };
 
-    // Instantiate Service with injected dependencies
     authService = new AuthService(
-      mockUserRepository,
-      mockTokenUtility,
-      mockEmailService,
-      mockCaptchaService,
+      mockUserRepo,
+      mockTokenUtil,
+      mockEmailSvc,
+      mockCaptchaSvc,
     );
   });
 
@@ -54,59 +56,44 @@ describe("AuthService Business Logic", () => {
   });
 
   /* -------------------------------------------------------------------------- */
-  /* REGISTER USER                                                              */
+  /* REGISTER USER                                          */
   /* -------------------------------------------------------------------------- */
   describe("registerUser()", () => {
-    const validUserData = {
+    const userData = {
       email: "test@pulsify.app",
       username: "testuser",
-      password: "password123",
-      captchaToken: "valid-token",
+      password: "password",
+      captchaToken: "tok",
     };
 
-    it("should successfully register a new user", async () => {
-      mockCaptchaService.verify.resolves(true);
-      mockUserRepository.emailExists.resolves(false);
-      mockUserRepository.usernameExists.resolves(false);
+    it("should successfully register a new user and trigger email (Lines 92-95)", async () => {
+      mockCaptchaSvc.verify.resolves(true);
+      // Crucial: Must explicitly resolve the create promise to continue execution
+      mockUserRepo.create.resolves({ _id: "u123", email: "test@pulsify.app" });
+      mockTokenUtil.generateVerificationToken.returns("v-token");
+      mockEmailSvc.sendVerificationEmail.resolves(true);
 
-      const fakeCreatedUser = {
-        _id: "mongo-id-123",
-        email: validUserData.email,
-        username: validUserData.username,
-        tier: "Free",
-      };
-      mockUserRepository.create.resolves(fakeCreatedUser);
-      mockTokenUtility.generateVerificationToken.returns("fake-jwt-123");
-      mockEmailService.sendVerificationEmail.resolves(true);
+      const result = await authService.registerUser(userData);
 
-      const result = await authService.registerUser(validUserData);
-
-      expect(result.user_id).to.equal("mongo-id-123");
-      expect(result.tier).to.equal("Free");
-      expect(mockCaptchaService.verify.calledOnceWith("valid-token")).to.be
-        .true;
-      expect(mockEmailService.sendVerificationEmail.calledOnce).to.be.true;
+      expect(result.user_id).to.equal("u123");
+      expect(result.message).to.include("Registration successful");
+      expect(mockUserRepo.create.calledOnce).to.be.true;
+      expect(
+        mockEmailSvc.sendVerificationEmail.calledWith(
+          "test@pulsify.app",
+          "v-token",
+        ),
+      ).to.be.true;
     });
 
-    it("should throw an error if CAPTCHA is invalid", async () => {
-      mockCaptchaService.verify.resolves(false);
+    it("should throw BadRequestError if CAPTCHA is invalid", async () => {
+      mockCaptchaSvc.verify.resolves(false);
       try {
-        await authService.registerUser(validUserData);
+        await authService.registerUser(userData);
         expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error.message).to.equal("Invalid CAPTCHA token.");
-      }
-    });
-
-    it("should throw an error if email already exists", async () => {
-      mockCaptchaService.verify.resolves(true);
-      mockUserRepository.emailExists.resolves(true);
-
-      try {
-        await authService.registerUser(validUserData);
-        expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error.message).to.equal("Email or username already exists.");
+      } catch (e) {
+        expect(e).to.be.instanceOf(BadRequestError);
+        expect(e.message).to.equal("Invalid or expired CAPTCHA token.");
       }
     });
   });
@@ -115,48 +102,305 @@ describe("AuthService Business Logic", () => {
   /* LOGIN USER                                                                 */
   /* -------------------------------------------------------------------------- */
   describe("loginUser()", () => {
-    it("should successfully log in and save the refresh token to the database", async () => {
-      const fakeUser = {
-        _id: "mongo-id-123",
-        email: "test@pulsify.app",
-        is_suspended: false,
-        comparePassword: sinon.stub().resolves(true),
-      };
+    const user = {
+      _id: "u1",
+      email: "t@p.app",
+      tier: "Free",
+      role: "user",
+      is_suspended: false,
+      comparePassword: sinon.stub(),
+    };
 
-      mockUserRepository.findByEmailWithPassword.resolves(fakeUser);
-      mockTokenUtility.generateAccessToken.returns("access-123");
-      mockTokenUtility.generateRefreshToken.returns("refresh-123");
-      mockUserRepository.updateRefreshToken.resolves();
+    it("should return tokens on valid credentials", async () => {
+      user.comparePassword.resolves(true);
+      mockUserRepo.findByEmailWithPassword.resolves(user);
+      mockTokenUtil.generateAccessToken.returns("at");
+      mockTokenUtil.generateRefreshToken.returns("rt");
+      mockUserRepo.updateRefreshToken.resolves(); // Explicit resolve
 
-      const result = await authService.loginUser(
-        "test@pulsify.app",
-        "password123",
-      );
-
-      expect(result.access_token).to.equal("access-123");
-      expect(result.refresh_token).to.equal("refresh-123");
-      expect(mockUserRepository.updateRefreshToken.calledOnce).to.be.true;
+      const res = await authService.loginUser("t@p.app", "pass");
+      expect(res.access_token).to.equal("at");
+      expect(mockUserRepo.updateRefreshToken.calledOnce).to.be.true;
     });
 
-    it("should throw error if user is suspended", async () => {
-      mockUserRepository.findByEmailWithPassword.resolves({
-        is_suspended: true,
-      });
+    it("should throw UnauthorizedError if user not found", async () => {
+      mockUserRepo.findByEmailWithPassword.resolves(null);
       try {
-        await authService.loginUser("test@pulsify.app", "pass");
+        await authService.loginUser("t@p.app", "pass");
         expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error.message).to.equal("Forbidden: Suspended account.");
+      } catch (e) {
+        expect(e).to.be.instanceOf(UnauthorizedError);
       }
     });
 
-    it("should throw error if credentials are invalid", async () => {
-      mockUserRepository.findByEmailWithPassword.resolves(null);
+    it("should throw ForbiddenError if user is suspended", async () => {
+      mockUserRepo.findByEmailWithPassword.resolves({
+        ...user,
+        is_suspended: true,
+      });
       try {
-        await authService.loginUser("wrong@test.com", "pass");
+        await authService.loginUser("t@p.app", "pass");
         expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error.message).to.equal("Invalid credentials.");
+      } catch (e) {
+        expect(e).to.be.instanceOf(ForbiddenError);
+      }
+    });
+
+    it("should throw UnauthorizedError if password invalid", async () => {
+      user.comparePassword.resolves(false);
+      mockUserRepo.findByEmailWithPassword.resolves(user);
+      try {
+        await authService.loginUser("t@p.app", "wrong");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(UnauthorizedError);
+      }
+    });
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* SOCIAL LOGIN                                */
+  /* -------------------------------------------------------------------------- */
+  describe("socialLogin()", () => {
+    let mockStrat;
+    beforeEach(() => {
+      mockStrat = { verifyToken: sinon.stub() };
+      sinon.stub(OAuthFactory, "getStrategy").returns(mockStrat);
+    });
+
+    it("should throw BadRequestError if provider doesn't return email (Line 161-165)", async () => {
+      mockStrat.verifyToken.resolves({
+        providerId: "g1",
+        displayName: "Test",
+        avatarUrl: "pic.jpg",
+      }); // No email
+      try {
+        await authService.socialLogin("google", "tok");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(BadRequestError);
+        expect(e.message).to.contain("must have a verified email");
+      }
+    });
+
+    it("should login successfully if user exists via provider ID", async () => {
+      mockStrat.verifyToken.resolves({
+        providerId: "g1",
+        email: "e@e.com",
+        displayName: "Test",
+      });
+      mockUserRepo.findByProviderId.resolves({
+        _id: "u1",
+        tier: "Free",
+        is_suspended: false,
+      });
+      mockTokenUtil.generateAccessToken.returns("at");
+      mockTokenUtil.generateRefreshToken.returns("rt");
+      mockUserRepo.updateRefreshToken.resolves();
+
+      const res = await authService.socialLogin("google", "tok");
+      expect(res.access_token).to.equal("at");
+      expect(mockUserRepo.findByProviderId.calledWith("google", "g1")).to.be
+        .true;
+    });
+
+    it("should link account if user exists via email (Lines 167-173)", async () => {
+      mockStrat.verifyToken.resolves({
+        providerId: "g1",
+        email: "match@test.com",
+      });
+      mockUserRepo.findByProviderId.resolves(null);
+      mockUserRepo.findByEmail.resolves({ _id: "existing-u" });
+      mockUserRepo.updateById.resolves({
+        _id: "existing-u",
+        tier: "Free",
+        is_suspended: false,
+      });
+      mockUserRepo.updateRefreshToken.resolves();
+
+      await authService.socialLogin("google", "tok");
+      expect(
+        mockUserRepo.updateById.calledWith("existing-u", { google_id: "g1" }),
+      ).to.be.true;
+    });
+
+    it("should create new user if neither provider ID nor email exists (Lines 178-181)", async () => {
+      mockStrat.verifyToken.resolves({
+        providerId: "g2",
+        email: "new@test.com",
+      });
+      mockUserRepo.findByProviderId.resolves(null);
+      mockUserRepo.findByEmail.resolves(null);
+      mockUserRepo.create.resolves({
+        _id: "u2",
+        tier: "Free",
+        is_suspended: false,
+      });
+      mockUserRepo.updateRefreshToken.resolves();
+
+      await authService.socialLogin("google", "tok");
+      expect(mockUserRepo.create.calledOnce).to.be.true;
+
+      const createArgs = mockUserRepo.create.firstCall.args[0];
+      expect(createArgs.email).to.equal("new@test.com");
+      expect(createArgs.google_id).to.equal("g2");
+      expect(createArgs.is_verified).to.be.true;
+    });
+
+    it("should throw ForbiddenError if social user is suspended", async () => {
+      mockStrat.verifyToken.resolves({ providerId: "g1", email: "s@s.com" });
+      mockUserRepo.findByProviderId.resolves({ _id: "u1", is_suspended: true });
+      try {
+        await authService.socialLogin("google", "tok");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(ForbiddenError);
+      }
+    });
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* VERIFY EMAIL                                                               */
+  /* -------------------------------------------------------------------------- */
+  describe("verifyEmail()", () => {
+    it("should successfully verify email", async () => {
+      mockTokenUtil.verifyToken.returns({ user_id: "u1" });
+      mockUserRepo.findById.resolves({ _id: "u1", is_verified: false });
+      mockUserRepo.updateById.resolves();
+
+      const res = await authService.verifyEmail("tok");
+      expect(res.message).to.equal("Email successfully verified.");
+    });
+
+    it("should return early if already verified", async () => {
+      mockTokenUtil.verifyToken.returns({ user_id: "u1" });
+      mockUserRepo.findById.resolves({ is_verified: true });
+      const res = await authService.verifyEmail("tok");
+      expect(res.message).to.equal("Email is already verified.");
+    });
+
+    it("should throw BadRequestError if token is invalid", async () => {
+      mockTokenUtil.verifyToken.returns(null);
+      try {
+        await authService.verifyEmail("bad");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(BadRequestError);
+      }
+    });
+
+    it("should throw NotFoundError if user not found", async () => {
+      mockTokenUtil.verifyToken.returns({ user_id: "u1" });
+      mockUserRepo.findById.resolves(null);
+      try {
+        await authService.verifyEmail("tok");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(NotFoundError);
+      }
+    });
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* REFRESH TOKEN                                        */
+  /* -------------------------------------------------------------------------- */
+  describe("refreshUserToken()", () => {
+    it("should issue new tokens", async () => {
+      mockTokenUtil.verifyToken.returns({ user_id: "u1" });
+      mockUserRepo.findById.resolves({
+        _id: "u1",
+        tier: "Free",
+        is_suspended: false,
+      });
+      mockTokenUtil.generateAccessToken.returns("at-new");
+      mockTokenUtil.generateRefreshToken.returns("rt-new");
+
+      const res = await authService.refreshUserToken("rt-valid");
+      expect(res.access_token).to.equal("at-new");
+      expect(res.refresh_token).to.equal("rt-new");
+    });
+
+    it("should throw UnauthorizedError if token is invalid", async () => {
+      mockTokenUtil.verifyToken.returns(null);
+      try {
+        await authService.refreshUserToken("bad");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(UnauthorizedError);
+      }
+    });
+
+    it("should throw NotFoundError if user not found", async () => {
+      mockTokenUtil.verifyToken.returns({ user_id: "u1" });
+      mockUserRepo.findById.resolves(null);
+      try {
+        await authService.refreshUserToken("tok");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(NotFoundError);
+      }
+    });
+
+    it("should throw ForbiddenError if user is suspended (Line 222-223)", async () => {
+      mockTokenUtil.verifyToken.returns({ user_id: "u1" });
+      mockUserRepo.findById.resolves({ _id: "u1", is_suspended: true });
+      try {
+        await authService.refreshUserToken("tok");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(ForbiddenError);
+      }
+    });
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* FORGOT PASSWORD                                      */
+  /* -------------------------------------------------------------------------- */
+  describe("forgotPassword()", () => {
+    it("should send reset email if user exists (Line 208-216)", async () => {
+      mockUserRepo.findByEmail.resolves({ _id: "u1", email: "t@p.app" });
+      mockUserRepo.updateById.resolves();
+      mockEmailSvc.sendPasswordResetEmail.resolves(); // Explicit resolve
+
+      const res = await authService.forgotPassword("t@p.app");
+      expect(res.message).to.equal("Check your email.");
+      expect(mockUserRepo.updateById.calledOnce).to.be.true;
+      expect(mockEmailSvc.sendPasswordResetEmail.calledOnce).to.be.true;
+    });
+
+    it("should return privacy message if user not found", async () => {
+      mockUserRepo.findByEmail.resolves(null);
+      const res = await authService.forgotPassword("ghost@p.app");
+      expect(res.message).to.contain("Email sent if account exists");
+    });
+  });
+
+  /* -------------------------------------------------------------------------- */
+  /* RESET PASSWORD                                                             */
+  /* -------------------------------------------------------------------------- */
+  describe("resetPassword()", () => {
+    it("should update password with valid token", async () => {
+      mockUserRepo.findByPasswordResetToken.resolves({
+        _id: "u1",
+        password_reset_expires: Date.now() + 10000,
+      });
+      sinon.stub(bcrypt, "hash").resolves("hash");
+      mockUserRepo.updateById.resolves();
+
+      const res = await authService.resetPassword("tok", "new-p");
+      expect(res.message).to.contain("successfully reset");
+      expect(mockUserRepo.updateById.calledOnce).to.be.true;
+    });
+
+    it("should throw BadRequestError if token expired or invalid", async () => {
+      mockUserRepo.findByPasswordResetToken.resolves({
+        password_reset_expires: Date.now() - 10000,
+      });
+      try {
+        await authService.resetPassword("tok", "new-p");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(BadRequestError);
       }
     });
   });
@@ -165,128 +409,57 @@ describe("AuthService Business Logic", () => {
   /* LOGOUT USER                                                                */
   /* -------------------------------------------------------------------------- */
   describe("logoutUser()", () => {
-    it("should return true and clear the database token if found", async () => {
-      mockUserRepository.findByRefreshToken.resolves({ _id: "mongo-id-123" });
-      mockUserRepository.updateRefreshToken.resolves();
-
-      const result = await authService.logoutUser("valid-token");
-
-      expect(result).to.be.true;
-      expect(
-        mockUserRepository.updateRefreshToken.calledWith("mongo-id-123", null),
-      ).to.be.true;
+    it("should clear refresh token from DB", async () => {
+      mockUserRepo.findByRefreshToken.resolves({ _id: "u1" });
+      mockUserRepo.updateRefreshToken.resolves();
+      const res = await authService.logoutUser("tok");
+      expect(res).to.be.true;
+      expect(mockUserRepo.updateRefreshToken.calledWith("u1", null)).to.be.true;
     });
 
-    it("should return true even if token does not exist in DB (Idempotency)", async () => {
-      mockUserRepository.findByRefreshToken.resolves(null);
-
-      const result = await authService.logoutUser("ghost-token");
-
-      expect(result).to.be.true;
-      expect(mockUserRepository.updateRefreshToken.called).to.be.false;
+    it("should return true even if token not found", async () => {
+      mockUserRepo.findByRefreshToken.resolves(null);
+      const res = await authService.logoutUser("tok");
+      expect(res).to.be.true;
+      expect(mockUserRepo.updateRefreshToken.called).to.be.false;
     });
   });
 
   /* -------------------------------------------------------------------------- */
-  /* VERIFY EMAIL                                                               */
+  /* RESEND VERIFICATION EMAIL                            */
   /* -------------------------------------------------------------------------- */
-  describe("verifyEmail()", () => {
-    it("should successfully verify a user email", async () => {
-      mockTokenUtility.verifyToken.returns({ user_id: "mongo-id-123" });
-      mockUserRepository.findById.resolves({
-        _id: "mongo-id-123",
+  describe("resendVerificationEmail()", () => {
+    it("should resend email for unverified user (Line 259-264)", async () => {
+      mockUserRepo.findByEmail.resolves({
+        _id: "u1",
         is_verified: false,
+        email: "t@p.app",
       });
-      mockUserRepository.updateById.resolves();
+      mockTokenUtil.generateVerificationToken.returns("v-tok");
+      mockEmailSvc.sendVerificationEmail.resolves(); // Explicit resolve
 
-      const result = await authService.verifyEmail("valid-token");
-
-      expect(result.message).to.equal("Email successfully verified.");
-      expect(mockUserRepository.updateById.calledOnce).to.be.true;
+      const res = await authService.resendVerificationEmail("t@p.app");
+      expect(res.message).to.contain("new verification email has been sent");
+      expect(mockTokenUtil.generateVerificationToken.calledWith("u1")).to.be
+        .true;
+      expect(mockEmailSvc.sendVerificationEmail.calledWith("t@p.app", "v-tok"))
+        .to.be.true;
     });
 
-    it("should return early if user is already verified", async () => {
-      mockTokenUtility.verifyToken.returns({ user_id: "mongo-id-123" });
-      mockUserRepository.findById.resolves({ is_verified: true });
-
-      const result = await authService.verifyEmail("token");
-      expect(result.message).to.equal("Email is already verified.");
-    });
-  });
-
-  /* -------------------------------------------------------------------------- */
-  /* REFRESH TOKEN                                                              */
-  /* -------------------------------------------------------------------------- */
-  describe("refreshUserToken()", () => {
-    it("should issue new tokens for a valid refresh token", async () => {
-      mockTokenUtility.verifyToken.returns({ user_id: "mongo-id-123" });
-      mockUserRepository.findById.resolves({
-        _id: "mongo-id-123",
-        is_suspended: false,
-      });
-      mockTokenUtility.generateAccessToken.returns("new-access");
-      mockTokenUtility.generateRefreshToken.returns("new-refresh");
-
-      const result = await authService.refreshUserToken("valid-refresh");
-
-      expect(result.access_token).to.equal("new-access");
-      expect(result.refresh_token).to.equal("new-refresh");
-    });
-  });
-
-  /* -------------------------------------------------------------------------- */
-  /* PASSWORD RESET                                                             */
-  /* -------------------------------------------------------------------------- */
-  describe("forgotPassword()", () => {
-    it("should return success message even if email is missing (Privacy Protection)", async () => {
-      mockUserRepository.findByEmailWithPassword.resolves(null);
-      const result = await authService.forgotPassword("fake@test.com");
-      expect(result.message).to.contain(
-        "If that email address is in our database",
-      );
+    it("should return privacy message if user not found", async () => {
+      mockUserRepo.findByEmail.resolves(null);
+      const res = await authService.resendVerificationEmail("unknown@test.com");
+      expect(res.message).to.contain("If that email is registered");
     });
 
-    it("should trigger reset email if user exists", async () => {
-      mockUserRepository.findByEmailWithPassword.resolves({
-        _id: "id",
-        email: "test@test.com",
-      });
-      mockUserRepository.updateById.resolves();
-      mockEmailService.sendPasswordResetEmail.resolves();
-
-      const result = await authService.forgotPassword("test@test.com");
-      expect(mockEmailService.sendPasswordResetEmail.calledOnce).to.be.true;
-    });
-  });
-
-  describe("resetPassword()", () => {
-    it("should successfully update password with valid token", async () => {
-      mockUserRepository.findByPasswordResetToken.resolves({
-        _id: "user-1",
-        password_reset_expires: Date.now() + 50000,
-      });
-      mockUserRepository.updateById.resolves();
-
-      const result = await authService.resetPassword("token", "new-pass");
-
-      expect(result.message).to.equal(
-        "Password has been successfully reset. You can now log in.",
-      );
-      expect(mockUserRepository.updateById.calledOnce).to.be.true;
-    });
-
-    it("should throw error if token is expired", async () => {
-      mockUserRepository.findByPasswordResetToken.resolves({
-        password_reset_expires: Date.now() - 50000,
-      });
-
+    it("should throw error with 400 status if already verified", async () => {
+      mockUserRepo.findByEmail.resolves({ _id: "u1", is_verified: true });
       try {
-        await authService.resetPassword("token", "pass");
+        await authService.resendVerificationEmail("t@p.app");
         expect.fail("Should have thrown");
-      } catch (error) {
-        expect(error.message).to.equal(
-          "Invalid or expired password reset token.",
-        );
+      } catch (e) {
+        expect(e.statusCode).to.equal(400);
+        expect(e.message).to.contain("already verified");
       }
     });
   });
