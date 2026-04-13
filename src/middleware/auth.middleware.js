@@ -1,6 +1,7 @@
 import tokenUtility from "../utils/jwt.utils.js";
+import userRepository from "../repositories/user.repository.js";
 
-const requireAuth = (req, res, next) => {
+const requireAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -17,7 +18,19 @@ const requireAuth = (req, res, next) => {
         .status(401)
         .json({ error: "Unauthorized: Token expired or invalid." });
     }
+    const liveUser = await userRepository.findById(decoded.user_id);
 
+    if (!liveUser) {
+      return res
+        .status(401)
+        .json({ error: "Unauthorized: User no longer exists." });
+    }
+
+    if (liveUser.is_suspended) {
+      return res
+        .status(403)
+        .json({ status: "fail", message: "Forbidden: Suspended account." });
+    }
     req.user = decoded;
     next();
   } catch (error) {
