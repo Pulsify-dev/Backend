@@ -53,6 +53,10 @@ const countByArtistId = function (artistId) {
   return Track.countDocuments({ artist_id: artistId });
 };
 
+const findByPermalinkAndArtist = function (permalink, artistId, extraFields = "") {
+  return Track.findOne({ permalink, artist_id: artistId }).select(extraFields);
+};
+
 export default {
   findById,
   updateTrackById,
@@ -63,4 +67,5 @@ export default {
   countByArtistId,
   createTrack,
   findPublicById,
+  findByPermalinkAndArtist,
 };

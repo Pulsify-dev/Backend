@@ -88,6 +88,11 @@ const findByProviderId = function (providerName, providerId) {
 const findByEmail = function (email) {
   return User.findOne({ email });
 };
+
+const findByUsername = function (username, extraFields = "") {
+  return User.findOne({ username }).select(extraFields);
+};
+
 export default {
   findById,
   updateById,
@@ -103,4 +108,5 @@ export default {
   updateRefreshToken,
   findByProviderId,
   findByEmail,
+  findByUsername,
 };
