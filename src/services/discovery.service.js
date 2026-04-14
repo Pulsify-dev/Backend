@@ -1,7 +1,7 @@
 import feedRepository from "../repositories/feed.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import trackRepository from "../repositories/track.repository.js";
-import playlistRepository from "../repositories/playlist.repository.js";
+// import playlistRepository from "../repositories/playlist.repository.js"; // TODO: Uncomment when playlist module is implemented
 import { NotFoundError, BadRequestError } from "../utils/errors.utils.js";
 
 
@@ -79,6 +79,7 @@ const resolveUrl = async (urlStr) => {
         return { type: "user", data: user };
     }
 
+    /* TODO: Uncomment when playlist module is implemented
     // Playlist URL (e.g. /the_weeknd/sets/my-playlist)
     if (parts.length === 3 && parts[1] === "sets") {
         const playlistPermalink = parts[2];
@@ -88,6 +89,7 @@ const resolveUrl = async (urlStr) => {
         }
         return { type: "playlist", data: playlist };
     }
+    */
 
     // Track URL (e.g. /the_weeknd/blinding-lights)
     if (parts.length === 2) {

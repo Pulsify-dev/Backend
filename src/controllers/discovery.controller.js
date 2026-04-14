@@ -1,4 +1,5 @@
 import discoveryService from "../services/discovery.service.js";
+import searchService from "../services/search.service.js";
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GET /feed
@@ -85,8 +86,38 @@ const resolveResource = async (req, res, next) => {
     }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /search
+//  Global Search using Meilisearch
+// ─────────────────────────────────────────────────────────────────────────────
+
+const globalSearch = async (req, res, next) => {
+    try {
+        const { q } = req.query;
+        const limit = parseInt(req.query.limit) || 10;
+        const offset = parseInt(req.query.offset) || 0;
+
+        if (!q) {
+            return res.status(400).json({
+                success: false,
+                message: "Search query 'q' parameter is required.",
+            });
+        }
+
+        const result = await searchService.globalSearch(q, limit, offset);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
     resolveResource,
+    globalSearch,
 };
