@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
+import searchService from "../services/search.service.js";
 
 const trackSchema = mongoose.Schema(
   {
@@ -210,6 +211,31 @@ trackSchema.pre("save", function () {
 
   if (this.visibility === "private" && !this.secret_token) {
     this.secret_token = crypto.randomBytes(16).toString("hex");
+  }
+});
+
+const syncTrack = async (doc) => {
+  if (!doc) return;
+  const trackDoc = {
+    id: doc._id.toString(),
+    title: doc.title,
+    artist_id: doc.artist_id.toString(),
+    permalink: doc.permalink,
+    description: doc.description,
+    genre: doc.genre,
+    tags: doc.tags,
+    visibility: doc.visibility,
+    playback_state: doc.playback_state,
+    play_count: doc.play_count,
+  };
+  await searchService.indexDocument("tracks", trackDoc);
+};
+
+trackSchema.post("save", syncTrack);
+trackSchema.post("findOneAndUpdate", syncTrack);
+trackSchema.post("findOneAndDelete", async (doc) => {
+  if (doc) {
+    await searchService.removeDocument("tracks", doc._id.toString());
   }
 });
 

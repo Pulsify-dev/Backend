@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import searchService from "../services/search.service.js";
 const userSchema = mongoose.Schema(
   {
     email: {
@@ -223,6 +224,29 @@ userSchema.methods.comparePassword = async function (
 ) {
   return await bcrypt.compare(typedPassword, userPassword);
 };
+
+const syncUser = async (doc) => {
+  if (!doc) return;
+  const userDoc = {
+    id: doc._id.toString(),
+    username: doc.username,
+    display_name: doc.display_name,
+    role: doc.role,
+    tier: doc.tier,
+    is_private: doc.is_private,
+    is_verified: doc.is_verified,
+    is_suspended: doc.is_suspended,
+  };
+  await searchService.indexDocument("users", userDoc);
+};
+
+userSchema.post("save", syncUser);
+userSchema.post("findOneAndUpdate", syncUser);
+userSchema.post("findOneAndDelete", async (doc) => {
+  if (doc) {
+    await searchService.removeDocument("users", doc._id.toString());
+  }
+});
 
 const User = mongoose.model("User", userSchema);
 export default User;

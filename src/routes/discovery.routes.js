@@ -6,6 +6,12 @@ const router = Router();
 
 // ── Module 8: Feed & Discovery ───────────────────────────────────────────────
 
+// GET /search — Global Search via Meilisearch
+router.get(
+    "/search",
+    discoveryController.globalSearch
+);
+
 // GET /feed  — personal feed (auth required)
 router.get(
     "/feed",
