@@ -25,6 +25,22 @@ router.get(
 	messagingController.getUnreadCount,
 );
 
+router.get(
+	"/conversations/:conversation_id/messages",
+	authMiddleware.requireAuth,
+	validationMiddleware.validateConversationParam,
+	validationMiddleware.validateSearchQuery,
+	messagingController.getMessages,
+);
+
+router.post(
+	"/conversations/:conversation_id/messages",
+	authMiddleware.requireAuth,
+	validationMiddleware.validateConversationParam,
+	validationMiddleware.validateSendMessage,
+	messagingController.sendMessage,
+);
+
 router.put(
 	"/conversations/:conversation_id/read",
 	authMiddleware.requireAuth,

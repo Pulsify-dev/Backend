@@ -74,9 +74,56 @@ const markConversationRead = async (req, res, next) => {
 	}
 };
 
+const getMessages = async (req, res, next) => {
+	try {
+		const userId = req.user.user_id;
+		const { conversation_id: conversationId } = req.params;
+		const page = parseInt(req.query.page, 10) || 1;
+		const limit = parseInt(req.query.limit, 10) || 20;
+
+		const result = await messagingService.getMessages(
+			conversationId,
+			userId,
+			page,
+			limit,
+		);
+
+		return res.status(200).json({
+			success: true,
+			data: result,
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+const sendMessage = async (req, res, next) => {
+	try {
+		const userId = req.user.user_id;
+		const { conversation_id: conversationId } = req.params;
+		const { text, shared_entity: sharedEntity } = req.body;
+
+		const result = await messagingService.sendMessage({
+			senderId: userId,
+			conversationId,
+			text,
+			sharedEntity,
+		});
+
+		return res.status(201).json({
+			success: true,
+			data: result,
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
 export default {
 	getMyConversations,
 	startOrGetConversation,
 	getUnreadCount,
 	markConversationRead,
+	getMessages,
+	sendMessage,
 };

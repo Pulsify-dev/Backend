@@ -19,16 +19,24 @@ const getMyConversations = async (userId, page = 1, limit = 20) => {
 		conversationRepository.countUserChats(userId),
 	]);
 
-	const normalizedConversations = conversations.map((conversation) => {
-		const otherParticipant = (conversation.participants || []).find(
-			(participant) => participant?._id?.toString() !== userId.toString(),
-		);
+	const normalizedConversations = await Promise.all(
+		conversations.map(async (conversation) => {
+			const otherParticipant = (conversation.participants || []).find(
+				(participant) => participant?._id?.toString() !== userId.toString(),
+			);
 
-		return {
-			...conversation,
-			other_participant: otherParticipant || null,
-		};
-	});
+			const unreadCount = await messageRepository.countUnreadInChat(
+				conversation._id,
+				userId,
+			);
+
+			return {
+				...conversation,
+				other_participant: otherParticipant || null,
+				unread_count: unreadCount,
+			};
+		}),
+	);
 
 	return {
 		conversations: normalizedConversations,
@@ -187,6 +195,17 @@ const getTotalUnreadCount = async (userId) => {
 	return { unread_count: unreadCount };
 };
 
+const getMessages = async (conversationId, userId, page = 1, limit = 20) => {
+	await assertConversationParticipant(conversationId, userId);
+
+	const [messages, total] = await Promise.all([
+		messageRepository.getChatHistory(conversationId, page, limit),
+		messageRepository.countInChat(conversationId),
+	]);
+
+	return { messages, total, page, limit };
+};
+
 export default {
 	buildParticipantPairId,
 	getMyConversations,
@@ -195,4 +214,5 @@ export default {
 	sendMessage,
 	markConversationRead,
 	getTotalUnreadCount,
+	getMessages,
 };
