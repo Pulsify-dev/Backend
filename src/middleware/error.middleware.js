@@ -1,6 +1,7 @@
 import { AppError, NotFoundError } from "../utils/errors.utils.js";
 
 const errorHandler = (err, req, res, next) => {
+  console.error("🔥 Error Caught:", err);
   // Default to 500 internal server error
   let statusCode = 500;
   let message = "Internal Server Error";

@@ -34,9 +34,9 @@ const conversationSchema = new mongoose.Schema(
   },
 );
 
-conversationSchema.pre("validate", function (next) {
+conversationSchema.pre("validate", function () {
   if (!Array.isArray(this.participants) || this.participants.length !== 2) {
-    return next();
+    return;
   }
 
   const sortedParticipants = [...this.participants].sort((a, b) =>
@@ -49,13 +49,11 @@ conversationSchema.pre("validate", function (next) {
 
   if (participantIds[0] === participantIds[1]) {
     this.invalidate("participants", "Conversation participants must be two different users");
-    return next();
+    return;
   }
 
   this.participants = sortedParticipants;
   this.participant_pair_id = participantIds.join("-");
-
-  next();
 });
 
 

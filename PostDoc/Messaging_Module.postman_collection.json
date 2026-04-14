@@ -1,0 +1,480 @@
+{
+  "info": {
+    "name": "9. 💬 Messaging (REST)",
+    "description": "API collection for RESTful messaging. Includes starting conversations, fetching message histories, and sending messages via HTTP.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variables": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": "YOUR_ACCESS_TOKEN_HERE"
+    },
+    {
+      "key": "conversationId",
+      "value": "60d0fe4f5311236168a109ca"
+    },
+    {
+      "key": "recipientId",
+      "value": "60d0fe4f5311236168a109cb"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Get My Conversations (Inbox)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/conversations?page=1&limit=20",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "conversations"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "20"
+            }
+          ]
+        },
+        "description": "## 1. Get My Conversations\n\nRetrieves the authenticated user's inbox, showing all conversations sorted by the most recently updated. Embeds the other participant's details and the unread message count for each chat.\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `20` | Results per page. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"conversations\": [\n            {\n                \"_id\": \"60d0fe4f5311236168a109ca\",\n                \"participants\": [\n                    \"60d0fe4f5311236168a109uu\",\n                    \"60d0fe4f5311236168a109cb\"\n                ],\n                \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n                \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n                \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n                \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n                \"other_participant\": {\n                    \"_id\": \"60d0fe4f5311236168a109cb\",\n                    \"username\": \"johndoe\",\n                    \"display_name\": \"John Doe\",\n                    \"avatar_url\": \"https://bucket.s3.region.amazonaws.com/profile/default.jpg\",\n                    \"is_verified\": true\n                },\n                \"unread_count\": 3\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+        },
+        {
+          "name": "401 Unauthorized – Missing Token",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Unauthorized: Missing or invalid Bearer token.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Start or Get Conversation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"recipient_id\": \"{{recipientId}}\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/conversations",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "conversations"
+          ]
+        },
+        "description": "## 2. Start or Get Conversation\n\nInitiates a new conversation with a user or fetches the existing conversation document if it already exists. Blocks if either user has blocked the other.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `recipient_id` | String | Yes | MongoDB ObjectId of the user you want to chat with. |"
+      },
+      "response": [
+        {
+          "name": "201 Created (New Conversation)",
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": null,\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T10:00:00.000Z\",\n        \"__v\": 0\n    }\n}"
+        },
+        {
+          "name": "200 OK (Existing Conversation)",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n        \"__v\": 0\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Messaging Self",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Cannot start a conversation with yourself\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid Input",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"recipient_id is required\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Blocked User",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Recipient has blocked the caller\"\n}"
+        },
+        {
+          "name": "404 Not Found – User Doesn't Exist",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Recipient user not found\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Get Total Unread Count",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/conversations/unread-count",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "conversations",
+            "unread-count"
+          ]
+        },
+        "description": "## 3. Get Total Unread Count\n\nReturns the total aggregate number of unread messages across all active conversations belonging to the authenticated user. Useful for notification badges.\n\n**Authentication:** Required"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"unread_count\": 5\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Get Chat History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/conversations/{{conversationId}}/messages?page=1&limit=50",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "conversations",
+            "{{conversationId}}",
+            "messages"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1"
+            },
+            {
+              "key": "limit",
+              "value": "50"
+            }
+          ]
+        },
+        "description": "## 4. Get Chat History\n\nFetches paginated messages for a specific conversation. Typically used when the user first opens the chat room to load past history.\n\n**Authentication:** Required\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | `1` | Pagination page. |\n| `limit` | Number | `50` | Results per page. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"messages\": [\n            {\n                \"_id\": \"60d0fe4f5311236168a109dd\",\n                \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n                \"sender_id\": \"60d0fe4f5311236168a109cb\",\n                \"text\": \"Check out this new track!\",\n                \"shared_entity\": {\n                    \"type\": \"Track\",\n                    \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\"\n                },\n                \"is_read\": true,\n                \"read_at\": \"2026-04-14T15:32:00.000Z\",\n                \"createdAt\": \"2026-04-14T15:30:00.000Z\",\n                \"updatedAt\": \"2026-04-14T15:32:00.000Z\",\n                \"__v\": 0\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 50\n    }\n}"
+        },
+        {
+          "name": "403 Forbidden – Not in Conversation",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Access denied to this conversation\"\n}"
+        },
+        {
+          "name": "400 Bad Request – Invalid ID Pattern",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Invalid conversation ID format\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Send Message (REST Fallback)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"text\": \"Hey, are you going to the concert tonight?\",\n  \"shared_entity\": {\n      \"type\": \"Track\",\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/conversations/{{conversationId}}/messages",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "conversations",
+            "{{conversationId}}",
+            "messages"
+          ]
+        },
+        "description": "## 5. Send Message\n\nSends a message via REST. Often used as a fallback if Socket.IO isn't available, or used by bots/clients via REST. The message must contain either `text`, `shared_entity`, or both.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `text` | String | No* | Message payload text (max 2000 chars). |\n| `shared_entity` | Object | No* | The entity being shared. |\n| `shared_entity.type` | String | Yes | `Track` or `Playlist`. |\n| `shared_entity.id` | String | Yes | MongoDB ObjectId of the entity. |\n\n*(Must provide at least one of `text` or `shared_entity`)*"
+      },
+      "response": [
+        {
+          "name": "201 Created",
+          "status": "Created",
+          "code": 201,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"message\": {\n            \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n            \"sender_id\": \"60d0fe4f5311236168a109uu\",\n            \"text\": \"Hey, are you going to the concert tonight?\",\n            \"shared_entity\": {\n                \"type\": \"Track\",\n                \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\"\n            },\n            \"is_read\": false,\n            \"read_at\": null,\n            \"_id\": \"60d0fe4f5311236168a109ee\",\n            \"createdAt\": \"2026-04-14T15:45:00.000Z\",\n            \"updatedAt\": \"2026-04-14T15:45:00.000Z\",\n            \"__v\": 0\n        },\n        \"conversationId\": \"60d0fe4f5311236168a109ca\",\n        \"recipientId\": \"60d0fe4f5311236168a109cb\",\n        \"lastMessageAt\": \"2026-04-14T15:45:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Empty Message",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Message must contain text or shared_entity\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Not in Conversation",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Access denied to this conversation\"\n}"
+        },
+        {
+          "name": "403 Forbidden – Blocked Useer",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Cannot send message, you are blocked by the recipient\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "6. Mark Conversation Read",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/conversations/{{conversationId}}/read",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "conversations",
+            "{{conversationId}}",
+            "read"
+          ]
+        },
+        "description": "## 6. Mark Conversation Read\n\nMarks all unread messages sent by the other participant within the given conversation as read. Updates their `is_read` status and sets `read_at` to the current timestamp.\n\n**Authentication:** Required"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"conversationId\": \"60d0fe4f5311236168a109ca\",\n        \"markedCount\": 2,\n        \"readAt\": \"2026-04-14T15:46:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "200 OK – None Found",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"conversationId\": \"60d0fe4f5311236168a109ca\",\n        \"markedCount\": 0,\n        \"readAt\": \"2026-04-14T15:46:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "403 Forbidden – Not in Conversation",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Access denied to this conversation\"\n}"
+        }
+      ]
+    }
+  ]
+}
