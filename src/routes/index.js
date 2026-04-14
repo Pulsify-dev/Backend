@@ -6,7 +6,10 @@ import trackRoutes from "./track.routes.js";
 import streamingRoutes from "./streaming.routes.js";
 import engagementRoutes from "./engagement.routes.js";
 import messagingRoutes from "./messaging.routes.js";
+import reportRoutes from "./report.routes.js";
+import adminRoutes from "./admin.routes.js";
 
+import discoveryRoutes from "./discovery.routes.js";
 const router = Router();
 
 // Module 1: Auth
@@ -27,5 +30,11 @@ router.use("/", engagementRoutes);
 
 // Module 9: Messaging & Track Sharing
 router.use("/", messagingRoutes);
+
+// Module 11: Moderation & Admin Dashboard (report, resolve, suspend, restore)
+router.use("/reports", reportRoutes);
+router.use("/admin", adminRoutes);
+// Module 8: Feed & Discovery
+router.use("/", discoveryRoutes);
 
 export default router;
