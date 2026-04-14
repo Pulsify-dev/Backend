@@ -3,7 +3,6 @@ import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import xss from "xss-clean";
 import errorMiddleware from "./middleware/error.middleware.js";
 import routes from "./routes/index.js";
 const app = express();
@@ -28,8 +27,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // ── Data Sanitization ───────────────────────────────────────
-// Prevent Cross-Site Scripting (XSS) by stripping malicious tags from inputs
-app.use(xss());
+// Note: xss-clean was removed because it is incompatible with Express 5's req.query getter.
+// Ensure frontend frameworks handle XSS protection, or use dompurify on specific fields if needed.
 
 // ── DevOps health probes ────────────────────────────────────
 
