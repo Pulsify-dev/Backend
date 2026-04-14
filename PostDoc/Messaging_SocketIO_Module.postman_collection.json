@@ -1,0 +1,32 @@
+{
+  "info": {
+    "name": "10. 🔌 Real-Time Sockets",
+    "description": "API collection detailing the real-time Socket.IO chat engine events, emits, and broadcasts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variables": [
+    {
+      "key": "accessToken",
+      "value": "YOUR_ACCESS_TOKEN_HERE"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Socket.IO Reference Guide",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "ws://localhost:3000",
+          "protocol": "ws",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000"
+        },
+        "description": "## Socket.IO Real-Time Chat Engine\n\nThis system allows for low-latency real-time chat interactions. Sockets automatically join an invisible personal channel `user:{user_id}` on connection so they can act as global listeners for any incoming message, regardless of whether a particular chat window is open.\n\n### 🔌 Connection\n| Specification | Details |\n|---------------|---------|\n| Server URL | `http://localhost:3000` (or `https://` in prod) |\n| Authentication | Must pass the JWT during initialization using `auth: { token: \"Bearer ...\" }` |\n\n---\n\n## ⬆️ Client EMITS (Action Triggers)\n\nThese are events emitted *by the frontend* to trigger backend actions. Each emit requires a payload and supports a callback (Acknowledgment) containing exactly `{ success, data, error }`.\n\n### 1. `conversation:join`\nJoins the specific room for a conversation. Call this when the user clicks/navigates into a specific chat view.\n**Payload:** \n```json\n{\n  \"conversation_id\": \"60d0fe4f5311236168a109ca\"\n}\n```\n**Ack Response (Success):** \n```json\n{\n  \"success\": true,\n  \"data\": { \"conversation_id\": \"60d0fe4f5311236168a109ca\" }\n}\n```\n\n### 2. `message:new`\nSends a new message to the chat.\n**Payload:** \n```json\n{\n  \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n  \"text\": \"Hey! Check this mix.\",\n  \"shared_entity\": {\n      \"type\": \"Track\",\n      \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\"\n  }\n}\n```\n**Ack Response (Success):** \n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n    \"last_message_at\": \"2026-04-14T15:45:00.000Z\",\n    \"message\": {\n        \"_id\": \"60d0fe4f5311236168a109ee\",\n        \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n        \"sender_id\": \"60d0fe4f5311236168a109uu\",\n        \"text\": \"Hey! Check this mix.\",\n        \"shared_entity\": { \"type\": \"Track\", \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\" },\n        \"is_read\": false,\n        \"read_at\": null,\n        \"createdAt\": \"2026-04-14T15:45:00.000Z\",\n        \"updatedAt\": \"2026-04-14T15:45:00.000Z\",\n        \"__v\": 0\n    }\n  }\n}\n```\n\n### 3. `conversation:read`\nMarks all unread messages in the active chat view as read.\n**Payload:** \n```json\n{\n  \"conversation_id\": \"60d0fe4f5311236168a109ca\"\n}\n```\n**Ack Response (Success):** \n```json\n{\n  \"success\": true,\n  \"data\": {\n    \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n    \"reader_id\": \"60d0fe4f5311236168a109uu\",\n    \"marked_count\": 2,\n    \"read_at\": \"2026-04-14T15:46:00.000Z\"\n  }\n}\n```\n\n---\n\n## ⬇️ Server BROADCASTS (Listeners)\n\nThese are events broadcasted *by the backend* to the frontend. The frontend must set up `.on()` listeners to process them.\n\n### 1. `message:new`\nTriggered when someone sends a message. The frontend will receive this broadcast in **two places:**\n- If they are actively viewing the chat (`conversation:${id}` room)\n- Anywhere else in the app (via their personal `user:${id}` room notification banner)\n*Note: Your frontend should deduplicate events using `message._id` to prevent double-rendering.*\n\n**Payload Broadcast:**\n```json\n{\n  \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n  \"last_message_at\": \"2026-04-14T15:45:00.000Z\",\n  \"message\": {\n      \"_id\": \"60d0fe4f5311236168a109ee\",\n      \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n      \"sender_id\": \"60d0fe4f5311236168a109uu\",\n      \"text\": \"Hey! Check this mix.\",\n      \"is_read\": false,\n      \"createdAt\": \"2026-04-14T15:45:00.000Z\"\n  }\n}\n```\n\n### 2. `conversation:read`\nTriggered when the person you are talking to opens the chat or explicitly marks it as read.\n**Payload Broadcast:**\n```json\n{\n  \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n  \"reader_id\": \"60d0fe4f5311236168a109cb\",\n  \"marked_count\": 2,\n  \"read_at\": \"2026-04-14T15:46:00.000Z\"\n}\n```"
+      },
+      "response": []
+    }
+  ]
+}

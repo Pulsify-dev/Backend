@@ -1,15 +1,19 @@
 import "./src/config/index.js";
 
-import express from "express";
+import http from "http";
 import connectDB from "./src/config/db.js";
 
 import app from "./src/app.js";  // ← Import configured app
+import { initializeSocketServer } from "./src/sockets/index.js";
 
 connectDB();
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+const httpServer = http.createServer(app);
+initializeSocketServer(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`🚀 Pulsify Backend is running on http://localhost:${PORT}`);
   console.log("Press Ctrl+C to stop the server");
 });

@@ -26,6 +26,7 @@
       "src/services/track.service.js",
       "src/services/streaming.service.js",
       "src/services/social.service.js",
+      "src/services/messaging.service.js",
       "src/services/admin.service.js",
       "src/services/report.service.js"
     ],
@@ -48,11 +49,13 @@
     "google-auth-library": "^10.6.2",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
+    "meilisearch": "^0.57.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.3.1",
     "multer": "^2.1.1",
     "music-metadata": "^11.12.3",
-    "nodemailer": "^8.0.4"
+    "nodemailer": "^8.0.4",
+    "socket.io": "^4.8.3"
   },
   "devDependencies": {
     "c8": "^11.0.0",
