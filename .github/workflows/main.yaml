@@ -30,10 +30,17 @@ jobs:
           script: |
             sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
-            sudo docker stop pulsify-api-1 pulsify-api-2 pulsify-api-3 || true
-            sudo docker rm pulsify-api-1 pulsify-api-2 pulsify-api-3 || true
+            sudo docker stop pulsify-api-1 pulsify-api-2 pulsify-api-3 meilisearch || true
+            sudo docker rm pulsify-api-1 pulsify-api-2 pulsify-api-3 meilisearch || true
+            sudo docker run -d \
+            --name meilisearch \
+            --restart always \
+            -p 7700:7700 \
+            -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
+            -v $(pwd)/meili_data:/meili_data \
+            getmeili/meilisearch:latest
 
-            sudo docker run -d --name pulsify-api-1 -p 5001:3000 \
+            sudo docker run -d --name pulsify-api-1 --restart always -p 5001:3000 \
               -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
@@ -55,9 +62,11 @@ jobs:
               -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               -e NODE_ENV="${{secrets.NODE_ENV}}" \
               -e API_URL="${{secrets.API_URL}}" \
+              -e MEILI_HOST='http://localhost:7700' \
+              -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
-            sudo docker run -d --name pulsify-api-2 -p 5002:3000 \
+            sudo docker run -d --name pulsify-api-2 --restart always -p 5002:3000 \
               -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
@@ -79,9 +88,11 @@ jobs:
               -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               -e NODE_ENV="${{secrets.NODE_ENV}}" \
               -e API_URL="${{secrets.API_URL}}" \
+              -e MEILI_HOST='http://localhost:7700' \
+              -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
-            sudo docker run -d --name pulsify-api-3 -p 5003:3000 \
+            sudo docker run -d --name pulsify-api-3 --restart always -p 5003:3000 \
               -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_REFRESH_SECRET="${{ secrets.JWT_REFRESH_SECRET }}" \
@@ -103,4 +114,6 @@ jobs:
               -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               -e NODE_ENV="${{secrets.NODE_ENV}}" \
               -e API_URL="${{secrets.API_URL}}" \
+              -e MEILI_HOST='http://localhost:7700' \
+              -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
