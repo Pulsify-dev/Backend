@@ -28,13 +28,15 @@ router.use("/", streamingRoutes);
 // Module 6: Engagement & Social Interactions (Likes, Reposts, Comments)
 router.use("/", engagementRoutes);
 
+// Module 8: Feed & Discovery
+router.use("/", discoveryRoutes);
+
 // Module 9: Messaging & Track Sharing
 router.use("/", messagingRoutes);
 
 // Module 11: Moderation & Admin Dashboard (report, resolve, suspend, restore)
 router.use("/reports", reportRoutes);
 router.use("/admin", adminRoutes);
-// Module 8: Feed & Discovery
-router.use("/", discoveryRoutes);
+
 
 export default router;
