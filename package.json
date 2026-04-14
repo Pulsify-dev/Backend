@@ -25,7 +25,9 @@
       "src/services/auth.service.js",
       "src/services/track.service.js",
       "src/services/streaming.service.js",
-      "src/services/social.service.js"
+      "src/services/social.service.js",
+      "src/services/admin.service.js",
+      "src/services/report.service.js"
     ],
     "reporter": [
       "text"
