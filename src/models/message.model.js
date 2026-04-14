@@ -44,7 +44,7 @@ const messageSchema = new mongoose.Schema(
 	},
 );
 
-messageSchema.pre("validate", function (next) {
+messageSchema.pre("validate", function () {
 	if (typeof this.text === "string") {
 		this.text = this.text.trim();
 	}
@@ -56,13 +56,6 @@ messageSchema.pre("validate", function (next) {
 	if (!hasText && !hasSharedEntity) {
 		this.invalidate("text", "Message must contain text or shared_entity");
 	}
-
-	if (hasText || hasSharedEntity) {
-		next();
-		return;
-	}
-
-	next();
 });
 
 messageSchema.index({ conversation_id: 1, createdAt: 1 });

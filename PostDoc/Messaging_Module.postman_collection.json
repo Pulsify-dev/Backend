@@ -347,7 +347,7 @@
             "messages"
           ]
         },
-        "description": "## 5. Send Message\n\nSends a message via REST. Often used as a fallback if Socket.IO isn't available, or used by bots/clients via REST. The message must contain either `text`, `shared_entity`, or both.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `text` | String | No* | Message payload text (max 2000 chars). |\n| `shared_entity` | Object | No* | The entity being shared. |\n| `shared_entity.type` | String | Yes | `Track` or `Playlist`. |\n| `shared_entity.id` | String | Yes | MongoDB ObjectId of the entity. |\n\n*(Must provide at least one of `text` or `shared_entity`)*"
+        "description": "## 5. Send Message\n\n> ⚠️ **IMPORTANT NOTE FOR FRONTEND:** This REST endpoint is provided **strictly for testing/fallback purposes**. For actual implementation and sending messages in the app, you MUST use the Socket.IO `message:new` emit to ensure real-time latency and proper state sync. Do not use this REST endpoint in production.\n\nSends a message via REST. The message must contain either `text`, `shared_entity`, or both.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `text` | String | No* | Message payload text (max 2000 chars). |\n| `shared_entity` | Object | No* | The entity being shared. |\n| `shared_entity.type` | String | Yes | `Track` or `Playlist`. |\n| `shared_entity.id` | String | Yes | MongoDB ObjectId of the entity. |\n\n*(Must provide at least one of `text` or `shared_entity`)*"
       },
       "response": [
         {

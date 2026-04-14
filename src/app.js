@@ -1,9 +1,16 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
+import helmet from "helmet";
+import rateLimit from "express-rate-limit";
+import xss from "xss-clean";
 import errorMiddleware from "./middleware/error.middleware.js";
 import routes from "./routes/index.js";
 const app = express();
+
+// ── Security Headers ────────────────────────────────────────
+// Set global security headers to protect against common web vulnerabilities
+app.use(helmet());
 
 // ── CORS Configuration ──────────────────────────────────────
 // This tells the browser that requests from these specific origins are safe.
@@ -19,6 +26,10 @@ app.use(cors({
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ── Data Sanitization ───────────────────────────────────────
+// Prevent Cross-Site Scripting (XSS) by stripping malicious tags from inputs
+app.use(xss());
 
 // ── DevOps health probes ────────────────────────────────────
 
@@ -36,7 +47,20 @@ app.get("/v1/health", async (req, res) => {
   }
 });
 
-app.use("/v1", routes);
+// ── Rate Limiting ───────────────────────────────────────────
+// Limit each IP to 500 API requests per 15-minute window
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, 
+  max: 500, 
+  message: {
+    success: false,
+    error: "Too many requests from this IP, please try again after 15 minutes",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/v1", apiLimiter, routes);
 
 app.use(errorMiddleware.notFound);
 
