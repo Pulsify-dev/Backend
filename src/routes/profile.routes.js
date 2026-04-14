@@ -2,7 +2,7 @@ import { Router } from "express";
 import profileController from "../controllers/profile.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import { avatarUpload, coverUpload } from "../middleware/upload.middleware.js";
-import validationMiddleware from "../middleware/validation.middleware.js";
+import validationMiddleware from "../middleware/user.validation.middleware.js";
 
 const router = Router();
 //protected routes

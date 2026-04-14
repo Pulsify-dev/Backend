@@ -1,7 +1,8 @@
 import { Router } from "express";
 import messagingController from "../controllers/messaging.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
-import validationMiddleware from "../middleware/validation.middleware.js";
+import validationMiddleware from "../middleware/user.validation.middleware.js";
+import messagingValidation from "../middleware/messaging.validation.middleware.js";
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.get(
 router.post(
 	"/conversations",
 	authMiddleware.requireAuth,
-	validationMiddleware.validateStartConversation,
+	messagingValidation.validateStartConversation,
 	messagingController.startOrGetConversation,
 );
 
@@ -28,7 +29,7 @@ router.get(
 router.get(
 	"/conversations/:conversation_id/messages",
 	authMiddleware.requireAuth,
-	validationMiddleware.validateConversationParam,
+	messagingValidation.validateConversationParam,
 	validationMiddleware.validateSearchQuery,
 	messagingController.getMessages,
 );
@@ -36,15 +37,15 @@ router.get(
 router.post(
 	"/conversations/:conversation_id/messages",
 	authMiddleware.requireAuth,
-	validationMiddleware.validateConversationParam,
-	validationMiddleware.validateSendMessage,
+	messagingValidation.validateConversationParam,
+	messagingValidation.validateSendMessage,
 	messagingController.sendMessage,
 );
 
 router.put(
 	"/conversations/:conversation_id/read",
 	authMiddleware.requireAuth,
-	validationMiddleware.validateConversationParam,
+	messagingValidation.validateConversationParam,
 	messagingController.markConversationRead,
 );
 
