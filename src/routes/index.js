@@ -5,6 +5,7 @@ import socialRoutes from "./social.routes.js";
 import trackRoutes from "./track.routes.js";
 import streamingRoutes from "./streaming.routes.js";
 import engagementRoutes from "./engagement.routes.js";
+import messagingRoutes from "./messaging.routes.js";
 
 const router = Router();
 
@@ -23,5 +24,8 @@ router.use("/", streamingRoutes);
 
 // Module 6: Engagement & Social Interactions (Likes, Reposts, Comments)
 router.use("/", engagementRoutes);
+
+// Module 9: Messaging & Track Sharing
+router.use("/", messagingRoutes);
 
 export default router;
