@@ -46,6 +46,7 @@
     "google-auth-library": "^10.6.2",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
+    "meilisearch": "^0.57.0",
     "mongodb": "^7.1.0",
     "mongoose": "^9.3.1",
     "multer": "^2.1.1",

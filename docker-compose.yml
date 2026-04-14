@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  meilisearch:
+    image: getmeili/meilisearch:v1.7
+    environment:
+      - MEILI_MASTER_KEY=6f83b271d9a5e4c2b8f1a0d9c3e7f5a2
+      - MEILI_NO_ANALYTICS=true
+    ports:
+      - "7700:7700"
+    volumes:
+      - ./meili_data:/meili_data
