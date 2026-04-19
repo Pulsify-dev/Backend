@@ -1,0 +1,495 @@
+{
+  "info": {
+    "name": "Module 7 - Playlists (Sets & Collections)",
+    "description": "API collection for Playlist CRUD, Track Sequencing, Privacy Control, and Embed Support",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variables": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": "YOUR_ACCESS_TOKEN_HERE"
+    },
+    {
+      "key": "playlistId",
+      "value": "507f1f77bcf86cd799439011"
+    },
+    {
+      "key": "trackId",
+      "value": "507f1f77bcf86cd799439012"
+    },
+    {
+      "key": "permalink",
+      "value": "my-favorite-tracks-a1b2c3d4"
+    },
+    {
+      "key": "secretToken",
+      "value": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z"
+    }
+  ],
+  "item": [
+    {
+      "name": "PLAYLIST CRUD",
+      "item": [
+        {
+          "name": "Create Playlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Favorite Tracks\",\n  \"description\": \"Collection of my favorite songs\",\n  \"is_private\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists"]
+            },
+            "description": "Create a new playlist"
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Playlists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all playlists created by the authenticated user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Playlist by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"]
+            },
+            "description": "Get a specific playlist with all its tracks"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Playlist by Permalink",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/permalink/{{permalink}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "permalink", "{{permalink}}"]
+            },
+            "description": "Get a playlist by its unique permalink (public playlists only)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Private Playlist by Permalink with Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/permalink/{{permalink}}?token={{secretToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "permalink", "{{permalink}}"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{secretToken}}"
+                }
+              ]
+            },
+            "description": "Access a private playlist by permalink using its secret token. Note: token must match the playlist, otherwise access is denied"
+          },
+          "response": []
+        },
+        {
+          "name": "Update Playlist",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Updated Playlist\",\n  \"description\": \"Updated description\",\n  \"cover_url\": \"https://example.com/cover.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"]
+            },
+            "description": "Update playlist details"
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Playlist",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"]
+            },
+            "description": "Delete a playlist"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "TRACK SEQUENCING",
+      "item": [
+        {
+          "name": "Add Track to Playlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}"]
+            },
+            "description": "Add a track to a playlist by track ID in the URL"
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Track from Playlist",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}"]
+            },
+            "description": "Remove a track from a playlist"
+          },
+          "response": []
+        },
+        {
+          "name": "Reorder All Tracks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"track_order\": [\"507f1f77bcf86cd799439014\", \"507f1f77bcf86cd799439013\", \"507f1f77bcf86cd799439012\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "reorder"]
+            },
+            "description": "Reorder all tracks in a playlist"
+          },
+          "response": []
+        },
+        {
+          "name": "Move Track (Drag-and-Drop)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_position\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}/move",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}", "move"]
+            },
+            "description": "Move a single track to a different position"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "PRIVACY & SECRET TOKENS",
+      "item": [
+        {
+          "name": "Make Playlist Private",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_private\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "privacy"]
+            },
+            "description": "Convert a public playlist to private with secret token"
+          },
+          "response": []
+        },
+        {
+          "name": "Make Playlist Public",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_private\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "privacy"]
+            },
+            "description": "Convert a private playlist to public"
+          },
+          "response": []
+        },
+        {
+          "name": "Regenerate Secret Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/regenerate-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "regenerate-token"]
+            },
+            "description": "Generate a new secret token for a private playlist"
+          },
+          "response": []
+        },
+        {
+          "name": "Access Private Playlist with Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}?token={{secretToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{secretToken}}"
+                }
+              ]
+            },
+            "description": "Access a private playlist using its secret token"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "EMBED SUPPORT",
+      "item": [
+        {
+          "name": "Get Embed Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/embed",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "embed"]
+            },
+            "description": "Generate iframe embed code for a playlist"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "DISCOVERY & SEARCH",
+      "item": [
+        {
+          "name": "Discover Public Playlists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/discover/public?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "discover", "public"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Discover public playlists"
+          },
+          "response": []
+        },
+        {
+          "name": "Search Playlists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/search?q=favorites&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "favorites"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Search playlists by title"
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
