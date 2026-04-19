@@ -35,10 +35,7 @@ const playlistSchema = mongoose.Schema(
       type: String,
       unique: true,
       sparse: true,
-      default: function () {
-        // Generate secret token only for private playlists
-        return this.is_private ? crypto.randomBytes(32).toString("hex") : null;
-      },
+      default: null,
     },
     tracks: [
       {
@@ -93,7 +90,7 @@ playlistSchema.index({ creator_id: 1, createdAt: -1 });
 playlistSchema.index({ is_private: 1, creator_id: 1 });
 
 // Middleware to generate permalink before saving
-playlistSchema.pre("save", function (next) {
+playlistSchema.pre("save", async function () {
   if (!this.permalink) {
     const basePermalink = this.title
       .toLowerCase()
@@ -104,7 +101,16 @@ playlistSchema.pre("save", function (next) {
       .randomBytes(4)
       .toString("hex")}`;
   }
-  next();
+
+  // Generate secret token for private playlists
+  if (this.is_private && !this.secret_token) {
+    this.secret_token = crypto.randomBytes(32).toString("hex");
+  }
+
+  // Clear secret token for public playlists
+  if (!this.is_private) {
+    this.secret_token = null;
+  }
 });
 
 //regenerate secret token
