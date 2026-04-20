@@ -26,6 +26,23 @@ const ALLOWED_AUDIO_TYPES = [
 const MAX_AUDIO_BYTES = 30 * 1024 * 1024; // 30 MB
 const MAX_COVER_BYTES = 10 * 1024 * 1024; // 10 MB
 const MAX_ARTWORK_BYTES = 5 * 1024 * 1024; // 5 MB (for artwork replacement per API doc)
+const PREVIEW_DURATION_SECONDS = 30;
+
+const parsePreviewStartSeconds = (value) => {
+  if (value === undefined) return null;
+
+  const parsedValue = Number(value);
+  if (!Number.isInteger(parsedValue)) {
+    throw new BadRequestError("preview_start_seconds must be an integer.");
+  }
+
+  return parsedValue;
+};
+
+const clampPreviewStartSeconds = (previewStartSeconds, trackDurationSeconds) => {
+  const maxPreviewStart = Math.max(trackDurationSeconds - PREVIEW_DURATION_SECONDS, 0);
+  return Math.min(Math.max(previewStartSeconds, 0), maxPreviewStart);
+};
 
 const createTrack = async (userId, trackData, audioFile, coverFile) => {
   // Validate audio file
@@ -62,6 +79,13 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
   // Round duration and bitrate to integer (music-metadata may return floats)
   const roundedDuration = Math.round(audioMetadata.duration);
   const roundedBitrate = Math.round(audioMetadata.bitrate || 0);
+  const parsedPreviewStart = parsePreviewStartSeconds(
+    trackData.preview_start_seconds,
+  );
+  const previewStartSeconds = clampPreviewStartSeconds(
+    parsedPreviewStart ?? 0,
+    roundedDuration,
+  );
 
   // ========== STEP 3.5: EXTRACT WAVEFORM ==========
   const waveform = await audioUtils.extractWaveform(audioFile.buffer);
@@ -85,6 +109,7 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     duration: roundedDuration,
     file_size_bytes: audioFile.size,
     bitrate: roundedBitrate,
+    preview_start_seconds: previewStartSeconds,
     waveform: waveform,
     status: "finished",
   };
@@ -119,10 +144,27 @@ const updateTrack = async (trackId, userId, updateData) => {
   }
   if (!updateData) throw new BadRequestError("No update data provided.");
   // Only allow certain fields to be updated
-  const allowedFields = ["title", "genre", "description", "tags", "visibility"];
+  const allowedFields = [
+    "title",
+    "genre",
+    "description",
+    "tags",
+    "visibility",
+    "preview_start_seconds",
+  ];
   const updates = {};
   for (const field of allowedFields) {
     if (updateData[field] !== undefined) {
+      if (field === "preview_start_seconds") {
+        const requestedPreviewStart = parsePreviewStartSeconds(
+          updateData.preview_start_seconds,
+        );
+        updates.preview_start_seconds = clampPreviewStartSeconds(
+          requestedPreviewStart,
+          track.duration,
+        );
+        continue;
+      }
       updates[field] = updateData[field];
     }
   }

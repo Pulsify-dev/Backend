@@ -14,6 +14,7 @@ describe("StreamingService Unit Tests", () => {
     _id: MOCK_TRACK_ID,
     audio_url: "https://pulsify-s3-dev.s3.amazonaws.com/tracks/audio/track.mp3",
     playback_state: "playable",
+    preview_start_seconds: 0,
     visibility: "public",
     artist_id: "507f1f77bcf86cd799439022", 
     duration: 180,
@@ -24,13 +25,17 @@ describe("StreamingService Unit Tests", () => {
   });
 
   describe("getStreamUrl()", () => {
-    it("should return the public S3 URL for a playable track", async () => {
+    it("should return full playback metadata for a playable track", async () => {
       sinon.stub(trackRepository, "findById").resolves(mockTrack);
 
       const result = await streamingService.getStreamUrl(MOCK_TRACK_ID, MOCK_USER);
 
       expect(result.url).to.equal(mockTrack.audio_url);
+      expect(result.access_policy).to.equal("playable");
       expect(result.playback_state).to.equal("playable");
+      expect(result.playback_mode).to.equal("full");
+      expect(result.preview_start_seconds).to.equal(null);
+      expect(result.preview_duration_seconds).to.equal(null);
     });
 
     it("should throw ForbiddenError if track is private and user is not owner", async () => {
@@ -69,13 +74,38 @@ describe("StreamingService Unit Tests", () => {
       }
     });
 
-    it("should return preview metadata if track is in preview state", async () => {
-      const previewTrack = { ...mockTrack, playback_state: "preview" };
+    it("should return preview metadata for discovery surface", async () => {
+      const previewTrack = { ...mockTrack, preview_start_seconds: 45 };
       sinon.stub(trackRepository, "findById").resolves(previewTrack);
 
-      const result = await streamingService.getStreamUrl(MOCK_TRACK_ID, MOCK_USER);
+      const result = await streamingService.getStreamUrl(
+        MOCK_TRACK_ID,
+        MOCK_USER,
+        "discovery",
+      );
 
-      expect(result.playback_state).to.equal("preview");
+      expect(result.access_policy).to.equal("playable");
+      expect(result.playback_mode).to.equal("preview");
+      expect(result.preview_start_seconds).to.equal(45);
+      expect(result.preview_duration_seconds).to.equal(30);
+    });
+
+    it("should clamp preview start to valid window", async () => {
+      const outOfBoundsTrack = {
+        ...mockTrack,
+        duration: 50,
+        preview_start_seconds: 40,
+      };
+      sinon.stub(trackRepository, "findById").resolves(outOfBoundsTrack);
+
+      const result = await streamingService.getStreamUrl(
+        MOCK_TRACK_ID,
+        MOCK_USER,
+        "feed",
+      );
+
+      expect(result.playback_mode).to.equal("preview");
+      expect(result.preview_start_seconds).to.equal(20);
       expect(result.preview_duration_seconds).to.equal(30);
     });
   });

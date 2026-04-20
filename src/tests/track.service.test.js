@@ -92,6 +92,87 @@ describe("TrackService", () => {
       expect(trackRepository.createTrack.calledOnce).to.be.true;
     });
 
+    it("should accept preview_start_seconds on create", async () => {
+      sinon.stub(photoUtils, "validateImageFile").returns(true);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "mp3",
+        duration: 180,
+        bitrate: 320000,
+      });
+      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
+      sinon.stub(S3Utils, "uploadToS3")
+        .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
+        .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
+      sinon
+        .stub(trackRepository, "createTrack")
+        .callsFake(async (payload) => payload);
+
+      const result = await trackService.createTrack(
+        MOCK_USER_ID,
+        {
+          ...validTrackData,
+          preview_start_seconds: 45,
+        },
+        mockAudioFile,
+        mockCoverFile,
+      );
+
+      expect(result.preview_start_seconds).to.equal(45);
+    });
+
+    it("should clamp preview_start_seconds on create", async () => {
+      sinon.stub(photoUtils, "validateImageFile").returns(true);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "mp3",
+        duration: 50,
+        bitrate: 320000,
+      });
+      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
+      sinon.stub(S3Utils, "uploadToS3")
+        .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
+        .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
+      sinon
+        .stub(trackRepository, "createTrack")
+        .callsFake(async (payload) => payload);
+
+      const result = await trackService.createTrack(
+        MOCK_USER_ID,
+        {
+          ...validTrackData,
+          preview_start_seconds: 100,
+        },
+        mockAudioFile,
+        mockCoverFile,
+      );
+
+      expect(result.preview_start_seconds).to.equal(20);
+    });
+
+    it("should throw BadRequestError for invalid preview_start_seconds on create", async () => {
+      sinon.stub(photoUtils, "validateImageFile").returns(true);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "mp3",
+        duration: 180,
+        bitrate: 320000,
+      });
+
+      try {
+        await trackService.createTrack(
+          MOCK_USER_ID,
+          {
+            ...validTrackData,
+            preview_start_seconds: "abc",
+          },
+          mockAudioFile,
+          mockCoverFile,
+        );
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(BadRequestError);
+        expect(err.message).to.equal("preview_start_seconds must be an integer.");
+      }
+    });
+
     it("should throw BadRequestError if audio file is missing", async () => {
       try {
         await trackService.createTrack(MOCK_USER_ID, validTrackData, null, mockCoverFile);
@@ -322,6 +403,35 @@ describe("TrackService", () => {
       });
 
       expect(result.visibility).to.equal("private");
+    });
+
+    it("should clamp preview_start_seconds on update", async () => {
+      const shortTrack = { ...mockTrack, duration: 50 };
+      sinon.stub(trackRepository, "findById").resolves(shortTrack);
+      const updateStub = sinon.stub(trackRepository, "updateTrackById").resolves({
+        ...shortTrack,
+        preview_start_seconds: 20,
+      });
+
+      await trackService.updateTrack(MOCK_TRACK_ID, MOCK_USER_ID, {
+        preview_start_seconds: 100,
+      });
+
+      expect(updateStub.firstCall.args[1].preview_start_seconds).to.equal(20);
+    });
+
+    it("should throw BadRequestError for invalid preview_start_seconds on update", async () => {
+      sinon.stub(trackRepository, "findById").resolves(mockTrack);
+
+      try {
+        await trackService.updateTrack(MOCK_TRACK_ID, MOCK_USER_ID, {
+          preview_start_seconds: "abc",
+        });
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(BadRequestError);
+        expect(err.message).to.equal("preview_start_seconds must be an integer.");
+      }
     });
   });
 

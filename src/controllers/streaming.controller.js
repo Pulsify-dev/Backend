@@ -8,9 +8,14 @@ import streamingService from "../services/streaming.service.js";
 const getStreamUrl = async (req, res, next) => {
   try {
     const { track_id } = req.params;
+    const { playbackContext, surface } = req.query;
     const user = req.user;
 
-    const result = await streamingService.getStreamUrl(track_id, user);
+    const result = await streamingService.getStreamUrl(
+      track_id,
+      user,
+      playbackContext || surface,
+    );
 
     res.status(200).json(result);
   } catch (err) {
@@ -22,9 +27,14 @@ const getStreamUrl = async (req, res, next) => {
 const streamRedirect = async (req, res, next) => {
   try {
     const { track_id } = req.params;
+    const { playbackContext, surface } = req.query;
     const user = req.user;
 
-    const result = await streamingService.getStreamUrl(track_id, user);
+    const result = await streamingService.getStreamUrl(
+      track_id,
+      user,
+      playbackContext || surface,
+    );
 
     // Redirect to public S3 URL
     res.redirect(302, result.url);

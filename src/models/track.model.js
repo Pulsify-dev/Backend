@@ -133,9 +133,18 @@ const trackSchema = mongoose.Schema(
     },
     playback_state: {
       type: String,
-      enum: ["playable", "preview", "blocked"],
+      enum: ["playable", "blocked"],
       default: "playable",
       index: true,
+    },
+    preview_start_seconds: {
+      type: Number,
+      default: 0,
+      min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: "{VALUE} is not an integer",
+      },
     },
     secret_token: {
       type: String,
@@ -226,6 +235,7 @@ const syncTrack = async (doc) => {
     tags: doc.tags,
     visibility: doc.visibility,
     playback_state: doc.playback_state,
+    preview_start_seconds: doc.preview_start_seconds,
     play_count: doc.play_count,
   };
   await searchService.indexDocument("tracks", trackDoc);
