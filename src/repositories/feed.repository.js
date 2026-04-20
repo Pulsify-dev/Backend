@@ -7,7 +7,7 @@ fields we expose for a track inside feed items.
 waveform is excluded (select:false on model already) — no need to add it here.
  */
 const TRACK_SELECT =
-    "_id title permalink genre tags artwork_url duration play_count like_count repost_count comment_count visibility status playback_state artist_id createdAt";
+    "_id title permalink genre tags artwork_url duration play_count like_count repost_count comment_count visibility status playback_state preview_start_seconds artist_id createdAt";
 
 const ARTIST_SELECT = "username display_name avatar_url is_verified";
 
@@ -30,6 +30,7 @@ const toTrackFeedItem = (track) => ({
         repost_count: track.repost_count,
         comment_count: track.comment_count,
         playback_state: track.playback_state,
+        preview_start_seconds: track.preview_start_seconds,
     },
     artist: track.artist_id, // already populated
 });
@@ -54,6 +55,7 @@ const toRepostFeedItem = (repost) => ({
         repost_count: repost.track_id.repost_count,
         comment_count: repost.track_id.comment_count,
         playback_state: repost.track_id.playback_state,
+        preview_start_seconds: repost.track_id.preview_start_seconds,
     },
     artist: repost.track_id.artist_id, // original track artist
     reposted_by: repost.user_id,        // who reposted it

@@ -13,31 +13,38 @@
           { "key": "Authorization", "value": "Bearer {{accessToken}}" }
         ],
         "url": {
-          "raw": "{{baseUrl}}/tracks/:track_id/stream-url",
+          "raw": "{{baseUrl}}/tracks/:track_id/stream-url?playbackContext=discovery",
           "host": ["{{baseUrl}}"],
           "path": ["tracks", ":track_id", "stream-url"],
-          "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }]
+          "variable": [{ "key": "track_id", "value": "69cebfb5cfc180cf7a1100f6" }],
+          "query": [
+            {
+              "key": "playbackContext",
+              "value": "discovery",
+              "description": "UI source of playback (for example: discovery, feed, track_page)."
+            }
+          ]
         },
-        "description": "## 1. Get Stream URL\n\nReturns the direct public S3 URL for audio streaming. Also returns the track's `playback_state` and, if the track is in `preview` mode, a `preview_duration_seconds` value for client-side gating.\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Playback States\n\n| State | Behavior |\n|-------|----------|\n| `playable` | Full access — audio URL returned. |\n| `preview` | Audio URL returned with `preview_duration_seconds: 30` for client enforcement. |\n| `blocked` | 403 Forbidden — no URL returned. |\n\n### How to Test the URL\n\n1. Copy the `url` from the response.\n2. Paste it in your browser.\n3. The MP3 should play or download directly from S3."
+        "description": "## 1. Get Stream URL\n\nReturns the direct public S3 URL for audio streaming.\n\n`playback_state` is now a track-level access policy (`playable` or `blocked`). Preview is not stored as a track state. Instead, preview is derived from the `playbackContext` query input (for example: discovery/feed).\n\n**Authentication:** Required\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `track_id` | String | Yes | The track's ObjectId. |\n\n### Query Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `playbackContext` | String | No | UI source of playback. `discovery` and `feed` return preview mode; other contexts return full mode. |\n\n### Access Policy\n\n| Value | Behavior |\n|-------|----------|\n| `playable` | URL returned. |\n| `blocked` | 403 Forbidden — no URL returned. |\n\n### Response Fields\n\n| Field | Meaning |\n|-------|---------|\n| `access_policy` | Access decision from track policy (`playable` or `blocked`). |\n| `playback_mode` | Effective mode for this request (`full` or `preview`). |\n| `preview_start_seconds` | Artist-defined preview start, returned only in preview mode. |\n| `preview_duration_seconds` | Fixed preview length (30), returned only in preview mode. |\n\n### How to Test the URL\n\n1. Copy the `url` from the response.\n2. Paste it in your browser.\n3. The MP3 should play or download directly from S3."
       },
       "response": [
         {
-          "name": "200 OK – Playable",
+          "name": "200 OK – Full Playback (Track Context)",
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\",\n    \"playback_state\": \"playable\",\n    \"preview_duration_seconds\": null\n}"
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\",\n    \"access_policy\": \"playable\",\n    \"playback_state\": \"playable\",\n    \"playback_mode\": \"full\",\n    \"preview_start_seconds\": null,\n    \"preview_duration_seconds\": null\n}"
         },
         {
-          "name": "200 OK – Preview Mode",
+          "name": "200 OK – Preview Mode (Discovery/Feed)",
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\",\n    \"playback_state\": \"preview\",\n    \"preview_duration_seconds\": 30\n}"
+          "body": "{\n    \"url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775157169362_Amr%20Diab%20...%20Khalik%20Maaya.mp3\",\n    \"access_policy\": \"playable\",\n    \"playback_state\": \"playable\",\n    \"playback_mode\": \"preview\",\n    \"preview_start_seconds\": 45,\n    \"preview_duration_seconds\": 30\n}"
         },
         {
           "name": "403 Forbidden – Track Blocked",

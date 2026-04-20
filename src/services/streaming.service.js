@@ -5,6 +5,8 @@ import { NotFoundError, ForbiddenError } from "../utils/errors.utils.js";
 // ── Minimum listen to count as a play: 50% of track OR 30 seconds (whichever is lower) ──
 const MIN_PLAY_SECONDS = 30;
 const MIN_PLAY_RATIO = 0.5;
+const PREVIEW_DURATION_SECONDS = 30;
+const PREVIEW_PLAYBACK_CONTEXTS = new Set(["feed", "discovery"]);
 
 // ════════════════════════════════════════════════════
 //  STREAMING
@@ -15,7 +17,7 @@ const MIN_PLAY_RATIO = 0.5;
  * Access control is handled by auth middleware on the route layer.
  * The bucket is public; the backend is the gatekeeper, not S3.
  */
-const getStreamUrl = async (trackId, user) => {
+const getStreamUrl = async (trackId, user, playbackContext = "track") => {
   const track = await trackRepository.findById(trackId);
   if (!track) throw new NotFoundError("Track not found");
 
@@ -28,10 +30,31 @@ const getStreamUrl = async (trackId, user) => {
     throw new ForbiddenError("Track is blocked.");
   }
 
+  const normalizedPlaybackContext =
+    typeof playbackContext === "string"
+      ? playbackContext.toLowerCase().trim()
+      : "";
+  const playbackMode = PREVIEW_PLAYBACK_CONTEXTS.has(normalizedPlaybackContext)
+    ? "preview"
+    : "full";
+  const maxPreviewStart = Math.max(track.duration - PREVIEW_DURATION_SECONDS, 0);
+  const rawPreviewStart = Number.isInteger(track.preview_start_seconds)
+    ? track.preview_start_seconds
+    : 0;
+  const previewStartSeconds = Math.min(
+    Math.max(rawPreviewStart, 0),
+    maxPreviewStart,
+  );
+
   return {
     url: track.audio_url,
+    access_policy: track.playback_state,
     playback_state: track.playback_state,
-    preview_duration_seconds: track.playback_state === "preview" ? 30 : null,
+    playback_mode: playbackMode,
+    preview_start_seconds:
+      playbackMode === "preview" ? previewStartSeconds : null,
+    preview_duration_seconds:
+      playbackMode === "preview" ? PREVIEW_DURATION_SECONDS : null,
   };
 };
 
