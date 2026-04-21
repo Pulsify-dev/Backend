@@ -2,6 +2,7 @@ import likeRepository from "../repositories/like.repository.js";
 import repostRepository from "../repositories/repost.repository.js";
 import commentRepository from "../repositories/comment.repository.js";
 import trackRepository from "../repositories/track.repository.js";
+import playlistRepository from "../repositories/playlist.repository.js";
 import Track from "../models/track.model.js";
 import {
   BadRequestError,
@@ -24,6 +25,17 @@ const likeTrack = async (userId, trackId) => {
 
   await Track.findByIdAndUpdate(trackId, { $inc: { like_count: 1 } });
 
+  // Add track to likes playlist
+  try {
+    const likesPlaylist = await playlistRepository.findByCreatorIdAndTitle(userId, "Likes");
+    if (likesPlaylist) {
+      await playlistRepository.addTrackToPlaylist(likesPlaylist._id, trackId, likesPlaylist.track_count);
+    }
+  } catch (error) {
+    console.error("Error adding track to likes playlist:", error);
+    // Don't throw error - liking should succeed even if playlist update fails
+  }
+
   return { message: "Track liked successfully." };
 };
 
@@ -36,6 +48,17 @@ const unlikeTrack = async (userId, trackId) => {
   }
   await likeRepository.deleteLike(userId, trackId);
   await Track.findByIdAndUpdate(trackId, { $inc: { like_count: -1 } });
+
+  // Remove track from likes playlist
+  try {
+    const likesPlaylist = await playlistRepository.findByCreatorIdAndTitle(userId, "Likes");
+    if (likesPlaylist) {
+      await playlistRepository.removeTrackFromPlaylist(likesPlaylist._id, trackId);
+    }
+  } catch (error) {
+    console.error("Error removing track from likes playlist:", error);
+    // Don't throw error - unliking should succeed even if playlist update fails
+  }
 
   return { message: "Track unliked successfully." };
 };
