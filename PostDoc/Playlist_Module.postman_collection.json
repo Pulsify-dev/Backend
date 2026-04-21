@@ -1,0 +1,1069 @@
+{
+  "info": {
+    "name": "✅ Module 7 - Playlists (Sets & Collections)",
+    "description": "API collection for Playlist CRUD, Track Sequencing, Privacy Control, and Embed Support",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variables": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/v1"
+    },
+    {
+      "key": "accessToken",
+      "value": "YOUR_ACCESS_TOKEN_HERE"
+    },
+    {
+      "key": "playlistId",
+      "value": "507f1f77bcf86cd799439011"
+    },
+    {
+      "key": "trackId",
+      "value": "507f1f77bcf86cd799439012"
+    },
+    {
+      "key": "permalink",
+      "value": "my-favorite-tracks-a1b2c3d4"
+    },
+    {
+      "key": "secretToken",
+      "value": "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z"
+    }
+  ],
+  "item": [
+    {
+      "name": "PLAYLIST CRUD",
+      "item": [
+        {
+          "name": "Create Playlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Favorite Tracks\",\n  \"description\": \"Collection of my favorite songs\",\n  \"is_private\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists"]
+            },
+            "description": "Create a new playlist"
+          },
+          "response": [
+            {
+              "name": "Create Playlist Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Favorites\",\n  \"description\": \"Collection of my favorite songs\",\n  \"is_private\": false\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"title\":\"Favorites\",\"description\":\"Collection of my favorite songs\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"default-playlist-cover.png\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"_id\":\"69e409983fc8616576b59144\",\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:45:44.020Z\",\"updatedAt\":\"2026-04-18T22:45:44.020Z\",\"permalink\":\"favorites-6340c3a5\",\"__v\":0}}"
+            }
+          ]
+        },
+        {
+          "name": "Get My Playlists",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Get all playlists created by the authenticated user"
+          },
+          "response": [
+            {
+              "name": "Get My Playlists Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists?page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"count\":1,\"data\":[{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d512462f56034d691e3340\",\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:44:33.278Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}]}"
+            }
+          ]
+        },
+        {
+          "name": "Get Playlist by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"]
+            },
+            "description": "Get a specific playlist with all its tracks"
+          },
+          "response": [
+            {
+              "name": "Get Playlist by ID Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":{\"_id\":\"69ceb12527609bd853352560\",\"username\":\"dedouser\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775154037597_Screenshot 2025-12-01 083326.png\",\"display_name\":\"dedouser\"},\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":{\"_id\":\"69d512462f56034d691e3340\",\"artist_id\":{\"_id\":\"69ceb4dac65280182638c8cb\",\"username\":\"essawy1\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775605627700_avatar.jpg\",\"display_name\":\"essawy12\"},\"title\":\"Fuck it I love you\",\"genre\":\"R&B\",\"artwork_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775571525188_Screenshot 2026-04-07 161757.png\",\"duration\":218},\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":{\"_id\":\"69d43b113578b43591e0dd14\",\"artist_id\":{\"_id\":\"69cf0ab6c217903223a9bcc4\",\"username\":\"testuser1231245\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1776447912245_avatar.jpg\",\"display_name\":\"testuser123456\"},\"title\":\"Timeless\",\"genre\":\"Hip-Hop\",\"artwork_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775662387349_download.jpg\",\"duration\":256},\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:44:33.278Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Playlist by Permalink",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/permalink/{{permalink}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "permalink", "{{permalink}}"]
+            },
+            "description": "Get a playlist by its unique permalink (public playlists only)"
+          },
+          "response": [
+            {
+              "name": "Get Playlist by Permalink Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/permalink/{{permalink}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "permalink", "{{permalink}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"Dedos Favorite Tracks\",\"description\":\"Collection of my favorite songs\",\"creator_id\":{\"_id\":\"69ceb12527609bd853352560\",\"username\":\"dedouser\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775154037597_Screenshot 2025-12-01 083326.png\",\"display_name\":\"dedouser\"},\"is_private\":false,\"secret_token\":null,\"cover_url\":\"default-playlist-cover.png\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:22:17.652Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":0}}"
+            }
+          ]
+        },
+        {
+          "name": "Get Private Playlist by Permalink with Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/permalink/{{permalink}}?token={{secretToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "permalink", "{{permalink}}"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{secretToken}}"
+                }
+              ]
+            },
+            "description": "Access a private playlist by permalink using its secret token. Note: token must match the playlist, otherwise access is denied"
+          },
+          "response": [
+            {
+              "name": "Get Private Playlist by Permalink with Token Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/permalink/{{permalink}}?token={{secretToken}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "permalink", "{{permalink}}"],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "{{secretToken}}"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":{\"_id\":\"69ceb12527609bd853352560\",\"username\":\"dedouser\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775154037597_Screenshot 2025-12-01 083326.png\",\"display_name\":\"dedouser\"},\"is_private\":true,\"secret_token\":\"edb0369c1671647e7b44ed0a9960bd52e2c1c20594bf63f1cfdc8aa761a0616f\",\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":{\"_id\":\"69d512462f56034d691e3340\",\"artist_id\":{\"_id\":\"69ceb4dac65280182638c8cb\",\"username\":\"essawy1\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775605627700_avatar.jpg\",\"display_name\":\"essawy12\"},\"title\":\"Fuck it I love you\",\"genre\":\"R&B\",\"artwork_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775571525188_Screenshot 2026-04-07 161757.png\",\"duration\":218},\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":{\"_id\":\"69d43b113578b43591e0dd14\",\"artist_id\":{\"_id\":\"69cf0ab6c217903223a9bcc4\",\"username\":\"testuser1231245\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1776447912245_avatar.jpg\",\"display_name\":\"testuser123456\"},\"title\":\"Timeless\",\"genre\":\"Hip-Hop\",\"artwork_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775662387349_download.jpg\",\"duration\":256},\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:35:52.301Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}}"
+            }
+          ]
+        },
+        {
+          "name": "Update Playlist",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My Updated Playlist\",\n  \"description\": \"Updated description\",\n  \"cover_url\": \"https://example.com/cover.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"]
+            },
+            "description": "Update playlist details"
+          },
+          "response": [
+            {
+              "name": "Update Playlist Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"dedos Updated Playlist\",\n  \"description\": \"Updated description\",\n  \"cover_url\": \"https://example.com/cover.jpg\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:25:49.948Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":0}}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Playlist",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"]
+            },
+            "description": "Delete a playlist"
+          },
+          "response": [
+            {
+              "name": "Delete Playlist Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Playlist deleted successfully\"}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TRACK SEQUENCING",
+      "item": [
+        {
+          "name": "Add Track to Playlist",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}"]
+            },
+            "description": "Add a track to a playlist by track ID in the URL"
+          },
+          "response": [
+            {
+              "name": "Add Track to Playlist Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Track added to playlist\",\"data\":{\"_id\":\"69e409983fc8616576b59144\",\"title\":\"Favorites\",\"description\":\"Collection of my favorite songs\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"default-playlist-cover.png\",\"track_count\":1,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":0,\"_id\":\"69e69cbe09ad5b580195b461\",\"added_at\":\"2026-04-20T21:38:06.299Z\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:45:44.020Z\",\"updatedAt\":\"2026-04-20T21:38:06.305Z\",\"permalink\":\"favorites-6340c3a5\",\"__v\":1}}"
+            }
+          ]
+        },
+        {
+          "name": "Remove Track from Playlist",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}"]
+            },
+            "description": "Remove a track from a playlist"
+          },
+          "response": [
+            {
+              "name": "Remove Track from Playlist Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Track removed from playlist\",\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":1,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d512462f56034d691e3340\",\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:33:35.158Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":8}}"
+            }
+          ]
+        },
+        {
+          "name": "Reorder All Tracks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"track_order\": [\"507f1f77bcf86cd799439014\", \"507f1f77bcf86cd799439013\", \"507f1f77bcf86cd799439012\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "reorder"]
+            },
+            "description": "Reorder all tracks in a playlist"
+          },
+          "response": [
+            {
+              "name": "Reorder All Tracks Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"track_order\": [\"69d512462f56034d691e3340\", \"69d43b113578b43591e0dd14\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/reorder",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "reorder"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Tracks reordered successfully\",\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d512462f56034d691e3340\",\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:35:07.921Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}}"
+            }
+          ]
+        },
+        {
+          "name": "Move Track (Drag-and-Drop)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"new_position\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}/move",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}", "move"]
+            },
+            "description": "Move a single track to a different position"
+          },
+          "response": [
+            {
+              "name": "Move Track (Drag-and-Drop) Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"new_position\": 1\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/tracks/{{trackId}}/move",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "tracks", "{{trackId}}", "move"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Track moved successfully\",\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d512462f56034d691e3340\",\"position\":0,\"_id\":\"69e4058e3fc8616576b59040\",\"added_at\":\"2026-04-18T22:28:30.270Z\"},{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":1,\"_id\":\"69e4055f3fc8616576b59033\",\"added_at\":\"2026-04-18T22:27:43.824Z\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:29:20.678Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":3}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PRIVACY & SECRET TOKENS",
+      "item": [
+        {
+          "name": "Make Playlist Private",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_private\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "privacy"]
+            },
+            "description": "Convert a public playlist to private with secret token"
+          },
+          "response": [
+            {
+              "name": "Make Playlist Private Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_private\": true\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/privacy",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "privacy"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Playlist is now private\",\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":true,\"secret_token\":\"edb0369c1671647e7b44ed0a9960bd52e2c1c20594bf63f1cfdc8aa761a0616f\",\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d512462f56034d691e3340\",\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:35:52.301Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}}"
+            }
+          ]
+        },
+        {
+          "name": "Make Playlist Public",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"is_private\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/privacy",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "privacy"]
+            },
+            "description": "Convert a private playlist to public"
+          },
+          "response": [
+            {
+              "name": "Make Playlist Public Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"is_private\": false\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/privacy",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "privacy"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Playlist is now public\",\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d512462f56034d691e3340\",\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:44:33.278Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}}"
+            }
+          ]
+        },
+        {
+          "name": "Regenerate Secret Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/regenerate-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "regenerate-token"]
+            },
+            "description": "Generate a new secret token for a private playlist"
+          },
+          "response": [
+            {
+              "name": "Regenerate Secret Token Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/regenerate-token",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "regenerate-token"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Secret token regenerated successfully\",\"data\":{\"playlistId\":\"69e409983fc8616576b59144\",\"secret_token\":\"7708fd8d57419c50a8b1619c5fa02896d637e8157b1e356153356fc51b6ba7e3\",\"permalink\":\"favorites-6340c3a5\"}}"
+            }
+          ]
+        },
+        {
+          "name": "Access Private Playlist with Token",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}?token={{secretToken}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}"],
+              "query": [
+                {
+                  "key": "token",
+                  "value": "{{secretToken}}"
+                }
+              ]
+            },
+            "description": "Access a private playlist using its secret token"
+          },
+          "response": [
+            {
+              "name": "Access Private Playlist with Token Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}?token={{secretToken}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}"],
+                  "query": [
+                    {
+                      "key": "token",
+                      "value": "{{secretToken}}"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"_id\":\"69e404193fc8616576b5901a\",\"title\":\"dedos Updated Playlist\",\"description\":\"Updated description\",\"creator_id\":{\"_id\":\"69ceb12527609bd853352560\",\"username\":\"dedouser\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775154037597_Screenshot 2025-12-01 083326.png\",\"display_name\":\"dedouser\"},\"is_private\":true,\"secret_token\":\"edb0369c1671647e7b44ed0a9960bd52e2c1c20594bf63f1cfdc8aa761a0616f\",\"cover_url\":\"https://example.com/cover.jpg\",\"track_count\":2,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":{\"_id\":\"69d512462f56034d691e3340\",\"artist_id\":{\"_id\":\"69ceb4dac65280182638c8cb\",\"username\":\"essawy1\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775605627700_avatar.jpg\",\"display_name\":\"essawy12\"},\"title\":\"Fuck it I love you\",\"genre\":\"R&B\",\"artwork_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775571525188_Screenshot 2026-04-07 161757.png\",\"duration\":218},\"position\":0,\"added_at\":\"2026-04-18T22:33:18.155Z\",\"_id\":\"69e406ae3fc8616576b59098\"},{\"track_id\":{\"_id\":\"69d43b113578b43591e0dd14\",\"artist_id\":{\"_id\":\"69cf0ab6c217903223a9bcc4\",\"username\":\"testuser1231245\",\"avatar_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1776447912245_avatar.jpg\",\"display_name\":\"testuser123456\"},\"title\":\"Timeless\",\"genre\":\"Hip-Hop\",\"artwork_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775662387349_download.jpg\",\"duration\":256},\"position\":1,\"added_at\":\"2026-04-18T22:33:59.195Z\",\"_id\":\"69e406d73fc8616576b590ad\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:22:17.652Z\",\"updatedAt\":\"2026-04-18T22:35:52.301Z\",\"permalink\":\"dedos-favorite-tracks-677ad210\",\"__v\":11}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "EMBED SUPPORT",
+      "item": [
+        {
+          "name": "Get Embed Code",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/embed",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "embed"]
+            },
+            "description": "Generate iframe embed code for a playlist"
+          },
+          "response": [
+            {
+              "name": "Get Embed Code Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/embed",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "embed"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"data\":{\"embedCode\":\"<iframe src=\\\"https://pulsify.page/playlists/dedos-favorite-tracks-677ad210?token=edb0369c1671647e7b44ed0a9960bd52e2c1c20594bf63f1cfdc8aa761a0616f\\\" width=\\\"400\\\" height=\\\"600\\\" frameborder=\\\"0\\\" allowtransparency=\\\"true\\\" allow=\\\"autoplay\\\"></iframe>\",\"embedUrl\":\"https://pulsify.page/playlists/dedos-favorite-tracks-677ad210?token=edb0369c1671647e7b44ed0a9960bd52e2c1c20594bf63f1cfdc8aa761a0616f\",\"playlistPermalink\":\"dedos-favorite-tracks-677ad210\"}}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DISCOVERY & SEARCH",
+      "item": [
+        {
+          "name": "Discover Public Playlists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/discover/public?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "discover", "public"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Discover public playlists"
+          },
+          "response": [
+            {
+              "name": "Discover Public Playlists Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/discover/public?page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "discover", "public"],
+                  "query": [
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"count\":2,\"data\":[{\"_id\":\"69e3f799a3a097826e24b92b\",\"title\":\"Gimmys fav tracks\",\"description\":\"Collection of rap songs\",\"creator_id\":\"69d51fcd52e84a2335996f95\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"default-playlist-cover.png\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-18T21:28:57.686Z\",\"updatedAt\":\"2026-04-18T21:48:11.537Z\",\"permalink\":\"gimmys-fav-tracks-33c6ae76\",\"__v\":0},{\"_id\":\"69e3f65e16b8b45d5dc9d2d6\",\"title\":\"My Favorite Tracks\",\"description\":\"Collection of my favorite songs\",\"creator_id\":\"69d51fcd52e84a2335996f95\",\"is_private\":false,\"cover_url\":\"default-playlist-cover.png\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"secret_token\":null,\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-18T21:23:42.229Z\",\"updatedAt\":\"2026-04-18T21:23:42.229Z\",\"permalink\":\"my-favorite-tracks-8e9a5480\",\"__v\":0}]}"
+            }
+          ]
+        },
+        {
+          "name": "Search Playlists",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/playlists/search?q=favorites&page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "favorites"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Search playlists by title"
+          },
+          "response": [
+            {
+              "name": "Search Playlists Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/search?q=favorites&page=1&limit=20",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "search"],
+                  "query": [
+                    {
+                      "key": "q",
+                      "value": "favorites"
+                    },
+                    {
+                      "key": "page",
+                      "value": "1"
+                    },
+                    {
+                      "key": "limit",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"count\":1,\"data\":[{\"_id\":\"69e409983fc8616576b59144\",\"title\":\"Favorites\",\"description\":\"Collection of my favorite songs\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":true,\"secret_token\":\"7708fd8d57419c50a8b1619c5fa02896d637e8157b1e356153356fc51b6ba7e3\",\"cover_url\":\"default-playlist-cover.png\",\"track_count\":1,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[{\"track_id\":\"69d43b113578b43591e0dd14\",\"position\":0,\"_id\":\"69e69cbe09ad5b580195b461\",\"added_at\":\"2026-04-20T21:38:06.299Z\"}],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:45:44.020Z\",\"updatedAt\":\"2026-04-20T21:41:48.647Z\",\"permalink\":\"favorites-6340c3a5\",\"__v\":1}]}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

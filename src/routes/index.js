@@ -8,6 +8,7 @@ import engagementRoutes from "./engagement.routes.js";
 import messagingRoutes from "./messaging.routes.js";
 import reportRoutes from "./report.routes.js";
 import adminRoutes from "./admin.routes.js";
+import playlistRoutes from "./playlist.routes.js";
 
 import discoveryRoutes from "./discovery.routes.js";
 const router = Router();
@@ -27,6 +28,9 @@ router.use("/", streamingRoutes);
 
 // Module 6: Engagement & Social Interactions (Likes, Reposts, Comments)
 router.use("/", engagementRoutes);
+
+// Module 7: Playlists (Sets & Playlists)
+router.use("/playlists", playlistRoutes);
 
 // Module 8: Feed & Discovery
 router.use("/", discoveryRoutes);
