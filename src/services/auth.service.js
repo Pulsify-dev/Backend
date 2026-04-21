@@ -28,7 +28,7 @@ class AuthService {
     if (!isCaptchaValid) {
       throw new BadRequestError("Invalid or expired CAPTCHA token.");
     }
-    const newUserRecord = { email, username, password, tier: "Free" };
+    const newUserRecord = { email, username, password, tier: "Free", is_verified: true }; // ← TESTING: auto-verify (remove is_verified for production)
     const createdUser = await this.userRepository.create(newUserRecord);
 
     const verificationToken = this.tokenUtility.generateVerificationToken(
