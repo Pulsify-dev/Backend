@@ -1,5 +1,4 @@
 import Playlist from "../models/playlist.model.js";
-import PlaylistTrack from "../models/playlist-track.model.js";
 
 const create = async (playlistData) => {
   const playlist = new Playlist(playlistData);
