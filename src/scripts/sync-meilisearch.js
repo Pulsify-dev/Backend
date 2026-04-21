@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Track from "../models/track.model.js";
 import User from "../models/user.model.js";
+import Playlist from "../models/playlist.model.js";
 import searchService from "../services/search.service.js";
 
 dotenv.config();
@@ -20,11 +21,13 @@ const syncDatabaseToMeilisearch = async () => {
 
     try {
         console.log("Syncing Tracks...");
-        const tracks = await Track.find({});
+        const tracks = await Track.find({}).populate("artist_id", "display_name username");
         const trackDocs = tracks.map(doc => ({
             id: doc._id.toString(),
             title: doc.title,
-            artist_id: doc.artist_id?.toString() || "",
+            artist_id: doc.artist_id?._id?.toString() || "",
+            artist_name: doc.artist_id?.display_name || "",
+            artist_username: doc.artist_id?.username || "",
             permalink: doc.permalink,
             description: doc.description,
             genre: doc.genre,
@@ -36,7 +39,7 @@ const syncDatabaseToMeilisearch = async () => {
 
         if (trackDocs.length > 0) {
             const trackIndex = (await import("../config/meilisearch.js")).default.index("tracks");
-            await trackIndex.addDocuments(trackDocs);
+            await trackIndex.addDocuments(trackDocs, { primaryKey: "id" });
         }
         console.log(`Synced ${trackDocs.length} tracks.`);
 
@@ -58,6 +61,27 @@ const syncDatabaseToMeilisearch = async () => {
             await userIndex.addDocuments(userDocs);
         }
         console.log(`Synced ${userDocs.length} users.`);
+
+        console.log("Syncing Playlists...");
+        const playlists = await Playlist.find({}).populate("creator_id", "display_name username");
+        const playlistDocs = playlists.map(doc => ({
+            id: doc._id.toString(),
+            title: doc.title,
+            description: doc.description || "",
+            creator_id: doc.creator_id?._id?.toString() || "",
+            creator_name: doc.creator_id?.display_name || "",
+            creator_username: doc.creator_id?.username || "",
+            permalink: doc.permalink,
+            is_private: doc.is_private,
+            track_count: doc.track_count,
+            duration_ms: doc.duration_ms,
+        }));
+
+        if (playlistDocs.length > 0) {
+            const playlistIndex = (await import("../config/meilisearch.js")).default.index("playlists");
+            await playlistIndex.addDocuments(playlistDocs, { primaryKey: "id" });
+        }
+        console.log(`Synced ${playlistDocs.length} playlists.`);
 
         console.log("Meilisearch sync complete.");
         process.exit(0);

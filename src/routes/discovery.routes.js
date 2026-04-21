@@ -12,6 +12,18 @@ router.get(
     discoveryController.globalSearch
 );
 
+// GET /trending — Trending tracks by engagement velocity (no auth required)
+router.get(
+    "/trending",
+    discoveryController.getTrending
+);
+
+// GET /charts — Top ranked tracks chart (no auth required)
+router.get(
+    "/charts",
+    discoveryController.getCharts
+);
+
 // GET /feed  — personal feed (auth required)
 router.get(
     "/feed",

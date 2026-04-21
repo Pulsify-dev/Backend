@@ -57,6 +57,47 @@ const findByPermalinkAndArtist = function (permalink, artistId, extraFields = ""
   return Track.findOne({ permalink, artist_id: artistId }).select(extraFields);
 };
 
+const findTrending = async function (page = 1, limit = 20, genre = null) {
+  const filter = {
+    visibility: "public",
+    is_hidden: false,
+    status: "finished",
+    trending_score: { $gt: 0 },
+  };
+  if (genre) filter.genre = genre;
+
+  const skip = (page - 1) * limit;
+  const [tracks, total] = await Promise.all([
+    Track.find(filter)
+      .sort({ trending_score: -1 })
+      .skip(skip)
+      .limit(limit)
+      .populate("artist_id", "username display_name avatar_url is_verified")
+      .lean(),
+    Track.countDocuments(filter),
+  ]);
+
+  return { tracks, total };
+};
+
+const findCharts = async function (limit = 50, genre = null) {
+  const filter = {
+    visibility: "public",
+    is_hidden: false,
+    status: "finished",
+    trending_score: { $gt: 0 },
+  };
+  if (genre) filter.genre = genre;
+
+  const tracks = await Track.find(filter)
+    .sort({ trending_score: -1 })
+    .limit(limit)
+    .populate("artist_id", "username display_name avatar_url is_verified")
+    .lean();
+
+  return tracks;
+};
+
 export default {
   findById,
   updateTrackById,
@@ -68,4 +109,7 @@ export default {
   createTrack,
   findPublicById,
   findByPermalinkAndArtist,
+  findTrending,
+  findCharts,
 };
+
