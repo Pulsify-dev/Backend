@@ -1,22 +1,19 @@
-// src/services/email.service.js
+// ── Mock Email Service (for testing on deployed) ────────────
+// Auto-verifies users so you can register + login without email.
+import User from "../models/user.model.js";
 
-// ── Mock Email Service (for testing) ────────────────────────
 export default {
-  sendVerificationEmail: async (email, token) => {
-    console.log(`[Mock Email] Verification email to: ${email}`);
-    console.log(`[Mock Email] Token: ${token}`);
+  sendVerificationEmail: async (email, _token) => {
+    // Auto-verify the user so they can log in immediately
+    await User.findOneAndUpdate({ email }, { is_verified: true });
     return true;
   },
 
-  sendPasswordResetEmail: async (email, token) => {
-    console.log(`[Mock Email] Password reset email to: ${email}`);
-    console.log(`[Mock Email] Token: ${token}`);
+  sendPasswordResetEmail: async (_email, _token) => {
     return true;
   },
 
-  sendEmailChangeVerification: async (email, token) => {
-    console.log(`[Mock Email] Email change verification to: ${email}`);
-    console.log(`[Mock Email] Token: ${token}`);
+  sendEmailChangeVerification: async (_email, _token) => {
     return true;
   },
 };
