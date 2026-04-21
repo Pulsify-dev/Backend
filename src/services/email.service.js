@@ -1,8 +1,11 @@
 // ── Mock Email Service (for testing on deployed) ────────────
-// All methods are no-ops. Users are auto-verified in auth.service.js.
+// Auto-verifies users so you can register + login without email.
+import User from "../models/user.model.js";
 
 export default {
-  sendVerificationEmail: async (_email, _token) => {
+  sendVerificationEmail: async (email, _token) => {
+    // Auto-verify the user so they can log in immediately
+    await User.findOneAndUpdate({ email }, { is_verified: true });
     return true;
   },
 
