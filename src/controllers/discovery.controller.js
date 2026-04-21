@@ -115,9 +115,68 @@ const globalSearch = async (req, res, next) => {
     }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /trending
+//  Trending tracks based on engagement velocity.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getTrending = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const genre = req.query.genre || null;
+
+        if (page < 1 || limit < 1 || limit > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid page or limit parameters.",
+            });
+        }
+
+        const result = await discoveryService.getTrending(page, limit, genre);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /charts
+//  Top ranked tracks chart.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getCharts = async (req, res, next) => {
+    try {
+        const limit = parseInt(req.query.limit) || 50;
+        const genre = req.query.genre || null;
+
+        if (limit < 1 || limit > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid limit parameter.",
+            });
+        }
+
+        const result = await discoveryService.getCharts(limit, genre);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
     resolveResource,
     globalSearch,
+    getTrending,
+    getCharts,
 };

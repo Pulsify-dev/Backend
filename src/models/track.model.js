@@ -225,10 +225,23 @@ trackSchema.pre("save", function () {
 
 const syncTrack = async (doc) => {
   if (!doc) return;
+  // Populate artist info for searchability
+  let artistName = "";
+  let artistUsername = "";
+  try {
+    const artist = await mongoose.model("User").findById(doc.artist_id, "display_name username");
+    if (artist) {
+      artistName = artist.display_name || "";
+      artistUsername = artist.username || "";
+    }
+  } catch (_) { /* artist lookup is best-effort */ }
+
   const trackDoc = {
     id: doc._id.toString(),
     title: doc.title,
     artist_id: doc.artist_id.toString(),
+    artist_name: artistName,
+    artist_username: artistUsername,
     permalink: doc.permalink,
     description: doc.description,
     genre: doc.genre,
