@@ -109,8 +109,42 @@ const resolveUrl = async (urlStr) => {
     throw new NotFoundError("Resource not found or unsupported URL format.");
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Trending  —  GET /trending
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getTrending = async (page = 1, limit = 20, genre = null) => {
+    if (page < 1 || limit < 1 || limit > 100) {
+        throw new BadRequestError("Invalid page or limit parameters.");
+    }
+
+    return trackRepository.findTrending(page, limit, genre);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Charts  —  GET /charts
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getCharts = async (limit = 50, genre = null) => {
+    if (limit < 1 || limit > 100) {
+        throw new BadRequestError("Invalid limit parameter.");
+    }
+
+    const tracks = await trackRepository.findCharts(limit, genre);
+
+    // Inject rank position
+    const ranked = tracks.map((track, index) => ({
+        rank: index + 1,
+        ...track,
+    }));
+
+    return { tracks: ranked, total: ranked.length };
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
     resolveUrl,
+    getTrending,
+    getCharts,
 };

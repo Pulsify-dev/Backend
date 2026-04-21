@@ -1,6 +1,7 @@
 services:
   meilisearch:
     image: getmeili/meilisearch:v1.7
+    restart: always          # auto-restarts on server reboot
     environment:
       - MEILI_MASTER_KEY=6f83b271d9a5e4c2b8f1a0d9c3e7f5a2
       - MEILI_NO_ANALYTICS=true

@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
+import searchService from "../services/search.service.js";
 
 const playlistSchema = mongoose.Schema(
   {
@@ -212,5 +213,42 @@ playlistSchema.methods.getEmbedCode = function (baseUrl = "https://pulsify.page"
 
   return `<iframe src="${embedUrl}" width="400" height="600" frameborder="0" allowtransparency="true" allow="autoplay"></iframe>`;
 };
+
+// ─── Meilisearch Sync ────────────────────────────────────────────────────────
+const syncPlaylist = async (doc) => {
+  if (!doc) return;
+  // Populate creator info for searchability
+  let creatorName = "";
+  let creatorUsername = "";
+  try {
+    const creator = await mongoose.model("User").findById(doc.creator_id, "display_name username");
+    if (creator) {
+      creatorName = creator.display_name || "";
+      creatorUsername = creator.username || "";
+    }
+  } catch (_) { /* creator lookup is best-effort */ }
+
+  const playlistDoc = {
+    id: doc._id.toString(),
+    title: doc.title,
+    description: doc.description || "",
+    creator_id: doc.creator_id.toString(),
+    creator_name: creatorName,
+    creator_username: creatorUsername,
+    permalink: doc.permalink,
+    is_private: doc.is_private,
+    track_count: doc.track_count,
+    duration_ms: doc.duration_ms,
+  };
+  await searchService.indexDocument("playlists", playlistDoc);
+};
+
+playlistSchema.post("save", syncPlaylist);
+playlistSchema.post("findOneAndUpdate", syncPlaylist);
+playlistSchema.post("findOneAndDelete", async (doc) => {
+  if (doc) {
+    await searchService.removeDocument("playlists", doc._id.toString());
+  }
+});
 
 export default mongoose.model("Playlist", playlistSchema);
