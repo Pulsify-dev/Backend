@@ -121,6 +121,3 @@ jobs:
               -e REDIS_URL='redis://localhost:6379' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
-              docker exec pulsify-api-1 node src/scripts/sync-meilisearch.js
-              docker exec pulsify-api-2 node src/scripts/sync-meilisearch.js
-              docker exec pulsify-api-3 node src/scripts/sync-meilisearch.js
