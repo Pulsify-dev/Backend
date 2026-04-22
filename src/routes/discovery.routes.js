@@ -6,6 +6,12 @@ const router = Router();
 
 // ── Module 8: Feed & Discovery ───────────────────────────────────────────────
 
+// GET /search/suggestions — Lightweight autocomplete for as-you-type dropdown
+router.get(
+    "/search/suggestions",
+    discoveryController.searchSuggestions
+);
+
 // GET /search — Global Search via Meilisearch
 router.get(
     "/search",
