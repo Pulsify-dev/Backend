@@ -39,6 +39,11 @@ jobs:
             -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
             -v $(pwd)/meili_data:/meili_data \
             getmeili/meilisearch:latest
+            sudo docker run -d \
+            --name redis-cache \
+            --restart always \
+            -p 6379:6379 \
+            redis:latest
 
             sudo docker run -d --name pulsify-api-1 --restart always -p 5001:3000 \
               -e MONGODB_URI="${{ secrets.MONGO_URI }}" \
