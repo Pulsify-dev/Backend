@@ -64,6 +64,7 @@ jobs:
               -e API_URL="${{secrets.API_URL}}" \
               -e MEILI_HOST='http://172.17.0.1:7700' \
               -e MEILI_API_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
+              -e REDIS_URL='redis://localhost:6379' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
             sudo docker run -d --name pulsify-api-2 --restart always -p 5002:3000 \
@@ -90,6 +91,7 @@ jobs:
               -e API_URL="${{secrets.API_URL}}" \
               -e MEILI_HOST='http://172.17.0.1:7700' \
               -e MEILI_API_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
+              -e REDIS_URL='redis://localhost:6379' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
             sudo docker run -d --name pulsify-api-3 --restart always -p 5003:3000 \
@@ -116,6 +118,7 @@ jobs:
               -e API_URL="${{secrets.API_URL}}" \
               -e MEILI_HOST='http://172.17.0.1:7700' \
               -e MEILI_API_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
+              -e REDIS_URL='redis://localhost:6379' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
               docker exec pulsify-api-1 node src/scripts/sync-meilisearch.js
