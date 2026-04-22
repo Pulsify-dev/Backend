@@ -1,5 +1,4 @@
 import Playlist from "../models/playlist.model.js";
-import PlaylistTrack from "../models/playlist-track.model.js";
 
 const create = async (playlistData) => {
   const playlist = new Playlist(playlistData);
@@ -182,6 +181,10 @@ const searchByTitle = async (title, creatorId = null, options = {}) => {
   return Playlist.find(query).skip(skip).limit(limit).lean();
 };
 
+const findByCreatorIdAndTitle = async (creatorId, title) => {
+  return Playlist.findOne({ creator_id: creatorId, title });
+};
+
 export default {
   create,
   findById,
@@ -203,4 +206,5 @@ export default {
   countPlaylistsByCreator,
   getTotalTrackDuration,
   searchByTitle,
+  findByCreatorIdAndTitle,
 };

@@ -6,16 +6,34 @@ const router = Router();
 
 // ── Module 8: Feed & Discovery ───────────────────────────────────────────────
 
+// GET /search/suggestions — Lightweight autocomplete for as-you-type dropdown
+router.get(
+    "/search/suggestions",
+    discoveryController.searchSuggestions
+);
+
 // GET /search — Global Search via Meilisearch
 router.get(
     "/search",
     discoveryController.globalSearch
 );
 
-// GET /feed  — personal feed (auth required)
+// GET /trending — Trending tracks by engagement velocity (no auth required)
+router.get(
+    "/trending",
+    discoveryController.getTrending
+);
+
+// GET /charts — Top ranked tracks chart (no auth required)
+router.get(
+    "/charts",
+    discoveryController.getCharts
+);
+
+// GET /feed  — personal feed (logged in) or discovery feed (guest)
 router.get(
     "/feed",
-    authMiddleware.requireAuth,
+    authMiddleware.optionalAuth,
     discoveryController.getPersonalFeed
 );
 

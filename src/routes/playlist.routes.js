@@ -1,7 +1,7 @@
 import { Router } from "express";
 import playlistController from "../controllers/playlist.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
-import { validatePlaylist } from "../factories/validation.factory.js";
+import playlistValidation from "../middleware/playlist.validation.middleware.js";
 
 const router = Router();
 
@@ -19,7 +19,7 @@ router.get("/:playlistId", playlistController.getPlaylist);
 router.post(
   "/",
   authMiddleware.requireAuth,
-  validatePlaylist.createPlaylist,
+  playlistValidation.validateCreatePlaylist,
   playlistController.createPlaylist
 );
 
@@ -32,7 +32,7 @@ router.get(
 router.patch(
   "/:playlistId",
   authMiddleware.requireAuth,
-  validatePlaylist.updatePlaylist,
+  playlistValidation.validateUpdatePlaylist,
   playlistController.updatePlaylist
 );
 
@@ -58,14 +58,14 @@ router.delete(
 router.post(
   "/:playlistId/reorder",
   authMiddleware.requireAuth,
-  validatePlaylist.reorderTracks,
+  playlistValidation.validateReorderTracks,
   playlistController.reorderTracks
 );
 
 router.patch(
   "/:playlistId/tracks/:trackId/move",
   authMiddleware.requireAuth,
-  validatePlaylist.moveTrack,
+  playlistValidation.validateMoveTrack,
   playlistController.moveTrack
 );
 
@@ -73,7 +73,7 @@ router.patch(
 router.patch(
   "/:playlistId/privacy",
   authMiddleware.requireAuth,
-  validatePlaylist.updatePrivacy,
+  playlistValidation.validateUpdatePrivacy,
   playlistController.updatePlaylistPrivacy
 );
 

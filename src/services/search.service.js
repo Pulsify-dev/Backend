@@ -9,7 +9,7 @@ class SearchService {
    */
   async globalSearch(query, limit = 10, offset = 0) {
     if (!query) {
-      return { tracks: [], users: [] /*, playlists: []*/ }; // TODO: Uncomment when playlist module is implemented
+      return { tracks: [], users: [], playlists: [] };
     }
 
     try {
@@ -17,14 +17,14 @@ class SearchService {
         queries: [
           { indexUid: "tracks", q: query, limit, offset },
           { indexUid: "users", q: query, limit, offset },
-          // { indexUid: "playlists", q: query, limit, offset }, // TODO: Uncomment when playlist module is implemented
+          { indexUid: "playlists", q: query, limit, offset },
         ],
       });
 
       return {
         tracks: results.results.find((r) => r.indexUid === "tracks")?.hits || [],
         users: results.results.find((r) => r.indexUid === "users")?.hits || [],
-        // playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [], // TODO: Uncomment when playlist module is implemented
+        playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [],
       };
     } catch (error) {
       console.error("Global search error:", error);

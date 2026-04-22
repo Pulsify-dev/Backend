@@ -1,8 +1,13 @@
 import feedRepository from "../repositories/feed.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import trackRepository from "../repositories/track.repository.js";
-// import playlistRepository from "../repositories/playlist.repository.js"; // TODO: Uncomment when playlist module is implemented
+import playlistRepository from "../repositories/playlist.repository.js";
 import { NotFoundError, BadRequestError } from "../utils/errors.utils.js";
+import cache from "../utils/cache.utils.js";
+
+// Cache TTLs (in seconds)
+const TRENDING_TTL = 60 * 60; // 60 minutes — matches cron interval
+const CHARTS_TTL   = 60 * 60; // 60 minutes
 
 
 //  Personal Feed  —  GET /feed
@@ -79,7 +84,6 @@ const resolveUrl = async (urlStr) => {
         return { type: "user", data: user };
     }
 
-    /* TODO: Uncomment when playlist module is implemented
     // Playlist URL (e.g. /the_weeknd/sets/my-playlist)
     if (parts.length === 3 && parts[1] === "sets") {
         const playlistPermalink = parts[2];
@@ -89,7 +93,6 @@ const resolveUrl = async (urlStr) => {
         }
         return { type: "playlist", data: playlist };
     }
-    */
 
     // Track URL (e.g. /the_weeknd/blinding-lights)
     if (parts.length === 2) {
@@ -109,8 +112,92 @@ const resolveUrl = async (urlStr) => {
     throw new NotFoundError("Resource not found or unsupported URL format.");
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Guest Feed  —  GET /feed (no auth)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Returns a discovery feed for unauthenticated visitors.
+ * Mixes trending tracks with recent public uploads so the platform
+ * feels alive on first visit — similar to SoundCloud's guest experience.
+ */
+const getGuestFeed = async (page = 1, limit = 20) => {
+    if (page < 1 || limit < 1 || limit > 100) {
+        throw new BadRequestError("Invalid page or limit parameters.");
+    }
+
+    const cacheKey = `guest-feed:p${page}:l${limit}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return cached;
+
+    // Fetch trending tracks (the main attraction for guests)
+    const trending = await trackRepository.findTrending(page, limit);
+
+    const result = {
+        type: "discovery",
+        items: trending.tracks.map((track) => ({
+            type: "track",
+            created_at: track.createdAt,
+            track,
+        })),
+        total: trending.total,
+        page,
+        limit,
+    };
+
+    await cache.set(cacheKey, result, TRENDING_TTL);
+    return result;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Trending  —  GET /trending
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getTrending = async (page = 1, limit = 20, genre = null) => {
+    if (page < 1 || limit < 1 || limit > 100) {
+        throw new BadRequestError("Invalid page or limit parameters.");
+    }
+
+    const cacheKey = `trending:p${page}:l${limit}:g${genre || "all"}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return cached;
+
+    const result = await trackRepository.findTrending(page, limit, genre);
+    await cache.set(cacheKey, result, TRENDING_TTL);
+    return result;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Charts  —  GET /charts
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getCharts = async (limit = 50, genre = null) => {
+    if (limit < 1 || limit > 100) {
+        throw new BadRequestError("Invalid limit parameter.");
+    }
+
+    const cacheKey = `charts:l${limit}:g${genre || "all"}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return cached;
+
+    const tracks = await trackRepository.findCharts(limit, genre);
+
+    // Inject rank position
+    const ranked = tracks.map((track, index) => ({
+        rank: index + 1,
+        ...track,
+    }));
+
+    const result = { tracks: ranked, total: ranked.length };
+    await cache.set(cacheKey, result, CHARTS_TTL);
+    return result;
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
+    getGuestFeed,
     resolveUrl,
+    getTrending,
+    getCharts,
 };

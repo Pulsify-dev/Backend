@@ -1,16 +1,22 @@
-// ── Mock Email Service (for testing on deployed) ────────────
-// All methods are no-ops. Users are auto-verified in auth.service.js.
+// src/services/email.service.js
 
+// ── Mock Email Service (for testing) ────────────────────────
 export default {
-  sendVerificationEmail: async (_email, _token) => {
+  sendVerificationEmail: async (email, token) => {
+    console.log(`[Mock Email] Verification email to: ${email}`);
+    console.log(`[Mock Email] Token: ${token}`);
     return true;
   },
 
-  sendPasswordResetEmail: async (_email, _token) => {
+  sendPasswordResetEmail: async (email, token) => {
+    console.log(`[Mock Email] Password reset email to: ${email}`);
+    console.log(`[Mock Email] Token: ${token}`);
     return true;
   },
 
-  sendEmailChangeVerification: async (_email, _token) => {
+  sendEmailChangeVerification: async (email, token) => {
+    console.log(`[Mock Email] Email change verification to: ${email}`);
+    console.log(`[Mock Email] Token: ${token}`);
     return true;
   },
 };

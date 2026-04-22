@@ -32,6 +32,9 @@ temp/
 # Coverage reports
 coverage/
 
+# Meilisearch local data
+meili_data/
+
 # Markdown files (except README)
 *.md
 !README.md

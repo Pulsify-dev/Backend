@@ -8,7 +8,6 @@ import searchService from "../services/search.service.js";
 
 const getPersonalFeed = async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
 
@@ -19,6 +18,17 @@ const getPersonalFeed = async (req, res, next) => {
             });
         }
 
+        // Guest user — return discovery feed (trending tracks)
+        if (!req.user) {
+            const result = await discoveryService.getGuestFeed(page, limit);
+            return res.status(200).json({
+                success: true,
+                data: result,
+            });
+        }
+
+        // Logged-in user — return personalized feed
+        const userId = req.user.user_id;
         const result = await discoveryService.getPersonalFeed(userId, page, limit);
 
         return res.status(200).json({
@@ -115,9 +125,68 @@ const globalSearch = async (req, res, next) => {
     }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /trending
+//  Trending tracks based on engagement velocity.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getTrending = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const genre = req.query.genre || null;
+
+        if (page < 1 || limit < 1 || limit > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid page or limit parameters.",
+            });
+        }
+
+        const result = await discoveryService.getTrending(page, limit, genre);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /charts
+//  Top ranked tracks chart.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getCharts = async (req, res, next) => {
+    try {
+        const limit = parseInt(req.query.limit) || 50;
+        const genre = req.query.genre || null;
+
+        if (limit < 1 || limit > 100) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid limit parameter.",
+            });
+        }
+
+        const result = await discoveryService.getCharts(limit, genre);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
     resolveResource,
     globalSearch,
+    getTrending,
+    getCharts,
 };

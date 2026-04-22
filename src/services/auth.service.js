@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import OAuthFactory from "./oauth/oauth-factory.service.js";
+import playlistRepository from "../repositories/playlist.repository.js";
 import {
   BadRequestError,
   UnauthorizedError,
@@ -30,6 +31,20 @@ class AuthService {
     }
     const newUserRecord = { email, username, password, tier: "Free" };
     const createdUser = await this.userRepository.create(newUserRecord);
+
+    // Create likes playlist for the new user
+    try {
+      await playlistRepository.create({
+        title: "Likes",
+        description: "All your liked tracks",
+        creator_id: createdUser._id,
+        is_private: false,
+        permalink: `likes-${createdUser._id.toString().slice(-8)}`,
+      });
+    } catch (error) {
+      console.error("Error creating likes playlist:", error);
+      // Don't throw error - registration should succeed even if playlist creation fails
+    }
 
     const verificationToken = this.tokenUtility.generateVerificationToken(
       createdUser._id,
@@ -125,6 +140,20 @@ class AuthService {
         newUserRecord[`${providerName}_id`] = providerId;
 
         user = await this.userRepository.create(newUserRecord);
+
+        // Create likes playlist for the new social login user
+        try {
+          await playlistRepository.create({
+            title: "Likes",
+            description: "All your liked tracks",
+            creator_id: user._id,
+            is_private: false,
+            permalink: `likes-${user._id.toString().slice(-8)}`,
+          });
+        } catch (error) {
+          console.error("Error creating likes playlist for social user:", error);
+          // Don't throw error - social login should succeed even if playlist creation fails
+        }
       }
     }
 
