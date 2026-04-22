@@ -1,4 +1,5 @@
 import socialService from "../services/social.service.js";
+import NotificationService from "../services/notification.service.js";
 
 const followUser = async (req, res, next) => {
   try {
@@ -13,6 +14,17 @@ const followUser = async (req, res, next) => {
     }
 
     const follow = await socialService.followUser(followerId, followingId);
+    const ioInstance = req.app.get("io");
+    await NotificationService.createAndDeliverNotification(
+      {
+        recipient_id: followingId,
+        actor_id: followerId,
+        action_type: "FOLLOW",
+        entity_type: "Follow",
+        entity_id: followingId, // Or follow._id if your service returns the doc
+      },
+      ioInstance,
+    );
 
     return res.status(200).json({
       success: true,
