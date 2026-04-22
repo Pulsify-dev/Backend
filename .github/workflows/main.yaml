@@ -118,6 +118,6 @@ jobs:
               -e MEILI_API_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
-              docker exec -it pulsify-api-1 node src/scripts/sync-meilisearch.js
-              docker exec -it pulsify-api-2 node src/scripts/sync-meilisearch.js
-              docker exec -it pulsify-api-3 node src/scripts/sync-meilisearch.js
+              docker exec pulsify-api-1 node src/scripts/sync-meilisearch.js
+              docker exec pulsify-api-2 node src/scripts/sync-meilisearch.js
+              docker exec pulsify-api-3 node src/scripts/sync-meilisearch.js
