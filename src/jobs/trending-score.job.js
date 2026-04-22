@@ -4,6 +4,7 @@ import Like from "../models/like.model.js";
 import Repost from "../models/repost.model.js";
 import Comment from "../models/comment.model.js";
 import Track from "../models/track.model.js";
+import cache from "../utils/cache.utils.js";
 
 // Engagement weights
 const WEIGHTS = {
@@ -111,6 +112,11 @@ export const recalculateTrendingScores = async () => {
   console.log(
     `[Trending Job] Done. Updated ${activeTrackIds.size} active tracks, reset inactive ones.`
   );
+
+  // Invalidate cached trending, charts & guest feed so next request gets fresh results
+  await cache.delPattern("trending:*");
+  await cache.delPattern("charts:*");
+  await cache.delPattern("guest-feed:*");
 };
 
 /*

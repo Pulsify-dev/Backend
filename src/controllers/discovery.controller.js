@@ -8,7 +8,6 @@ import searchService from "../services/search.service.js";
 
 const getPersonalFeed = async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
 
@@ -19,6 +18,17 @@ const getPersonalFeed = async (req, res, next) => {
             });
         }
 
+        // Guest user — return discovery feed (trending tracks)
+        if (!req.user) {
+            const result = await discoveryService.getGuestFeed(page, limit);
+            return res.status(200).json({
+                success: true,
+                data: result,
+            });
+        }
+
+        // Logged-in user — return personalized feed
+        const userId = req.user.user_id;
         const result = await discoveryService.getPersonalFeed(userId, page, limit);
 
         return res.status(200).json({

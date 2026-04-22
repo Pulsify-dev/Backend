@@ -24,10 +24,10 @@ router.get(
     discoveryController.getCharts
 );
 
-// GET /feed  — personal feed (auth required)
+// GET /feed  — personal feed (logged in) or discovery feed (guest)
 router.get(
     "/feed",
-    authMiddleware.requireAuth,
+    authMiddleware.optionalAuth,
     discoveryController.getPersonalFeed
 );
 
