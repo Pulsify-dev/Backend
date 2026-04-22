@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import tokenUtility from "../utils/jwt.utils.js";
 import registerChatSocketHandlers from "./chat.socket.js";
+import { registerNotificationHandlers } from "./notification.socket.js";
 
 const ALLOWED_ORIGINS = [
   "https://pulsify.page",
@@ -65,6 +66,7 @@ const initializeSocketServer = (httpServer) => {
 
   ioInstance.on("connection", (socket) => {
     registerChatSocketHandlers(ioInstance, socket);
+    registerNotificationHandlers(ioInstance, socket);
   });
 
   return ioInstance;

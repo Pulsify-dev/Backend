@@ -9,8 +9,9 @@ import messagingRoutes from "./messaging.routes.js";
 import reportRoutes from "./report.routes.js";
 import adminRoutes from "./admin.routes.js";
 import playlistRoutes from "./playlist.routes.js";
-
 import discoveryRoutes from "./discovery.routes.js";
+import notificationRoutes from "./notification.routes.js";
+
 const router = Router();
 
 // Module 1: Auth
@@ -38,9 +39,11 @@ router.use("/", discoveryRoutes);
 // Module 9: Messaging & Track Sharing
 router.use("/", messagingRoutes);
 
+// Module 10: Real-Time Notifications
+router.use("/notifications", notificationRoutes);
+
 // Module 11: Moderation & Admin Dashboard (report, resolve, suspend, restore)
 router.use("/reports", reportRoutes);
 router.use("/admin", adminRoutes);
-
 
 export default router;
