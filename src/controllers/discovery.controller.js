@@ -182,11 +182,40 @@ const getCharts = async (req, res, next) => {
     }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /search/suggestions
+//  Lightweight autocomplete for as-you-type search bar dropdown.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const searchSuggestions = async (req, res, next) => {
+    try {
+        const { q } = req.query;
+        const limit = parseInt(req.query.limit) || 5;
+
+        if (!q || !q.trim()) {
+            return res.status(400).json({
+                success: false,
+                message: "Search query 'q' parameter is required.",
+            });
+        }
+
+        const result = await searchService.searchSuggestions(q, limit);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
     resolveResource,
     globalSearch,
+    searchSuggestions,
     getTrending,
     getCharts,
 };
