@@ -28,7 +28,10 @@
       "src/services/social.service.js",
       "src/services/messaging.service.js",
       "src/services/admin.service.js",
-      "src/services/report.service.js"
+      "src/services/report.service.js",
+      "src/services/notification.service.js",
+      "src/controllers/notification.controller.js",
+      "src/sockets/notification.socket.js"
     ],
     "reporter": [
       "text"
@@ -46,6 +49,7 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
+    "firebase-admin": "^13.8.0",
     "fluent-ffmpeg": "^2.1.3",
     "google-auth-library": "^10.6.2",
     "helmet": "^8.1.0",

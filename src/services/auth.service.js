@@ -50,7 +50,6 @@ class AuthService {
       createdUser._id,
     );
 
-
     // ARCHITECT FIX: Make sure you are passing 'email', NOT 'createdUser.email'
     await this.emailService.sendVerificationEmail(email, verificationToken);
 
