@@ -35,3 +35,5 @@ coverage/
 # Markdown files (except README)
 *.md
 !README.md
+
+src/config/firebase-service-account.json
