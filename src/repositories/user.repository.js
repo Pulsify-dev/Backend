@@ -95,8 +95,8 @@ const findByUsername = function (username, extraFields = "") {
 const addDeviceToken = function (userId, token) {
   return User.findByIdAndUpdate(
     userId,
-    { $addToSet: { device_tokens: token } }, // $addToSet prevents duplicate tokens
-    { returnDocument: "after" }, // Matches your updateById style
+    { $addToSet: { device_tokens: token } },
+    { returnDocument: "after" },
   );
 };
 
