@@ -1,4 +1,5 @@
 import trackRepository from "../repositories/track.repository.js";
+import subscriptionService from "./subscription.service.js";
 import audioUtils from "../utils/audio.utils.js";
 import photoUtils from "../utils/photo.utils.js";
 import S3Utils from "../utils/s3.utils.js";
@@ -8,7 +9,6 @@ import {
   NotFoundError,
   ForbiddenError,
   UnauthorizedError,
-  ConflictError,
 } from "../utils/errors.utils.js";
 
 const ALLOWED_AUDIO_TYPES = [
@@ -42,6 +42,25 @@ const parsePreviewStartSeconds = (value) => {
 const clampPreviewStartSeconds = (previewStartSeconds, trackDurationSeconds) => {
   const maxPreviewStart = Math.max(trackDurationSeconds - PREVIEW_DURATION_SECONDS, 0);
   return Math.min(Math.max(previewStartSeconds, 0), maxPreviewStart);
+};
+
+const enforceUploadQuota = async (userId) => {
+  const entitlement = await subscriptionService.getPlanLimitForUser(userId);
+
+  if (!entitlement.planLimit.can_upload) {
+    throw new ForbiddenError(
+      `Track uploads are not available on the ${entitlement.effectivePlan} plan.`,
+    );
+  }
+
+  if (Number.isInteger(entitlement.planLimit.upload_track_limit)) {
+    const currentTrackCount = await trackRepository.countByArtistId(userId);
+    if (currentTrackCount >= entitlement.planLimit.upload_track_limit) {
+      throw new ForbiddenError(
+        `Track upload limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.upload_track_limit} tracks).`,
+      );
+    }
+  }
 };
 
 const createTrack = async (userId, trackData, audioFile, coverFile) => {
@@ -86,6 +105,8 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     parsedPreviewStart ?? 0,
     roundedDuration,
   );
+
+  await enforceUploadQuota(userId);
 
   // ========== STEP 3.5: EXTRACT WAVEFORM ==========
   const waveform = await audioUtils.extractWaveform(audioFile.buffer);

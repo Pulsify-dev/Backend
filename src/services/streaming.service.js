@@ -1,5 +1,6 @@
 import playHistoryRepository from "../repositories/play-history.repository.js";
 import trackRepository from "../repositories/track.repository.js";
+import subscriptionService from "./subscription.service.js";
 import { NotFoundError, ForbiddenError } from "../utils/errors.utils.js";
 
 // ── Minimum listen to count as a play: 50% of track OR 30 seconds (whichever is lower) ──
@@ -59,13 +60,12 @@ const getStreamUrl = async (trackId, user, playbackContext = "track") => {
 };
 
 /**
- * Returns the public S3 URL for download. Only for ArtistPro users.
- * Access control: auth middleware + tier check in this function.
+ * Returns the public S3 URL for download/offline cache.
+ * Access control: auth middleware + plan entitlement check in this function.
  */
 const getDownloadUrl = async (trackId, user) => {
-  if (user.tier !== "Artist Pro") {
-    throw new ForbiddenError("Requires ArtistPro plan.");
-  }
+  const userId = user?.user_id || user?._id;
+  await subscriptionService.assertCanOfflineListen(userId);
 
   const track = await trackRepository.findById(trackId);
   if (!track) throw new NotFoundError("Track not found");
