@@ -1,4 +1,5 @@
 import meilisearchClient from "../config/meilisearch.js";
+import { ServerError } from "../utils/errors.utils.js";
 
 class SearchService {
   /**
@@ -12,10 +13,25 @@ class SearchService {
       return { tracks: [], users: [], playlists: [] };
     }
 
+    const wordCount = query.trim().split(/\s+/).length;
+    const trackSearchAttributes = [
+      "title",
+      "artist_name",
+      "artist_username",
+      "description",
+      "genre",
+      "tags"
+    ];
+    
+    // Only search in lyrics if the user typed 4 or more consecutive words
+    if (wordCount >= 4) {
+      trackSearchAttributes.push("lyrics");
+    }
+
     try {
       const results = await meilisearchClient.multiSearch({
         queries: [
-          { indexUid: "tracks", q: query, limit, offset },
+          { indexUid: "tracks", q: query, limit, offset, attributesToSearchOn: trackSearchAttributes },
           { indexUid: "users", q: query, limit, offset },
           { indexUid: "playlists", q: query, limit, offset },
         ],
@@ -27,8 +43,7 @@ class SearchService {
         playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [],
       };
     } catch (error) {
-      console.error("Global search error:", error);
-      throw error;
+      throw new ServerError(`Global search failed: ${error.message}`);
     }
   }
 
@@ -44,6 +59,20 @@ class SearchService {
       return { tracks: [], users: [], playlists: [] };
     }
 
+    const wordCount = query.trim().split(/\s+/).length;
+    const trackSearchAttributes = [
+      "title",
+      "artist_name",
+      "artist_username",
+      "description",
+      "genre",
+      "tags"
+    ];
+
+    if (wordCount >= 4) {
+      trackSearchAttributes.push("lyrics");
+    }
+
     try {
       const results = await meilisearchClient.multiSearch({
         queries: [
@@ -51,6 +80,7 @@ class SearchService {
             indexUid: "tracks",
             q: query,
             limit,
+            attributesToSearchOn: trackSearchAttributes,
             attributesToRetrieve: [
               "id", "title", "artist_name", "artist_username", "permalink", "genre",
             ],
@@ -80,8 +110,7 @@ class SearchService {
         playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [],
       };
     } catch (error) {
-      console.error("Search suggestions error:", error);
-      throw error;
+      throw new ServerError(`Search suggestions failed: ${error.message}`);
     }
   }
 
@@ -93,7 +122,7 @@ class SearchService {
       const index = meilisearchClient.index(indexName);
       await index.addDocuments([document]);
     } catch (error) {
-      console.error(`Error indexing document in ${indexName}:`, error);
+      throw new ServerError(`Error indexing document in ${indexName}: ${error.message}`);
     }
   }
 
@@ -105,7 +134,7 @@ class SearchService {
       const index = meilisearchClient.index(indexName);
       await index.deleteDocument(documentId);
     } catch (error) {
-      console.error(`Error deleting document from ${indexName}:`, error);
+      throw new ServerError(`Error deleting document from ${indexName}: ${error.message}`);
     }
   }
 }

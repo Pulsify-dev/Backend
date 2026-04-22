@@ -31,7 +31,9 @@
       "src/services/report.service.js",
       "src/services/notification.service.js",
       "src/controllers/notification.controller.js",
-      "src/sockets/notification.socket.js"
+      "src/sockets/notification.socket.js",
+      "src/services/discovery.service.js",
+      "src/services/search.service.js"
     ],
     "reporter": [
       "text"
