@@ -32,6 +32,59 @@ class SearchService {
     }
   }
 
+  /**
+   * Lightweight autocomplete suggestions for the search bar.
+   * Returns minimal fields capped at 5 results per category
+   * for fast, as-you-type dropdown rendering.
+   * @param {string} query
+   * @param {number} limit  - max results per category (default: 5)
+   */
+  async searchSuggestions(query, limit = 5) {
+    if (!query || !query.trim()) {
+      return { tracks: [], users: [], playlists: [] };
+    }
+
+    try {
+      const results = await meilisearchClient.multiSearch({
+        queries: [
+          {
+            indexUid: "tracks",
+            q: query,
+            limit,
+            attributesToRetrieve: [
+              "id", "title", "artist_name", "artist_username", "permalink", "genre",
+            ],
+          },
+          {
+            indexUid: "users",
+            q: query,
+            limit,
+            attributesToRetrieve: [
+              "id", "username", "display_name", "is_verified",
+            ],
+          },
+          {
+            indexUid: "playlists",
+            q: query,
+            limit,
+            attributesToRetrieve: [
+              "id", "title", "creator_name", "creator_username", "permalink",
+            ],
+          },
+        ],
+      });
+
+      return {
+        tracks: results.results.find((r) => r.indexUid === "tracks")?.hits || [],
+        users: results.results.find((r) => r.indexUid === "users")?.hits || [],
+        playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [],
+      };
+    } catch (error) {
+      console.error("Search suggestions error:", error);
+      throw error;
+    }
+  }
+
   /*
     Add or update a document in a specific index
    */
