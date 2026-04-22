@@ -69,7 +69,7 @@ const run = async () => {
     await syncCollection({
         modelName: "Track",
         indexName: "tracks",
-        select: "title artist_id permalink description genre tags visibility playback_state play_count",
+        select: "title artist_id permalink description genre tags lyrics visibility playback_state play_count",
         populateCfg: { path: "artist_id", select: "display_name username" },
         transform: (doc) => ({
             id: doc._id.toString(),
@@ -81,6 +81,7 @@ const run = async () => {
             description: doc.description,
             genre: doc.genre,
             tags: doc.tags,
+            lyrics: doc.lyrics || null,
             visibility: doc.visibility,
             playback_state: doc.playback_state,
             play_count: doc.play_count,

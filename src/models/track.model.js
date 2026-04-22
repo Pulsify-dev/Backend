@@ -192,6 +192,13 @@ const trackSchema = mongoose.Schema(
         message: "{VALUE} is not an integer",
       },
     },
+    lyrics: {
+      type: String,
+      trim: true,
+      maxlength: [10000, "Lyrics cannot exceed 10,000 characters"],
+      default: null,
+      select: false, // Large text — only load when explicitly requested
+    },
     trending_score: {
       type: Number,
       default: 0,
@@ -236,6 +243,15 @@ const syncTrack = async (doc) => {
     }
   } catch (_) { /* artist lookup is best-effort */ }
 
+  // If lyrics wasn't loaded (select: false), fetch it separately
+  let lyrics = doc.lyrics;
+  if (lyrics === undefined) {
+    try {
+      const full = await mongoose.model("Track").findById(doc._id).select("lyrics").lean();
+      lyrics = full?.lyrics || null;
+    } catch (_) { /* best-effort */ }
+  }
+
   const trackDoc = {
     id: doc._id.toString(),
     title: doc.title,
@@ -246,6 +262,7 @@ const syncTrack = async (doc) => {
     description: doc.description,
     genre: doc.genre,
     tags: doc.tags,
+    lyrics: lyrics || null,
     visibility: doc.visibility,
     playback_state: doc.playback_state,
     preview_start_seconds: doc.preview_start_seconds,

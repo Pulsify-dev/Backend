@@ -55,4 +55,6 @@ export {
   UnauthorizedError,
   ForbiddenError,
   ConflictError,
+  ServerError,
+  ServiceUnavailableError,
 };
