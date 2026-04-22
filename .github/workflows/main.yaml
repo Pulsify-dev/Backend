@@ -62,7 +62,7 @@ jobs:
               -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               -e NODE_ENV="${{secrets.NODE_ENV}}" \
               -e API_URL="${{secrets.API_URL}}" \
-              -e MEILI_HOST='http://localhost:7700' \
+              -e MEILI_HOST='http://172.17.0.1:7700' \
               -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
@@ -88,7 +88,7 @@ jobs:
               -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               -e NODE_ENV="${{secrets.NODE_ENV}}" \
               -e API_URL="${{secrets.API_URL}}" \
-              -e MEILI_HOST='http://localhost:7700' \
+              -e MEILI_HOST='http://172.17.0.1:7700' \
               -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
 
@@ -114,6 +114,6 @@ jobs:
               -e RECAPTCHA_SECRET_KEY="${{secrets.RECAPTCHA_SECRET_KEY}}" \
               -e NODE_ENV="${{secrets.NODE_ENV}}" \
               -e API_URL="${{secrets.API_URL}}" \
-              -e MEILI_HOST='http://localhost:7700' \
+              -e MEILI_HOST='http://172.17.0.1:7700' \
               -e MEILI_MASTER_KEY='${{ secrets.MEILI_MASTER_KEY }}' \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
