@@ -81,7 +81,7 @@ const updateRefreshToken = function (id, token) {
 };
 const findByProviderId = function (providerName, providerId) {
   const query = {};
-  query[`${providerName}_id`] = providerId; 
+  query[`${providerName}_id`] = providerId;
   return User.findOne(query);
 };
 
@@ -91,6 +91,13 @@ const findByEmail = function (email) {
 
 const findByUsername = function (username, extraFields = "") {
   return User.findOne({ username }).select(extraFields);
+};
+const addDeviceToken = function (userId, token) {
+  return User.findByIdAndUpdate(
+    userId,
+    { $addToSet: { device_tokens: token } }, // $addToSet prevents duplicate tokens
+    { returnDocument: "after" }, // Matches your updateById style
+  );
 };
 
 export default {
@@ -109,4 +116,5 @@ export default {
   findByProviderId,
   findByEmail,
   findByUsername,
+  addDeviceToken,
 };
