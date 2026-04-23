@@ -46,6 +46,26 @@
 									"key": "artwork",
 									"type": "file",
 									"src": []
+								},
+								{
+									"key": "track_ids",
+									"value": "[\"6619223e78f99e39626639c5\",\"6619223e78f99e39626639c6\"]",
+									"type": "text"
+								},
+								{
+									"key": "tracks_metadata",
+									"value": "[{\"title\":\"Intro\",\"audio_index\":0},{\"title\":\"Main Song\",\"audio_index\":1,\"artwork_index\":0}]",
+									"type": "text"
+								},
+								{
+									"key": "audio_files",
+									"type": "file",
+									"src": []
+								},
+								{
+									"key": "track_artwork_files",
+									"type": "file",
+									"src": []
 								}
 							]
 						},
@@ -58,7 +78,7 @@
 								"albums"
 							]
 						},
-						"description": "## 1. Create Album\n\nCreates a new album shell. Artwork is uploaded to AWS S3. Tracks are added separately after the album is created.\n\n**Authentication:** Required"
+						"description": "## 1. Create Album\n\nCreates a new album in a single multipart request. The endpoint now supports all three creation flows:\n\n1. Create an album with brand-new tracks uploaded alongside it.\n2. Create an album with existing `track_ids` that were uploaded before.\n3. Create an album first and add tracks or artwork later through the existing album update endpoints.\n\n### Multipart Fields\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `title` | String | Yes | Album title. |\n| `genre` | String | Yes | Album genre. |\n| `description` | String | No | Optional album description. |\n| `type` | String | No | `Album`, `EP`, `Single`, or `Compilation`. |\n| `visibility` | String | No | `public` or `private`. |\n| `artwork` | File | No | Album cover image. When provided, inline tracks without their own artwork inherit this artwork. |\n| `track_ids` | JSON string / array | No | Existing track IDs to attach to the album. |\n| `tracks_metadata` | JSON string / array | No | Inline track definitions, one entry per uploaded audio file. |\n| `audio_files` | File[] | No | Uploaded audio files for inline tracks. `tracks_metadata[i].audio_index` points to the matching file. |\n| `track_artwork_files` | File[] | No | Optional artwork files for inline tracks. `tracks_metadata[i].artwork_index` points to the matching file. |\n\n### Inline Track Metadata\n\nEach `tracks_metadata` entry can include:\n- `title` (required)\n- `audio_index` (required)\n- `genre`\n- `description`\n- `tags`\n- `lyrics`\n- `visibility`\n- `preview_start_seconds`\n- `artwork_index`\n\nIf `artwork_index` is omitted, the track inherits the album artwork URL when an album artwork file is uploaded. If no album artwork is uploaded, the track falls back to the normal track artwork behavior.\n\n**Authentication:** Required"
 					},
 					"response": [
 						{
@@ -68,19 +88,41 @@
 								"header": [],
 								"body": {
 									"mode": "formdata",
-									"formdata": [
-										{
-											"key": "title",
-											"value": "My Awesome Album",
-											"type": "text"
-										},
-										{
-											"key": "genre",
-											"value": "Electronic",
-											"type": "text"
-										}
-									]
-								},
+								"formdata": [
+									{
+										"key": "title",
+										"value": "My Awesome Album",
+										"type": "text"
+									},
+									{
+										"key": "genre",
+										"value": "Electronic",
+										"type": "text"
+									},
+									{
+										"key": "artwork",
+										"type": "file"
+									},
+									{
+										"key": "track_ids",
+										"value": "[\"6619223e78f99e39626639c5\"]",
+										"type": "text"
+									},
+									{
+										"key": "tracks_metadata",
+										"value": "[{\"title\":\"Intro\",\"audio_index\":0},{\"title\":\"Main Song\",\"audio_index\":1,\"artwork_index\":0}]",
+										"type": "text"
+									},
+									{
+										"key": "audio_files",
+										"type": "file"
+									},
+									{
+										"key": "track_artwork_files",
+										"type": "file"
+									}
+								]
+							},
 								"url": {
 									"raw": "{{baseUrl}}/albums",
 									"host": [
@@ -96,7 +138,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T16:50:42.000Z\",\n    \"__v\": 0\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [\n        {\n            \"track_id\": \"6619223e78f99e39626639c5\",\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        },\n        {\n            \"track_id\": \"6619223e78f99e39626639c6\",\n            \"position\": 1,\n            \"_id\": \"66196602325e8360f0896265\"\n        }\n    ],\n    \"track_count\": 2,\n    \"total_duration\": 380,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T16:50:42.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				},
@@ -130,7 +172,7 @@
 								}
 							]
 						},
-						"description": "## 2. Update Album Metadata\n\nUpdates metadata fields like title, description, or visibility. Only the artist can update their own album.\n\n**Authentication:** Required"
+						"description": "## 2. Update Album Metadata\n\nUpdates editable album fields such as title, description, genre, type, visibility, `is_hidden`, and `release_date`. Only the artist can update their own album.\n\n**Authentication:** Required"
 					},
 					"response": [
 						{
@@ -164,7 +206,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Updated Album Title\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"Updated description.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"private\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:00:00.000Z\",\n    \"__v\": 0\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Updated Album Title\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"Updated description.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [\n        {\n            \"track_id\": \"6619223e78f99e39626639c5\",\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"visibility\": \"private\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:00:00.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				},
@@ -200,7 +242,7 @@
 								}
 							]
 						},
-						"description": "## 3. Update Album Artwork\n\nReplaces the existing album artwork with a new file. Old artwork is deleted from S3.\n\n**Authentication:** Required"
+						"description": "## 3. Update Album Artwork\n\nReplaces the existing album artwork with a new file. Old artwork is deleted from S3. Tracks are not modified by this endpoint.\n\n**Authentication:** Required"
 					},
 					"response": [
 						{
@@ -240,7 +282,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Updated Album Title\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/new-artwork.jpg\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"private\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:05:00.000Z\",\n    \"__v\": 0\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Updated Album Title\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"Updated description.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/new-artwork.jpg\",\n    \"tracks\": [\n        {\n            \"track_id\": \"6619223e78f99e39626639c5\",\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"visibility\": \"private\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:05:00.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				},
@@ -335,7 +377,7 @@
 								}
 							]
 						},
-						"description": "## 5. Add Tracks\n\nAdds existing tracks to the album. Tracks must belong to the same artist.\n\n**Authentication:** Required"
+						"description": "## 5. Add Tracks\n\nAdds existing tracks to the album. Tracks must belong to the same artist. This endpoint still exists for the \"upload first, attach later\" flow, even though album creation now supports inline track uploads too.\n\n**Authentication:** Required"
 					},
 					"response": [
 						{
@@ -370,7 +412,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"tracks\": [\n        {\n            \"track_id\": {\n                \"_id\": \"6619223e78f99e39626639c5\",\n                \"title\": \"Track 1\",\n                \"duration\": 180,\n                \"audio_url\": \"...\"\n            },\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"createdAt\": \"...\",\n    \"updatedAt\": \"...\"\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [\n        {\n            \"track_id\": {\n                \"_id\": \"6619223e78f99e39626639c5\",\n                \"title\": \"Track 1\",\n                \"duration\": 180,\n                \"audio_url\": \"...\"\n            },\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T16:55:00.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				},
@@ -406,7 +448,7 @@
 								}
 							]
 						},
-						"description": "## 6. Reorder Tracks\n\nUpdates the position of tracks within the album based on the provided array of IDs.\n\n**Authentication:** Required"
+						"description": "## 6. Reorder Tracks\n\nUpdates the position of tracks within the album based on the provided ordered array of track IDs. Positions are rewritten from zero in the same order they are sent.\n\n**Authentication:** Required"
 					},
 					"response": [
 						{
@@ -442,7 +484,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"tracks\": [\n        { \"track_id\": \"6619223e78f99e39626639c6\", \"position\": 0 },\n        { \"track_id\": \"6619223e78f99e39626639c5\", \"position\": 1 }\n    ],\n    \"track_count\": 2,\n    \"updatedAt\": \"...\"\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [\n        { \"track_id\": \"6619223e78f99e39626639c6\", \"position\": 0, \"_id\": \"66196602325e8360f0896265\" },\n        { \"track_id\": \"6619223e78f99e39626639c5\", \"position\": 1, \"_id\": \"66196602325e8360f0896264\" }\n    ],\n    \"track_count\": 2,\n    \"total_duration\": 380,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T16:58:00.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				},
@@ -473,7 +515,7 @@
 								}
 							]
 						},
-						"description": "## 7. Remove Track\n\nRemoves a track from the album. The track remains in the database.\n\n**Authentication:** Required"
+						"description": "## 7. Remove Track\n\nRemoves a track from the album. The track remains in the database. Album track positions are re-indexed after the removal.\n\n**Authentication:** Required"
 					},
 					"response": [
 						{
@@ -509,7 +551,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"updatedAt\": \"...\"\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:00:00.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				}
@@ -539,7 +581,7 @@
 								}
 							]
 						},
-						"description": "## 8. Get Album by ID\n\nRetrieves full album details, including populated track information. Private albums require the artist's token.\n\n**Authentication:** Optional"
+						"description": "## 8. Get Album by ID\n\nRetrieves full album details, including populated track information. Private albums require the artist's token. Because `tracks.track_id` is populated, the response includes the full track object for each track in the album.\n\n**Authentication:** Optional"
 					},
 					"response": [
 						{
@@ -569,7 +611,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"...\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"...\",\n    \"artwork_url\": \"...\",\n    \"tracks\": [\n        {\n            \"track_id\": {\n                \"_id\": \"6619223e78f99e39626639c5\",\n                \"artist_id\": \"6619223e78f99e39626639c0\",\n                \"title\": \"Track 1\",\n                \"permalink\": \"track-1-xyz\",\n                \"description\": \"...\",\n                \"genre\": \"Electronic\",\n                \"tags\": [\"cool\", \"vibe\"],\n                \"release_date\": \"...\",\n                \"audio_url\": \"...\",\n                \"artwork_url\": \"...\",\n                \"format\": \"mp3\",\n                \"duration\": 180,\n                \"file_size_bytes\": 5000000,\n                \"bitrate\": 192,\n                \"status\": \"finished\",\n                \"visibility\": \"public\",\n                \"playback_state\": \"playable\",\n                \"preview_start_seconds\": 0,\n                \"is_hidden\": false,\n                \"play_count\": 100,\n                \"like_count\": 10,\n                \"repost_count\": 2,\n                \"comment_count\": 5,\n                \"createdAt\": \"...\",\n                \"updatedAt\": \"...\"\n            },\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"...\",\n    \"updatedAt\": \"...\",\n    \"__v\": 0\n}"
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [\n        {\n            \"track_id\": {\n                \"_id\": \"6619223e78f99e39626639c5\",\n                \"artist_id\": \"6619223e78f99e39626639c0\",\n                \"title\": \"Track 1\",\n                \"permalink\": \"track-1-xyz\",\n                \"description\": \"Track description\",\n                \"genre\": \"Electronic\",\n                \"tags\": [\"cool\", \"vibe\"],\n                \"release_date\": \"2024-04-12T15:50:42.000Z\",\n                \"audio_url\": \"https://pulsify-bucket.s3.amazonaws.com/tracks/audio/track-1.mp3\",\n                \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/tracks/artwork/track-1.jpg\",\n                \"format\": \"mp3\",\n                \"duration\": 180,\n                \"file_size_bytes\": 5000000,\n                \"bitrate\": 192000,\n                \"status\": \"finished\",\n                \"visibility\": \"public\",\n                \"playback_state\": \"playable\",\n                \"preview_start_seconds\": 0,\n                \"is_hidden\": false,\n                \"play_count\": 100,\n                \"like_count\": 10,\n                \"repost_count\": 2,\n                \"comment_count\": 5,\n                \"createdAt\": \"2024-04-12T15:50:42.000Z\",\n                \"updatedAt\": \"2024-04-12T15:55:42.000Z\",\n                \"__v\": 0\n            },\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T16:50:42.000Z\",\n    \"__v\": 0\n}"
 						}
 					]
 				},
@@ -605,7 +647,7 @@
 								}
 							]
 						},
-						"description": "## 9. Get Artist Albums\n\nRetrieves a list of public albums by a specific artist. Results are paginated.\n\n**Authentication:** Not required"
+						"description": "## 9. Get Artist Albums\n\nRetrieves a list of public albums by a specific artist. Results are paginated and return the album summary fields used by the artist pages.\n\n**Authentication:** Not required"
 					},
 					"response": [
 						{
@@ -646,7 +688,7 @@
 							"_postman_previewlanguage": "json",
 							"header": [],
 							"cookie": [],
-							"body": "{\n    \"albums\": [\n        {\n            \"_id\": \"66196602325e8360f0896263\",\n            \"artist_id\": \"6619223e78f99e39626639c0\",\n            \"title\": \"My Awesome Album\",\n            \"permalink\": \"my-awesome-album-a1b2c3d4\",\n            \"artwork_url\": \"...\",\n            \"track_count\": 1,\n            \"visibility\": \"public\",\n            \"createdAt\": \"...\"\n        }\n    ],\n    \"total\": 1\n}"
+							"body": "{\n    \"albums\": [\n        {\n            \"_id\": \"66196602325e8360f0896263\",\n            \"artist_id\": \"6619223e78f99e39626639c0\",\n            \"title\": \"My Awesome Album\",\n            \"permalink\": \"my-awesome-album-a1b2c3d4\",\n            \"description\": \"This is a description of my album.\",\n            \"genre\": \"Electronic\",\n            \"type\": \"Album\",\n            \"release_date\": \"2024-04-12T16:50:42.000Z\",\n            \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n            \"tracks\": [\n                { \"track_id\": \"6619223e78f99e39626639c5\", \"position\": 0, \"_id\": \"66196602325e8360f0896264\" }\n            ],\n            \"track_count\": 1,\n            \"total_duration\": 180,\n            \"visibility\": \"public\",\n            \"is_hidden\": false,\n            \"play_count\": 0,\n            \"like_count\": 0,\n            \"repost_count\": 0,\n            \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n            \"updatedAt\": \"2024-04-12T16:50:42.000Z\",\n            \"__v\": 0\n        }\n    ],\n    \"total\": 1\n}"
 						}
 					]
 				}

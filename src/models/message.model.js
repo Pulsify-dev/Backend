@@ -23,7 +23,7 @@ const messageSchema = new mongoose.Schema(
 		shared_entity: {
 			type: {
 				type: String,
-				enum: ["Track", "Playlist"],
+				enum: ["Track", "Playlist", "Album"],
 			},
 			id: {
 				type: mongoose.Schema.Types.ObjectId,

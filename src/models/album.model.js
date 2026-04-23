@@ -107,7 +107,7 @@ const albumSchema = mongoose.Schema(
 albumSchema.index({ artist_id: 1, createdAt: -1 });
 
 // Generate permalink before saving
-albumSchema.pre("save", async function (next) {
+albumSchema.pre("save", async function () {
   if (!this.permalink) {
     const basePermalink = this.title
       .toLowerCase()
@@ -117,7 +117,6 @@ albumSchema.pre("save", async function (next) {
     
     this.permalink = `${basePermalink}-${crypto.randomBytes(4).toString("hex")}`;
   }
-  next();
 });
 
 // ─── Meilisearch Sync ────────────────────────────────────────────────────────
@@ -147,6 +146,7 @@ const syncAlbum = async (doc) => {
     artwork_url: doc.artwork_url,
     track_count: doc.track_count,
     visibility: doc.visibility,
+    is_hidden: Boolean(doc.is_hidden),
     createdAt: doc.createdAt,
   };
   

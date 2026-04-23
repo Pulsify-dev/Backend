@@ -37,6 +37,29 @@ const trackFileFilter = (req, file, cb) => {
 }
 };
 
+const albumCreateFileFilter = (req, file, cb) => {
+  if (file.fieldname === "artwork" || file.fieldname === "track_artwork_files") {
+    if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new BadRequestError("Invalid artwork. Only JPEG, PNG, WebP."), false);
+    }
+  } else if (file.fieldname === "audio_files") {
+    if (ALLOWED_AUDIO_TYPES.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(
+        new BadRequestError(
+          "Invalid file format. Only MP3, WAV, FLAC, and AAC are allowed.",
+        ),
+        false,
+      );
+    }
+  } else {
+    cb(new BadRequestError("Unexpected field"), false);
+  }
+};
+
 const storage = multer.memoryStorage();
 const imageFileFilter = (req, file, cb) => {
   if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
@@ -70,7 +93,17 @@ export const albumArtworkUpload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB for album covers
   fileFilter: imageFileFilter,
-}).single("file");
+}).single("artwork");
+
+export const albumCreateUpload = multer({
+  storage,
+  limits: { fileSize: 30 * 1024 * 1024 },
+  fileFilter: albumCreateFileFilter,
+}).fields([
+  { name: "artwork", maxCount: 1 },
+  { name: "audio_files", maxCount: 20 },
+  { name: "track_artwork_files", maxCount: 20 },
+]);
 
 export const trackUpload = multer({
   storage,

@@ -63,7 +63,53 @@ const enforceUploadQuota = async (userId) => {
   }
 };
 
-const createTrack = async (userId, trackData, audioFile, coverFile) => {
+const buildTrackObject = ({
+  userId,
+  trackData,
+  audioFile,
+  audioMetadata,
+  previewStartSeconds,
+  waveform,
+  audioUrl,
+  artworkUrl,
+}) => {
+  const FORMAT_MAP = {
+    MPEG: "mp3",
+    MP3: "mp3",
+    WAVE: "wav",
+    WAV: "wav",
+    FLAC: "flac",
+    AAC: "aac",
+    MP4: "aac",
+  };
+  const normalizedFormat =
+    FORMAT_MAP[audioMetadata.format.toUpperCase()] ||
+    audioMetadata.format.toLowerCase();
+
+  const roundedDuration = Math.round(audioMetadata.duration);
+  const roundedBitrate = Math.round(audioMetadata.bitrate || 0);
+
+  return {
+    artist_id: userId,
+    title: trackData.title,
+    genre: trackData.genre,
+    description: trackData.description || "",
+    tags: trackData.tags || [],
+    lyrics: trackData.lyrics || null,
+    visibility: trackData.visibility,
+    audio_url: audioUrl,
+    artwork_url: artworkUrl,
+    format: normalizedFormat,
+    duration: roundedDuration,
+    file_size_bytes: audioFile.size,
+    bitrate: roundedBitrate,
+    preview_start_seconds: previewStartSeconds,
+    waveform,
+    status: "finished",
+  };
+};
+
+const createTrackFromUpload = async (userId, trackData, audioFile, coverFile) => {
   // Validate audio file
   if (!audioFile) throw new BadRequestError("Audio file is required.");
   if (!ALLOWED_AUDIO_TYPES.includes(audioFile.mimetype))
@@ -78,26 +124,8 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     photoUtils.validateImageFile(coverFile, MAX_COVER_BYTES);
   }
 
-  // ========== STEP 3: EXTRACT AUDIO INFO ==========
   const audioMetadata = await audioUtils.extractAudioMetadata(audioFile.buffer);
-
-  // Map music-metadata container names to our model's format enum
-  const FORMAT_MAP = {
-    MPEG: "mp3",
-    MP3: "mp3",
-    WAVE: "wav",
-    WAV: "wav",
-    FLAC: "flac",
-    AAC: "aac",
-    MP4: "aac",
-  };
-  const normalizedFormat =
-    FORMAT_MAP[audioMetadata.format.toUpperCase()] ||
-    audioMetadata.format.toLowerCase();
-
-  // Round duration and bitrate to integer (music-metadata may return floats)
   const roundedDuration = Math.round(audioMetadata.duration);
-  const roundedBitrate = Math.round(audioMetadata.bitrate || 0);
   const parsedPreviewStart = parsePreviewStartSeconds(
     trackData.preview_start_seconds,
   );
@@ -108,44 +136,35 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
 
   await enforceUploadQuota(userId);
 
-  // ========== STEP 3.5: EXTRACT WAVEFORM ==========
   const waveform = await audioUtils.extractWaveform(audioFile.buffer);
 
-  // ========== STEP 4: UPLOAD TO S3 ==========
   const audioUrl = await S3Utils.uploadToS3(audioFile, "tracks/audio");
   const artworkUrl = coverFile
     ? await S3Utils.uploadToS3(coverFile, "tracks/artwork")
-    : undefined; // Model defaults to "default-artwork.png"
+    : trackData.artwork_url;
 
-  // ========== STEP 5: BUILD TRACK OBJECT ==========
-  const trackObject = {
-    artist_id: userId,
-    title: trackData.title,
-    genre: trackData.genre,
-    description: trackData.description || "",
-    tags: trackData.tags || [],
-    lyrics: trackData.lyrics || null,
-    audio_url: audioUrl,
-    artwork_url: artworkUrl,
-    format: normalizedFormat,
-    duration: roundedDuration,
-    file_size_bytes: audioFile.size,
-    bitrate: roundedBitrate,
-    preview_start_seconds: previewStartSeconds,
-    waveform: waveform,
-    status: "finished",
-  };
-
-  // ========== STEP 6: SAVE TO DATABASE ==========
   try {
-    const savedTrack = await trackRepository.createTrack(trackObject);
-    return savedTrack;
+    return await trackRepository.createTrack(
+      buildTrackObject({
+        userId,
+        trackData,
+        audioFile,
+        audioMetadata,
+        previewStartSeconds,
+        waveform,
+        audioUrl,
+        artworkUrl,
+      }),
+    );
   } catch (error) {
-    // Rollback: delete orphaned S3 files if DB save fails
     await S3Utils.deleteFromS3(audioUrl).catch(() => {});
     await S3Utils.deleteFromS3(artworkUrl).catch(() => {});
     throw error;
   }
+};
+
+const createTrack = async (userId, trackData, audioFile, coverFile) => {
+  return createTrackFromUpload(userId, trackData, audioFile, coverFile);
 };
 
 const getTrackById = async (trackId, userId) => {
@@ -293,6 +312,7 @@ const getLyrics = async (trackId) => {
 
 export default {
   createTrack,
+  createTrackFromUpload,
   getTrackById,
   updateTrack,
   deleteTrack,

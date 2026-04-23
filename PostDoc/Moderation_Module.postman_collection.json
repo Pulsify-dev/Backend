@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "11. 🛡️ Moderation & Admin",
-    "description": "Handles user reporting, content moderation, and admin dashboard controls. Standard users can create reports. Admin roles are required for all `/admin/*` endpoints.",
+    "description": "Handles user reporting, content moderation, and admin dashboard controls. Standard users can create reports for tracks, albums, users, and comments. Admin roles are required for all `/admin/*` endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -15,14 +15,14 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"entity_type\": \"Track\",\n  \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"reason\": \"Copyright\",\n  \"description\": \"This track illegally samples my song 'Summer Vibes' at 1:15.\"\n}"
+          "raw": "{\n  \"entity_type\": \"Album\",\n  \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n  \"reason\": \"Copyright\",\n  \"description\": \"This album illegally reuses my artwork and audio without permission.\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/reports",
           "host": ["{{baseUrl}}"],
           "path": ["reports"]
         },
-        "description": "## 1. Create Report\n\nAllows a registered user to flag a Track, User, or Comment for moderation. Users cannot report their own entities.\n\n**Authentication:** Required (User)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `entity_type` | String | Yes | Enum: `Track`, `User`, `Comment`. |\n| `entity_id` | String | Yes | The MongoDB ObjectId of the entity being reported. |\n| `reason` | String | Yes | Enum: `Copyright`, `InappropriateContent`, `Spam`, `HateSpeech`, `Other`. |\n| `description` | String | No | Optional context provided by the user (Max 500 chars). |"
+        "description": "## 1. Create Report\n\nAllows a registered user to flag a Track, Album, User, or Comment for moderation. Users cannot report their own entities.\n\n**Authentication:** Required (User)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `entity_type` | String | Yes | Enum: `Track`, `Album`, `User`, `Comment`. |\n| `entity_id` | String | Yes | The MongoDB ObjectId of the entity being reported. |\n| `reason` | String | Yes | Enum: `Copyright`, `InappropriateContent`, `Spam`, `HateSpeech`, `Other`. |\n| `description` | String | No | Optional context provided by the user (Max 500 chars). |"
       },
       "response": [
         {
@@ -32,7 +32,7 @@
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"report\": {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"reporter_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"entity_type\": \"Track\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"reason\": \"Copyright\",\n            \"description\": \"This track illegally samples my song 'Summer Vibes' at 1:15.\",\n            \"status\": \"Pending\",\n            \"createdAt\": \"2026-04-13T10:00:00.000Z\"\n        }\n    }\n}"
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"report\": {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"reporter_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"entity_type\": \"Album\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"reason\": \"Copyright\",\n            \"description\": \"This album illegally reuses my artwork and audio without permission.\",\n            \"status\": \"Pending\",\n            \"createdAt\": \"2026-04-13T10:00:00.000Z\",\n            \"updatedAt\": \"2026-04-13T10:00:00.000Z\",\n            \"__v\": 0\n        }\n    }\n}"
         },
         {
           "name": "400 Bad Request – Self Report",
@@ -71,7 +71,7 @@
             }
           ]
         },
-        "description": "## 2. Get All Reports\n\nRetrieves a paginated list of all platform reports. Used to populate the Admin Dashboard. The `reporter_id` is populated with the user's basic info.\n\n**Authentication:** Required (Admin Role Only)\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | 1 | The current page. |\n| `limit` | Number | 20 | Results per page. |\n| `status` | String | None | Filter results by report status. |"
+        "description": "## 2. Get All Reports\n\nRetrieves a paginated list of all platform reports, including album reports. Used to populate the Admin Dashboard. The `reporter_id` is populated with the user's basic info.\n\n**Authentication:** Required (Admin Role Only)\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | 1 | The current page. |\n| `limit` | Number | 20 | Results per page. |\n| `status` | String | None | Filter results by report status. |"
       },
       "response": [
         {
@@ -81,7 +81,7 @@
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"reports\": [\n            {\n                \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n                \"reporter_id\": {\n                    \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                    \"username\": \"johndoe\",\n                    \"email\": \"johndoe@example.com\"\n                },\n                \"entity_type\": \"Track\",\n                \"status\": \"Pending\",\n                \"reason\": \"Copyright\"\n            }\n        ],\n        \"total\": 1\n    }\n}"
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"reports\": [\n            {\n                \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n                \"reporter_id\": {\n                    \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                    \"username\": \"johndoe\",\n                    \"email\": \"johndoe@example.com\"\n                },\n                \"entity_type\": \"Album\",\n                \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                \"reason\": \"Copyright\",\n                \"description\": \"This album illegally reuses my artwork and audio without permission.\",\n                \"status\": \"Pending\",\n                \"admin_notes\": \"\",\n                \"createdAt\": \"2026-04-13T10:00:00.000Z\",\n                \"updatedAt\": \"2026-04-13T10:00:00.000Z\",\n                \"__v\": 0\n            }\n        ],\n        \"total\": 1\n    }\n}"
         },
         {
           "name": "403 Forbidden – Not Admin",
@@ -104,7 +104,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"status\": \"Dismissed\",\n  \"admin_notes\": \"Reviewed the track. The sample falls under fair use. No action taken.\"\n}"
+          "raw": "{\n  \"status\": \"Dismissed\",\n  \"admin_notes\": \"Reviewed the album report. No action taken.\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/admin/reports/:id/resolve",
@@ -118,7 +118,7 @@
             }
           ]
         },
-        "description": "## 3. Resolve Report\n\nUpdates a report's status and logs the administrator's internal notes regarding their decision.\n\n**Authentication:** Required (Admin Role Only)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `status` | String | Yes | Must be `Resolved` or `Dismissed`. |\n| `admin_notes` | String | Yes | Internal justification for the action taken. |"
+        "description": "## 3. Resolve Report\n\nUpdates a report's status and logs the administrator's internal notes regarding their decision.\n\n**Authentication:** Required (Admin Role Only)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `status` | String | Yes | Must be `Resolved` or `Dismissed`. |\n| `admin_notes` | String | Yes | Internal justification for the action taken. |\n\n### Moderation Scope\n\nThis endpoint matches the current track moderation flow: it only updates the report record and admin notes. It does not automatically hide or delete the underlying album or track."
       },
       "response": [
         {
@@ -128,7 +128,7 @@
           "_postman_previewlanguage": "json",
           "header": [{ "key": "Content-Type", "value": "application/json" }],
           "cookie": [],
-          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"report\": {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"status\": \"Dismissed\",\n            \"admin_notes\": \"Reviewed the track. The sample falls under fair use. No action taken.\"\n        }\n    }\n}"
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"report\": {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"entity_type\": \"Album\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"reason\": \"Copyright\",\n            \"description\": \"This album illegally reuses my artwork and audio without permission.\",\n            \"status\": \"Dismissed\",\n            \"admin_notes\": \"Reviewed the album report. No action taken.\",\n            \"updatedAt\": \"2026-04-13T11:00:00.000Z\"\n        }\n    }\n}"
         },
         {
           "name": "404 Not Found",

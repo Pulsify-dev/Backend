@@ -345,6 +345,112 @@ describe("TrackService", () => {
     });
   });
 
+  describe("createTrackFromUpload()", () => {
+    const validTrackData = {
+      title: "Inline Track",
+      genre: "Electronic",
+      description: "Inline upload track",
+      tags: ["inline"],
+    };
+
+    beforeEach(() => {
+      sinon.stub(subscriptionService, "getPlanLimitForUser").resolves({
+        effectivePlan: "Artist Pro",
+        planLimit: {
+          can_upload: true,
+          upload_track_limit: null,
+        },
+      });
+    });
+
+    it("should create a track from explicit file inputs and metadata overrides", async () => {
+      sinon.stub(photoUtils, "validateImageFile").returns(true);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "MPEG",
+        duration: 181,
+        bitrate: 192000,
+      });
+      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.2]);
+      sinon.stub(S3Utils, "uploadToS3")
+        .onFirstCall().resolves("https://s3.amazonaws.com/tracks/audio/test.mp3")
+        .onSecondCall().resolves("https://s3.amazonaws.com/tracks/artwork/test.jpg");
+      sinon.stub(trackRepository, "createTrack").callsFake(async (payload) => ({
+        _id: "new-track-id",
+        ...payload,
+      }));
+
+      const result = await trackService.createTrackFromUpload(
+        MOCK_USER_ID,
+        validTrackData,
+        mockAudioFile,
+        mockArtworkFile,
+      );
+
+      expect(result._id).to.equal("new-track-id");
+      expect(trackRepository.createTrack.firstCall.args[0].title).to.equal(
+        "Inline Track",
+      );
+      expect(trackRepository.createTrack.firstCall.args[0].artwork_url).to.equal(
+        "https://s3.amazonaws.com/tracks/artwork/test.jpg",
+      );
+    });
+
+    it("should rollback uploaded files if DB createTrack fails in createTrackFromUpload", async () => {
+      sinon.stub(photoUtils, "validateImageFile").returns(true);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "MPEG",
+        duration: 181,
+        bitrate: 192000,
+      });
+      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.2]);
+      sinon.stub(S3Utils, "uploadToS3")
+        .onFirstCall().resolves("https://s3.amazonaws.com/tracks/audio/test.mp3")
+        .onSecondCall().resolves("https://s3.amazonaws.com/tracks/artwork/test.jpg");
+      const deleteStub = sinon.stub(S3Utils, "deleteFromS3").resolves();
+      sinon.stub(trackRepository, "createTrack").rejects(new Error("DB down"));
+
+      try {
+        await trackService.createTrackFromUpload(
+          MOCK_USER_ID,
+          validTrackData,
+          mockAudioFile,
+          mockArtworkFile,
+        );
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err.message).to.equal("DB down");
+        expect(deleteStub.calledTwice).to.equal(true);
+      }
+    });
+
+    it("should reuse a provided artwork_url without uploading a cover file", async () => {
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "MPEG",
+        duration: 181,
+        bitrate: 192000,
+      });
+      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.2]);
+      const uploadStub = sinon.stub(S3Utils, "uploadToS3")
+        .onFirstCall().resolves("https://s3.amazonaws.com/tracks/audio/test.mp3");
+      sinon.stub(trackRepository, "createTrack").callsFake(async (payload) => payload);
+
+      const result = await trackService.createTrackFromUpload(
+        MOCK_USER_ID,
+        {
+          ...validTrackData,
+          artwork_url: "https://s3.amazonaws.com/albums/artwork/shared.jpg",
+        },
+        mockAudioFile,
+        null,
+      );
+
+      expect(result.artwork_url).to.equal(
+        "https://s3.amazonaws.com/albums/artwork/shared.jpg",
+      );
+      expect(uploadStub.calledOnce).to.equal(true);
+    });
+  });
+
   /* -------------------------------------------------------------------------- */
   /* GET TRACK BY ID                                                            */
   /* -------------------------------------------------------------------------- */

@@ -23,7 +23,7 @@ const startConversationSchema = Joi.object({
 const sendMessageSchema = Joi.object({
   text: Joi.string().max(2000).optional(),
   shared_entity: Joi.object({
-    type: Joi.string().valid("Track", "Playlist").required(),
+    type: Joi.string().valid("Track", "Playlist", "Album").required(),
     id: Joi.string()
       .pattern(/^[0-9a-fA-F]{24}$/)
       .required()

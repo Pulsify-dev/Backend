@@ -1,5 +1,6 @@
 import Track from "../models/track.model.js";
 import Repost from "../models/repost.model.js";
+import AlbumRepost from "../models/album-repost.model.js";
 import Follow from "../models/follow.model.js";
 
 /*
@@ -10,6 +11,8 @@ const TRACK_SELECT =
     "_id title permalink genre tags artwork_url duration play_count like_count repost_count comment_count visibility status playback_state preview_start_seconds artist_id createdAt";
 
 const ARTIST_SELECT = "username display_name avatar_url is_verified";
+const ALBUM_SELECT =
+    "_id title permalink genre type artwork_url track_count like_count repost_count visibility is_hidden artist_id createdAt";
 
 /**
  * Shape a Track document into a feed item.
@@ -41,6 +44,7 @@ const toTrackFeedItem = (track) => ({
  */
 const toRepostFeedItem = (repost) => ({
     type: "repost",
+    entity_type: "track",
     created_at: repost.createdAt,
     track: {
         _id: repost.track_id._id,
@@ -61,11 +65,34 @@ const toRepostFeedItem = (repost) => ({
     reposted_by: repost.user_id,        // who reposted it
 });
 
+const toAlbumRepostFeedItem = (repost) => ({
+    type: "repost",
+    entity_type: "album",
+    created_at: repost.createdAt,
+    album: {
+        _id: repost.album_id._id,
+        title: repost.album_id.title,
+        permalink: repost.album_id.permalink,
+        genre: repost.album_id.genre,
+        type: repost.album_id.type,
+        artwork_url: repost.album_id.artwork_url,
+        track_count: repost.album_id.track_count,
+        like_count: repost.album_id.like_count,
+        repost_count: repost.album_id.repost_count,
+    },
+    artist: repost.album_id.artist_id,
+    reposted_by: repost.user_id,
+});
+
 //visbility filter
 const VISIBLE_TRACK_FILTER = {
     visibility: "public",
     is_hidden: false,
     status: "finished",
+};
+const VISIBLE_ALBUM_FILTER = {
+    visibility: "public",
+    is_hidden: false,
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -91,7 +118,7 @@ const getPersonalFeed = async (userId, page = 1, limit = 20) => {
 
     const fetchCap = (page - 1) * limit + limit; //items needed from each source
 
-    const [tracks, reposts] = await Promise.all([
+    const [tracks, reposts, albumReposts] = await Promise.all([
         //tracks uploaded by followed artists 
         Track.find({
             artist_id: { $in: followingIds },
@@ -116,6 +143,17 @@ const getPersonalFeed = async (userId, page = 1, limit = 20) => {
             .sort({ createdAt: -1 })
             .limit(fetchCap)
             .lean(),
+        AlbumRepost.find({ user_id: { $in: followingIds } })
+            .populate("user_id", ARTIST_SELECT)
+            .populate({
+                path: "album_id",
+                match: VISIBLE_ALBUM_FILTER,
+                select: ALBUM_SELECT,
+                populate: { path: "artist_id", select: ARTIST_SELECT },
+            })
+            .sort({ createdAt: -1 })
+            .limit(fetchCap)
+            .lean(),
     ]);
 
     // Build unified item list
@@ -124,8 +162,11 @@ const getPersonalFeed = async (userId, page = 1, limit = 20) => {
     const repostItems = reposts
         .filter((r) => r.track_id !== null)
         .map(toRepostFeedItem);
+    const albumRepostItems = albumReposts
+        .filter((r) => r.album_id !== null)
+        .map(toAlbumRepostFeedItem);
     // Merge + chronological sort
-    const allItems = [...trackItems, ...repostItems].sort(
+    const allItems = [...trackItems, ...repostItems, ...albumRepostItems].sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
 
@@ -146,7 +187,7 @@ const getPersonalFeed = async (userId, page = 1, limit = 20) => {
 const getUserProfileFeed = async (userId, page = 1, limit = 20) => {
     const fetchCap = (page - 1) * limit + limit;
 
-    const [tracks, reposts] = await Promise.all([
+    const [tracks, reposts, albumReposts] = await Promise.all([
         Track.find({
             artist_id: userId,
             ...VISIBLE_TRACK_FILTER,
@@ -168,13 +209,27 @@ const getUserProfileFeed = async (userId, page = 1, limit = 20) => {
             .sort({ createdAt: -1 })
             .limit(fetchCap)
             .lean(),
+        AlbumRepost.find({ user_id: userId })
+            .populate("user_id", ARTIST_SELECT)
+            .populate({
+                path: "album_id",
+                match: VISIBLE_ALBUM_FILTER,
+                select: ALBUM_SELECT,
+                populate: { path: "artist_id", select: ARTIST_SELECT },
+            })
+            .sort({ createdAt: -1 })
+            .limit(fetchCap)
+            .lean(),
     ]);
     const trackItems = tracks.map(toTrackFeedItem);
     const repostItems = reposts
         .filter((r) => r.track_id !== null)
         .map(toRepostFeedItem);
+    const albumRepostItems = albumReposts
+        .filter((r) => r.album_id !== null)
+        .map(toAlbumRepostFeedItem);
 
-    const allItems = [...trackItems, ...repostItems].sort(
+    const allItems = [...trackItems, ...repostItems, ...albumRepostItems].sort(
         (a, b) => new Date(b.created_at) - new Date(a.created_at)
     );
 

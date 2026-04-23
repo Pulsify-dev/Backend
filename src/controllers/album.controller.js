@@ -3,8 +3,13 @@ import albumService from "../services/album.service.js";
 // POST /albums
 const createAlbum = async (req, res, next) => {
   try {
-    const coverFile = req.file; // Provided by multer
-    const album = await albumService.createAlbum(req.user.user_id, req.body, coverFile);
+    const album = await albumService.createAlbum(
+      req.user.user_id,
+      req.body,
+      req.files?.artwork?.[0] || null,
+      req.files?.audio_files || [],
+      req.files?.track_artwork_files || [],
+    );
     res.status(201).json(album);
   } catch (err) {
     next(err);

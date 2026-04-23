@@ -5,6 +5,7 @@ import conversationRepository from "../repositories/conversation.repository.js";
 import messageRepository from "../repositories/message.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import blockRepository from "../repositories/block.repository.js";
+import albumRepository from "../repositories/album.repository.js";
 import { BadRequestError, ForbiddenError, NotFoundError } from "../utils/errors.utils.js";
 
 describe("MessagingService Unit Tests", () => {
@@ -144,6 +145,90 @@ describe("MessagingService Unit Tests", () => {
 			expect(result.message).to.equal(mockMessage);
 			expect(result.recipientId).to.equal(RECIPIENT_ID);
 			expect(result.conversationId).to.equal(CONVO_ID);
+		});
+
+		it("should successfully send message with a public album share", async () => {
+			sinon.stub(conversationRepository, "getConvoIfParticipant").resolves({
+				_id: CONVO_ID,
+				participants: [USER_ID, RECIPIENT_ID],
+			});
+			sinon.stub(blockRepository, "isBlocked").resolves(false);
+			sinon.stub(albumRepository, "findById").resolves({
+				_id: "album1",
+				artist_id: RECIPIENT_ID,
+				visibility: "public",
+				is_hidden: false,
+			});
+			const createStub = sinon.stub(messageRepository, "createMessage").resolves({ _id: "msg2" });
+			sinon.stub(conversationRepository, "updateById").resolves({ last_message_at: new Date() });
+
+			const result = await messagingService.sendMessage({
+				senderId: USER_ID,
+				conversationId: CONVO_ID,
+				sharedEntity: {
+					type: "Album",
+					id: "507f1f77bcf86cd799439044",
+				},
+			});
+
+			expect(result.message._id).to.equal("msg2");
+			expect(createStub.firstCall.args[0].shared_entity.type).to.equal("Album");
+		});
+
+		it("should allow the album owner to share a private album", async () => {
+			sinon.stub(conversationRepository, "getConvoIfParticipant").resolves({
+				_id: CONVO_ID,
+				participants: [USER_ID, RECIPIENT_ID],
+			});
+			sinon.stub(blockRepository, "isBlocked").resolves(false);
+			sinon.stub(albumRepository, "findById").resolves({
+				_id: "album1",
+				artist_id: USER_ID,
+				visibility: "private",
+				is_hidden: false,
+			});
+			const createStub = sinon.stub(messageRepository, "createMessage").resolves({ _id: "msg3" });
+			sinon.stub(conversationRepository, "updateById").resolves({ last_message_at: new Date() });
+
+			await messagingService.sendMessage({
+				senderId: USER_ID,
+				conversationId: CONVO_ID,
+				sharedEntity: {
+					type: "Album",
+					id: "507f1f77bcf86cd799439055",
+				},
+			});
+
+			expect(createStub.calledOnce).to.be.true;
+		});
+
+		it("should reject a private album share for a non-owner", async () => {
+			sinon.stub(conversationRepository, "getConvoIfParticipant").resolves({
+				_id: CONVO_ID,
+				participants: [USER_ID, RECIPIENT_ID],
+			});
+			sinon.stub(blockRepository, "isBlocked").resolves(false);
+			sinon.stub(albumRepository, "findById").resolves({
+				_id: "album1",
+				artist_id: RECIPIENT_ID,
+				visibility: "private",
+				is_hidden: false,
+			});
+
+			try {
+				await messagingService.sendMessage({
+					senderId: USER_ID,
+					conversationId: CONVO_ID,
+					sharedEntity: {
+						type: "Album",
+						id: "507f1f77bcf86cd799439066",
+					},
+				});
+				expect.fail("Should have thrown ForbiddenError");
+			} catch (err) {
+				expect(err).to.be.instanceOf(ForbiddenError);
+				expect(err.message).to.equal("You do not have access to share this album.");
+			}
 		});
 	});
 

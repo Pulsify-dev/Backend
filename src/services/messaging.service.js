@@ -2,6 +2,7 @@ import conversationRepository from "../repositories/conversation.repository.js";
 import messageRepository from "../repositories/message.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import blockRepository from "../repositories/block.repository.js";
+import albumRepository from "../repositories/album.repository.js";
 import {
 	BadRequestError,
 	ForbiddenError,
@@ -11,6 +12,20 @@ import {
 const buildParticipantPairId = (userAId, userBId) => {
 	const participantIds = [userAId.toString(), userBId.toString()].sort();
 	return participantIds.join("-");
+};
+
+const assertCanShareAlbum = async (senderId, albumId) => {
+	const album = await albumRepository.findById(albumId);
+	if (!album || album.is_hidden) {
+		throw new NotFoundError("Album not found");
+	}
+
+	const isOwner = album.artist_id?.toString() === senderId.toString();
+	if (album.visibility === "private" && !isOwner) {
+		throw new ForbiddenError("You do not have access to share this album.");
+	}
+
+	return album;
 };
 
 const getMyConversations = async (userId, page = 1, limit = 20) => {
@@ -140,6 +155,10 @@ const sendMessage = async ({
 	}
 
 	if (hasSharedEntity) {
+		if (sharedEntity.type === "Album") {
+			await assertCanShareAlbum(senderId, sharedEntity.id);
+		}
+
 		messagePayload.shared_entity = {
 			type: sharedEntity.type,
 			id: sharedEntity.id,

@@ -10,7 +10,7 @@ const reportSchema = mongoose.Schema(
     },
     entity_type: {
       type: String,
-      enum: ["Track", "User", "Comment"],
+      enum: ["Track", "Album", "User", "Comment"],
       required: [true, "Entity type is required"],
       index: true,
     },

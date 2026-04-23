@@ -12,7 +12,7 @@ describe("SearchService", () => {
   describe("globalSearch", () => {
     it("should return empty arrays if no query provided", async () => {
       const result = await searchService.globalSearch("");
-      expect(result).to.deep.equal({ tracks: [], users: [], playlists: [] });
+      expect(result).to.deep.equal({ tracks: [], users: [], playlists: [], albums: [] });
     });
 
     it("should include lyrics in attributesToSearchOn if query has 4 or more words", async () => {
@@ -20,7 +20,8 @@ describe("SearchService", () => {
         results: [
           { indexUid: "tracks", hits: [{ id: "1", title: "Test Track" }] },
           { indexUid: "users", hits: [] },
-          { indexUid: "playlists", hits: [] }
+          { indexUid: "playlists", hits: [] },
+          { indexUid: "albums", hits: [] }
         ]
       });
 
@@ -37,7 +38,8 @@ describe("SearchService", () => {
         results: [
           { indexUid: "tracks", hits: [{ id: "1", title: "Test Track" }] },
           { indexUid: "users", hits: [{ id: "2", username: "testuser" }] },
-          { indexUid: "playlists", hits: [] }
+          { indexUid: "playlists", hits: [] },
+          { indexUid: "albums", hits: [{ id: "3", title: "Test Album" }] }
         ]
       });
 
@@ -51,6 +53,7 @@ describe("SearchService", () => {
       expect(result.tracks).to.deep.equal([{ id: "1", title: "Test Track" }]);
       expect(result.users).to.deep.equal([{ id: "2", username: "testuser" }]);
       expect(result.playlists).to.deep.equal([]);
+      expect(result.albums).to.deep.equal([{ id: "3", title: "Test Album" }]);
     });
 
     it("should throw error if multiSearch fails", async () => {
@@ -69,7 +72,7 @@ describe("SearchService", () => {
   describe("searchSuggestions", () => {
     it("should return empty arrays if no query provided", async () => {
       const result = await searchService.searchSuggestions("");
-      expect(result).to.deep.equal({ tracks: [], users: [], playlists: [] });
+      expect(result).to.deep.equal({ tracks: [], users: [], playlists: [], albums: [] });
     });
 
     it("should perform searchSuggestions and map results correctly", async () => {
@@ -77,7 +80,8 @@ describe("SearchService", () => {
         results: [
           { indexUid: "tracks", hits: [{ id: "1", title: "Test Track" }] },
           { indexUid: "users", hits: [] },
-          { indexUid: "playlists", hits: [] }
+          { indexUid: "playlists", hits: [] },
+          { indexUid: "albums", hits: [{ id: "4", title: "Test Album", artist_name: "Artist" }] }
         ]
       });
 
@@ -91,6 +95,26 @@ describe("SearchService", () => {
       expect(trackQuery.attributesToRetrieve).to.include("title");
       
       expect(result.tracks).to.deep.equal([{ id: "1", title: "Test Track" }]);
+      expect(result.albums).to.deep.equal([{ id: "4", title: "Test Album", artist_name: "Artist" }]);
+    });
+
+    it("should request album suggestion fields", async () => {
+      const mockMultiSearch = sinon.stub(meilisearchClient, "multiSearch").resolves({
+        results: [
+          { indexUid: "tracks", hits: [] },
+          { indexUid: "users", hits: [] },
+          { indexUid: "playlists", hits: [] },
+          { indexUid: "albums", hits: [] }
+        ]
+      });
+
+      await searchService.searchSuggestions("album", 5);
+
+      const queries = mockMultiSearch.firstCall.args[0].queries;
+      const albumQuery = queries.find((q) => q.indexUid === "albums");
+      expect(albumQuery.attributesToRetrieve).to.deep.equal([
+        "id", "title", "artist_name", "artist_username", "permalink", "artwork_url", "type",
+      ]);
     });
 
     it("should throw error if multiSearch fails", async () => {

@@ -2,7 +2,7 @@ import { Router } from "express";
 import albumController from "../controllers/album.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import paginationMiddleware from "../middleware/pagination.middleware.js";
-import { albumArtworkUpload } from "../middleware/upload.middleware.js";
+import { albumArtworkUpload, albumCreateUpload } from "../middleware/upload.middleware.js";
 
 const router = Router();
 
@@ -14,7 +14,7 @@ const router = Router();
 router.post(
   "/albums",
   authMiddleware.requireAuth,
-  albumArtworkUpload,
+  albumCreateUpload,
   albumController.createAlbum
 );
 

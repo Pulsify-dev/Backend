@@ -10,7 +10,7 @@ class SearchService {
    */
   async globalSearch(query, limit = 10, offset = 0) {
     if (!query) {
-      return { tracks: [], users: [], playlists: [] };
+      return { tracks: [], users: [], playlists: [], albums: [] };
     }
 
     const wordCount = query.trim().split(/\s+/).length;
@@ -34,6 +34,13 @@ class SearchService {
           { indexUid: "tracks", q: query, limit, offset, attributesToSearchOn: trackSearchAttributes },
           { indexUid: "users", q: query, limit, offset },
           { indexUid: "playlists", q: query, limit, offset },
+          {
+            indexUid: "albums",
+            q: query,
+            limit,
+            offset,
+            filter: ["visibility = public", "is_hidden = false"],
+          },
         ],
       });
 
@@ -41,6 +48,7 @@ class SearchService {
         tracks: results.results.find((r) => r.indexUid === "tracks")?.hits || [],
         users: results.results.find((r) => r.indexUid === "users")?.hits || [],
         playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [],
+        albums: results.results.find((r) => r.indexUid === "albums")?.hits || [],
       };
     } catch (error) {
       throw new ServerError(`Global search failed: ${error.message}`);
@@ -56,7 +64,7 @@ class SearchService {
    */
   async searchSuggestions(query, limit = 5) {
     if (!query || !query.trim()) {
-      return { tracks: [], users: [], playlists: [] };
+      return { tracks: [], users: [], playlists: [], albums: [] };
     }
 
     const wordCount = query.trim().split(/\s+/).length;
@@ -101,6 +109,15 @@ class SearchService {
               "id", "title", "creator_name", "creator_username", "permalink",
             ],
           },
+          {
+            indexUid: "albums",
+            q: query,
+            limit,
+            filter: ["visibility = public", "is_hidden = false"],
+            attributesToRetrieve: [
+              "id", "title", "artist_name", "artist_username", "permalink", "artwork_url", "type",
+            ],
+          },
         ],
       });
 
@@ -108,6 +125,7 @@ class SearchService {
         tracks: results.results.find((r) => r.indexUid === "tracks")?.hits || [],
         users: results.results.find((r) => r.indexUid === "users")?.hits || [],
         playlists: results.results.find((r) => r.indexUid === "playlists")?.hits || [],
+        albums: results.results.find((r) => r.indexUid === "albums")?.hits || [],
       };
     } catch (error) {
       throw new ServerError(`Search suggestions failed: ${error.message}`);
