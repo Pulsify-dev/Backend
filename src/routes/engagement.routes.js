@@ -33,6 +33,34 @@ router.get(
   engagementController.checkUserLikedTrack
 );
 
+//Like an album (requires auth)
+router.post(
+  "/albums/:album_id/like",
+  authMiddleware.requireAuth,
+  engagementController.likeAlbum
+);
+
+//Unlike an album (requires auth)
+router.delete(
+  "/albums/:album_id/like",
+  authMiddleware.requireAuth,
+  engagementController.unlikeAlbum
+);
+
+//Get list of users who liked an album
+router.get(
+  "/albums/:album_id/likes",
+  paginationMiddleware.paginate,
+  engagementController.getLikesByAlbum
+);
+
+//Check if current user liked album (requires auth)
+router.get(
+  "/albums/:album_id/liked",
+  authMiddleware.requireAuth,
+  engagementController.checkUserLikedAlbum
+);
+
 
 //Repost a track (requires auth)
 router.post(
@@ -60,6 +88,34 @@ router.get(
   "/tracks/:track_id/reposted",
   authMiddleware.requireAuth,
   engagementController.checkUserRepostedTrack
+);
+
+//Repost an album (requires auth)
+router.post(
+  "/albums/:album_id/repost",
+  authMiddleware.requireAuth,
+  engagementController.repostAlbum
+);
+
+//Unrepost an album (requires auth)
+router.delete(
+  "/albums/:album_id/repost",
+  authMiddleware.requireAuth,
+  engagementController.unrepostAlbum
+);
+
+//Get list of users who reposted an album
+router.get(
+  "/albums/:album_id/reposts",
+  paginationMiddleware.paginate,
+  engagementController.getRepostsByAlbum
+);
+
+//Check if current user reposted album (requires auth)
+router.get(
+  "/albums/:album_id/reposted",
+  authMiddleware.requireAuth,
+  engagementController.checkUserRepostedAlbum
 );
 
 
