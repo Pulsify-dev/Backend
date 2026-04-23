@@ -52,7 +52,31 @@ const downgradeSubscriptionToFree = async (userId) => {
 	}
 
 	await syncUserTier(userId, FREE_PLAN);
+
+	try {
+		const freeLimits = await subscriptionRepository.findPlanLimitByPlan(FREE_PLAN);
+		if (freeLimits) {
+			if (Number.isInteger(freeLimits.upload_track_limit)) {
+				await trackRepository.hideOldestTracks(userId, freeLimits.upload_track_limit);
+			}
+			if (Number.isInteger(freeLimits.album_limit)) {
+				await albumRepository.hideOldestAlbums(userId, freeLimits.album_limit);
+			}
+		}
+	} catch (error) {
+		console.warn(`[Downgrade] Failed to hide oldest content for user ${userId}:`, error.message);
+	}
+
 	return updatedSubscription;
+};
+
+const unhideOldestContent = async (userId) => {
+	try {
+		await trackRepository.unhideAllTracks(userId);
+		await albumRepository.unhideAllAlbums(userId);
+	} catch (error) {
+		console.warn(`[Upgrade] Failed to unhide content for user ${userId}:`, error.message);
+	}
 };
 
 const getEffectivePlan = (subscription) => {
@@ -193,6 +217,7 @@ const activatePlanForUser = async ({
 	);
 
 	await syncUserTier(userId, normalizedPlan);
+	await unhideOldestContent(userId);
 
 	return updatedSubscription;
 };
@@ -314,6 +339,8 @@ const handleWebhook = async (eventPayload = {}) => {
 		}
 
 		await subscriptionRepository.updateSubscriptionByUserId(userId, updatePatch);
+		await syncUserTier(userId, "Artist Pro"); // Since payment succeeded, they are Pro
+		await unhideOldestContent(userId);
 
 		return { processed: true, event: eventType };
 	}

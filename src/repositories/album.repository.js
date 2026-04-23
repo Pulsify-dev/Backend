@@ -91,6 +91,32 @@ class AlbumRepository {
   async countByArtist(artistId) {
     return await Album.countDocuments({ artist_id: artistId });
   }
+
+  async hideOldestAlbums(artistId, keepCount) {
+    const albumsToHide = await Album.find({ artist_id: artistId, is_hidden: false })
+      .sort({ createdAt: -1 })
+      .skip(keepCount)
+      .select("_id")
+      .lean();
+
+    if (albumsToHide.length === 0) return 0;
+
+    const albumIds = albumsToHide.map((a) => a._id);
+    const result = await Album.updateMany(
+      { _id: { $in: albumIds } },
+      { $set: { is_hidden: true } }
+    );
+
+    return result.modifiedCount;
+  }
+
+  async unhideAllAlbums(artistId) {
+    const result = await Album.updateMany(
+      { artist_id: artistId, is_hidden: true },
+      { $set: { is_hidden: false } }
+    );
+    return result.modifiedCount;
+  }
 }
 
 export default new AlbumRepository();

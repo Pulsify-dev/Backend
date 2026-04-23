@@ -237,14 +237,22 @@ const syncUser = async (doc) => {
     is_verified: doc.is_verified,
     is_suspended: doc.is_suspended,
   };
-  await searchService.indexDocument("users", userDoc);
+  try {
+    await searchService.indexDocument("users", userDoc);
+  } catch (error) {
+    console.warn("[Meilisearch] Failed to index user document:", error.message);
+  }
 };
 
 userSchema.post("save", syncUser);
 userSchema.post("findOneAndUpdate", syncUser);
 userSchema.post("findOneAndDelete", async (doc) => {
   if (doc) {
-    await searchService.removeDocument("users", doc._id.toString());
+    try {
+      await searchService.removeDocument("users", doc._id.toString());
+    } catch (error) {
+      console.warn("[Meilisearch] Failed to remove user document:", error.message);
+    }
   }
 });
 

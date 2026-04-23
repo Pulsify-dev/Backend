@@ -44,6 +44,14 @@ const PRO_PLAN_LIMIT = {
 };
 
 describe("SubscriptionService Unit Tests", () => {
+  beforeEach(() => {
+    sinon.stub(trackRepository, "hideOldestTracks").resolves(0);
+    sinon.stub(albumRepository, "hideOldestAlbums").resolves(0);
+    sinon.stub(trackRepository, "unhideAllTracks").resolves(0);
+    sinon.stub(albumRepository, "unhideAllAlbums").resolves(0);
+    sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(FREE_PLAN_LIMIT);
+  });
+
   afterEach(() => {
     sinon.restore();
   });
@@ -101,6 +109,7 @@ describe("SubscriptionService Unit Tests", () => {
   describe("getSubscriptionSnapshotForUser()", () => {
     it("should return snapshot with subscription, effective plan, and plan limits", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(ACTIVE_PRO_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(PRO_PLAN_LIMIT);
 
       const result = await subscriptionService.getSubscriptionSnapshotForUser(USER_ID);
@@ -117,6 +126,7 @@ describe("SubscriptionService Unit Tests", () => {
   describe("getPlanLimitForUser()", () => {
     it("should fall back to Free plan limits when current plan limit not found", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(ACTIVE_PRO_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       const findPlanStub = sinon.stub(subscriptionRepository, "findPlanLimitByPlan");
       findPlanStub.withArgs("Artist Pro").resolves(null);
       findPlanStub.withArgs("Free").resolves(FREE_PLAN_LIMIT);
@@ -128,6 +138,7 @@ describe("SubscriptionService Unit Tests", () => {
 
     it("should throw NotFoundError when no plan limits configured at all", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(FREE_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(null);
 
       try {
@@ -146,6 +157,7 @@ describe("SubscriptionService Unit Tests", () => {
   describe("getUsageForUser()", () => {
     it("should return usage and remaining quotas", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(FREE_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(FREE_PLAN_LIMIT);
       sinon.stub(trackRepository, "countByArtistId").resolves(2);
       sinon.stub(albumRepository, "countByArtist").resolves(1);
@@ -161,6 +173,7 @@ describe("SubscriptionService Unit Tests", () => {
 
     it("should return null remaining when limit is not an integer (unlimited)", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(ACTIVE_PRO_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(PRO_PLAN_LIMIT);
       sinon.stub(trackRepository, "countByArtistId").resolves(50);
       sinon.stub(albumRepository, "countByArtist").resolves(10);
@@ -352,6 +365,7 @@ describe("SubscriptionService Unit Tests", () => {
     // ── invoice.payment_succeeded ──
     it("should update status to Active on invoice.payment_succeeded with period dates", async () => {
       const updateStub = sinon.stub(subscriptionRepository, "updateSubscriptionByUserId").resolves({});
+      sinon.stub(userRepository, "updateById").resolves({});
 
       const response = await subscriptionService.handleWebhook({
         type: "invoice.payment_succeeded",
@@ -373,6 +387,7 @@ describe("SubscriptionService Unit Tests", () => {
 
     it("should update status to Active without period dates", async () => {
       const updateStub = sinon.stub(subscriptionRepository, "updateSubscriptionByUserId").resolves({});
+      sinon.stub(userRepository, "updateById").resolves({});
 
       const response = await subscriptionService.handleWebhook({
         type: "invoice.payment_succeeded",
@@ -615,6 +630,7 @@ describe("SubscriptionService Unit Tests", () => {
   describe("assertCanOfflineListen()", () => {
     it("should throw ForbiddenError when plan does not support offline listening", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(FREE_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(FREE_PLAN_LIMIT);
 
       try {
@@ -628,6 +644,7 @@ describe("SubscriptionService Unit Tests", () => {
 
     it("should return entitlement when plan supports offline listening", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(ACTIVE_PRO_SUB);
+      subscriptionRepository.findPlanLimitByPlan.restore();
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(PRO_PLAN_LIMIT);
 
       const result = await subscriptionService.assertCanOfflineListen(USER_ID);
