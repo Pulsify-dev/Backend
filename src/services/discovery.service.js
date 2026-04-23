@@ -2,6 +2,7 @@ import feedRepository from "../repositories/feed.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import trackRepository from "../repositories/track.repository.js";
 import playlistRepository from "../repositories/playlist.repository.js";
+import albumRepository from "../repositories/album.repository.js";
 import { NotFoundError, BadRequestError } from "../utils/errors.utils.js";
 import cache from "../utils/cache.utils.js";
 
@@ -96,17 +97,30 @@ const resolveUrl = async (urlStr) => {
 
     // Track URL (e.g. /the_weeknd/blinding-lights)
     if (parts.length === 2) {
-        const trackPermalink = parts[1];
-        const track = await trackRepository.findByPermalinkAndArtist(trackPermalink, user._id).populate("artist_id", "username display_name avatar_url is_verified");
-        if (!track) {
-            throw new NotFoundError("Resource not found. Track does not exist.");
+        const resourcePermalink = parts[1];
+        const track = await trackRepository
+            .findByPermalinkAndArtist(resourcePermalink, user._id)
+            .populate("artist_id", "username display_name avatar_url is_verified");
+
+        if (track) {
+            // Keep track precedence for backward compatibility with existing public URLs.
+            // Only return if it's a valid, public, finished track.
+            if (!track.is_hidden && track.status === "finished") {
+                return { type: "track", data: track };
+            }
+            // Otherwise, fall through to check for an album with the same permalink.
         }
-        // Protect private tracks
-        if (track.is_hidden || track.status !== "finished") {
-             throw new NotFoundError("Resource not found. Track unavailable.");
+
+        const album = await albumRepository.findByPermalink(user._id, resourcePermalink);
+        if (!album) {
+            throw new NotFoundError("Resource not found. Track or album does not exist.");
         }
-        
-        return { type: "track", data: track };
+
+        if (album.is_hidden || album.visibility === "private") {
+            throw new NotFoundError("Resource not found. Album unavailable.");
+        }
+
+        return { type: "album", data: album };
     }
 
     throw new NotFoundError("Resource not found or unsupported URL format.");

@@ -2,8 +2,10 @@ import likeRepository from "../repositories/like.repository.js";
 import repostRepository from "../repositories/repost.repository.js";
 import commentRepository from "../repositories/comment.repository.js";
 import trackRepository from "../repositories/track.repository.js";
+import albumRepository from "../repositories/album.repository.js";
 import playlistRepository from "../repositories/playlist.repository.js";
 import Track from "../models/track.model.js";
+import Album from "../models/album.model.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -94,6 +96,65 @@ const checkUserLikedTrack = async (userId, trackId) => {
   return await likeRepository.checkUserLikedTrack(userId, trackId);
 };
 
+const likeAlbum = async (userId, albumId) => {
+  const album = await albumRepository.findById(albumId);
+  if (!album) throw new NotFoundError("Album not found.");
+
+  const existingLike = await likeRepository.findAlbumLike(userId, albumId);
+  if (existingLike) {
+    throw new ConflictError("You have already liked this album.");
+  }
+
+  await likeRepository.createAlbumLike(userId, albumId);
+  await Album.findByIdAndUpdate(albumId, { $inc: { like_count: 1 } });
+
+  return { message: "Album liked successfully." };
+};
+
+const unlikeAlbum = async (userId, albumId) => {
+  const album = await albumRepository.findById(albumId);
+  if (!album) throw new NotFoundError("Album not found.");
+
+  const existingLike = await likeRepository.findAlbumLike(userId, albumId);
+  if (!existingLike) {
+    throw new BadRequestError("You have not liked this album.");
+  }
+
+  await likeRepository.deleteAlbumLike(userId, albumId);
+  await Album.findByIdAndUpdate(albumId, { $inc: { like_count: -1 } });
+
+  return { message: "Album unliked successfully." };
+};
+
+const getLikesByAlbum = async (albumId, page = 1, limit = 20) => {
+  const album = await albumRepository.findById(albumId);
+  if (!album) throw new NotFoundError("Album not found.");
+
+  const result = await likeRepository.getLikesByAlbumId(albumId, page, limit);
+
+  return {
+    album_id: albumId,
+    likes_count: album.like_count,
+    likers: result.likes.map((like) => ({
+      user_id: like.user_id._id,
+      username: like.user_id.username,
+      display_name: like.user_id.display_name,
+      avatar_url: like.user_id.avatar_url,
+      liked_at: like.createdAt,
+    })),
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pages: Math.ceil(result.total / result.limit),
+    },
+  };
+};
+
+const checkUserLikedAlbum = async (userId, albumId) => {
+  return await likeRepository.checkUserLikedAlbum(userId, albumId);
+};
+
 const repostTrack = async (userId, trackId) => {
 
   const track = await trackRepository.findById(trackId);
@@ -151,6 +212,65 @@ const getRepostsByTrack = async (trackId, page = 1, limit = 20) => {
 
 const checkUserRepostedTrack = async (userId, trackId) => {
   return await repostRepository.checkUserRepostedTrack(userId, trackId);
+};
+
+const repostAlbum = async (userId, albumId) => {
+  const album = await albumRepository.findById(albumId);
+  if (!album) throw new NotFoundError("Album not found.");
+
+  const existingRepost = await repostRepository.findAlbumRepost(userId, albumId);
+  if (existingRepost) {
+    throw new ConflictError("You have already reposted this album.");
+  }
+
+  await repostRepository.createAlbumRepost(userId, albumId);
+  await Album.findByIdAndUpdate(albumId, { $inc: { repost_count: 1 } });
+
+  return { message: "Album reposted successfully." };
+};
+
+const unrepostAlbum = async (userId, albumId) => {
+  const album = await albumRepository.findById(albumId);
+  if (!album) throw new NotFoundError("Album not found.");
+
+  const existingRepost = await repostRepository.findAlbumRepost(userId, albumId);
+  if (!existingRepost) {
+    throw new BadRequestError("You have not reposted this album.");
+  }
+
+  await repostRepository.deleteAlbumRepost(userId, albumId);
+  await Album.findByIdAndUpdate(albumId, { $inc: { repost_count: -1 } });
+
+  return { message: "Album unreposted successfully." };
+};
+
+const getRepostsByAlbum = async (albumId, page = 1, limit = 20) => {
+  const album = await albumRepository.findById(albumId);
+  if (!album) throw new NotFoundError("Album not found.");
+
+  const result = await repostRepository.getRepostsByAlbumId(albumId, page, limit);
+
+  return {
+    album_id: albumId,
+    reposts_count: album.repost_count,
+    reposters: result.reposts.map((repost) => ({
+      user_id: repost.user_id._id,
+      username: repost.user_id.username,
+      display_name: repost.user_id.display_name,
+      avatar_url: repost.user_id.avatar_url,
+      reposted_at: repost.createdAt,
+    })),
+    pagination: {
+      page: result.page,
+      limit: result.limit,
+      total: result.total,
+      pages: Math.ceil(result.total / result.limit),
+    },
+  };
+};
+
+const checkUserRepostedAlbum = async (userId, albumId) => {
+  return await repostRepository.checkUserRepostedAlbum(userId, albumId);
 };
 
 
@@ -313,10 +433,18 @@ export default {
   unlikeTrack,
   getLikesByTrack,
   checkUserLikedTrack,
+  likeAlbum,
+  unlikeAlbum,
+  getLikesByAlbum,
+  checkUserLikedAlbum,
   repostTrack,
   unrepostTrack,
   getRepostsByTrack,
   checkUserRepostedTrack,
+  repostAlbum,
+  unrepostAlbum,
+  getRepostsByAlbum,
+  checkUserRepostedAlbum,
   createComment,
   updateComment,
   deleteComment,
