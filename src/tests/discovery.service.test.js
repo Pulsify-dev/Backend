@@ -5,6 +5,7 @@ import feedRepository from "../repositories/feed.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import trackRepository from "../repositories/track.repository.js";
 import playlistRepository from "../repositories/playlist.repository.js";
+import albumRepository from "../repositories/album.repository.js";
 import cache from "../utils/cache.utils.js";
 import { NotFoundError, BadRequestError } from "../utils/errors.utils.js";
 
@@ -112,6 +113,21 @@ describe("Discovery Service", () => {
       expect(result.data).to.deep.equal(mockTrack);
     });
 
+    it("should resolve an album URL when no track matches", async () => {
+      const mockUser = { _id: "user123", username: "the_weeknd" };
+      const mockAlbum = { _id: "album123", title: "After Hours", is_hidden: false, visibility: "public" };
+
+      sinon.stub(userRepository, "findByUsername").resolves(mockUser);
+      sinon.stub(trackRepository, "findByPermalinkAndArtist").returns({
+        populate: sinon.stub().resolves(null)
+      });
+      sinon.stub(albumRepository, "findByPermalink").resolves(mockAlbum);
+
+      const result = await discoveryService.resolveUrl("/the_weeknd/after-hours");
+      expect(result.type).to.equal("album");
+      expect(result.data).to.deep.equal(mockAlbum);
+    });
+
     it("should throw BadRequestError for missing URL", async () => {
       try {
         await discoveryService.resolveUrl("");
@@ -132,7 +148,7 @@ describe("Discovery Service", () => {
       }
     });
 
-    it("should throw NotFoundError if track is hidden or unavailable", async () => {
+    it("should throw NotFoundError if track is hidden and no album fallback exists", async () => {
       const mockUser = { _id: "user123", username: "the_weeknd" };
       const mockTrack = { _id: "track123", title: "Secret", is_hidden: true, status: "finished" };
       
@@ -140,9 +156,28 @@ describe("Discovery Service", () => {
       sinon.stub(trackRepository, "findByPermalinkAndArtist").returns({
         populate: sinon.stub().resolves(mockTrack)
       });
+      sinon.stub(albumRepository, "findByPermalink").resolves(null);
 
       try {
         await discoveryService.resolveUrl("/the_weeknd/secret");
+        expect.fail("Should have thrown error");
+      } catch (error) {
+        expect(error).to.be.instanceOf(NotFoundError);
+      }
+    });
+
+    it("should throw NotFoundError if resolved album is private or hidden", async () => {
+      const mockUser = { _id: "user123", username: "the_weeknd" };
+      const mockAlbum = { _id: "album123", title: "Vault", is_hidden: true, visibility: "public" };
+
+      sinon.stub(userRepository, "findByUsername").resolves(mockUser);
+      sinon.stub(trackRepository, "findByPermalinkAndArtist").returns({
+        populate: sinon.stub().resolves(null)
+      });
+      sinon.stub(albumRepository, "findByPermalink").resolves(mockAlbum);
+
+      try {
+        await discoveryService.resolveUrl("/the_weeknd/vault");
         expect.fail("Should have thrown error");
       } catch (error) {
         expect(error).to.be.instanceOf(NotFoundError);
