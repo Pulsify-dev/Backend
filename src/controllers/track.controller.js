@@ -116,6 +116,16 @@ const updateArtwork = async (req, res, next) => {
   }
 };
 
+// GET /tracks/:id/lyrics - Get lyrics for a track
+const getLyrics = async (req, res, next) => {
+  try {
+    const lyrics = await trackService.getLyrics(req.params.id);
+    res.status(200).json(lyrics);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export default {
   createTrack,
   getTrackById,
@@ -124,5 +134,6 @@ export default {
   getArtistTracks,
   getTrackStatus,
   getWaveform,
+  getLyrics,
   updateArtwork,
 };

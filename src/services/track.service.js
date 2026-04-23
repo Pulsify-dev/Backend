@@ -124,6 +124,7 @@ const createTrack = async (userId, trackData, audioFile, coverFile) => {
     genre: trackData.genre,
     description: trackData.description || "",
     tags: trackData.tags || [],
+    lyrics: trackData.lyrics || null,
     audio_url: audioUrl,
     artwork_url: artworkUrl,
     format: normalizedFormat,
@@ -170,6 +171,7 @@ const updateTrack = async (trackId, userId, updateData) => {
     "genre",
     "description",
     "tags",
+    "lyrics",
     "visibility",
     "preview_start_seconds",
   ];
@@ -276,6 +278,16 @@ const updateArtwork = async (trackId, userId, artworkFile) => {
   return { artwork_url: newArtworkUrl };
 };
 
+const getLyrics = async (trackId) => {
+  // Use "+lyrics" to include the field that has select: false
+  const track = await trackRepository.findById(trackId, "+lyrics");
+  if (!track) throw new NotFoundError("Track not found.");
+  return {
+    track_id: track._id,
+    lyrics: track.lyrics || null,
+  };
+};
+
 export default {
   createTrack,
   getTrackById,
@@ -284,5 +296,6 @@ export default {
   getTracksByArtistId,
   getTrackStatus,
   getWaveform,
+  getLyrics,
   updateArtwork,
 };

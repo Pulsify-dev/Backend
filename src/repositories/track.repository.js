@@ -1,20 +1,35 @@
 import Track from "../models/track.model.js";
+import cache from "../utils/cache.utils.js";
 
-const findById = function (id, extraFields = "") {
-  return Track.findById(id).select(extraFields);
+const TRACK_TTL = 5 * 60; // 5 minutes
+
+const findById = async function (id, extraFields = "") {
+  // Only cache default projections (no extra fields)
+  if (!extraFields) {
+    const cacheKey = `track:${id}`;
+    const cached = await cache.get(cacheKey);
+    if (cached) return cached;
+
+    const track = await Track.findById(id).lean();
+    if (track) await cache.set(cacheKey, track, TRACK_TTL);
+    return track;
+  }
+  return Track.findById(id).select(extraFields).lean();
 };
 
 const findPublicById = function (id, extraFields = "") {
 return Track.findOne({ _id: id, visibility: "public", is_hidden: false }).select(extraFields);}
 
-const updateTrackById = function (id, updatedPatch) {
+const updateTrackById = async function (id, updatedPatch) {
+  await cache.del(`track:${id}`);
   return Track.findByIdAndUpdate(id, updatedPatch, {
     returnDocument: "after",
     runValidators: true,
   });
 };
 
-const deleteById = function (id) {
+const deleteById = async function (id) {
+  await cache.del(`track:${id}`);
   return Track.findByIdAndDelete(id);
 };
 
@@ -98,6 +113,10 @@ const findCharts = async function (limit = 50, genre = null) {
   return tracks;
 };
 
+const invalidateTrackCache = async (trackId) => {
+  await cache.del(`track:${trackId}`);
+};
+
 export default {
   findById,
   updateTrackById,
@@ -111,5 +130,6 @@ export default {
   findByPermalinkAndArtist,
   findTrending,
   findCharts,
+  invalidateTrackCache,
 };
 

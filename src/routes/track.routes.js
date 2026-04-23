@@ -16,6 +16,7 @@ router.post(
 router.get("/tracks/:id", authMiddleware.requireAuth, trackController.getTrackById);
 router.get("/tracks/:id/status", authMiddleware.requireAuth, trackController.getTrackStatus);
 router.get("/tracks/:id/waveform", authMiddleware.requireAuth, trackController.getWaveform); // No guest support
+router.get("/tracks/:id/lyrics", authMiddleware.requireAuth, trackController.getLyrics);
 router.put("/tracks/:id/artwork", authMiddleware.requireAuth, trackArtworkUpload, trackController.updateArtwork);
 router.patch("/tracks/:id", authMiddleware.requireAuth, trackController.updateTrack);
 router.delete("/tracks/:id", authMiddleware.requireAuth, trackController.deleteTrack);

@@ -116,6 +116,7 @@ const recordPlay = async (userId, trackId, durationPlayedMs) => {
 
   // Increment play count on the track
   await playHistoryRepository.incrementTrackPlayCount(trackId);
+  await trackRepository.invalidateTrackCache(trackId);
 
   return { counted: true, data: entry };
 };

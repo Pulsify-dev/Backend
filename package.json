@@ -29,8 +29,12 @@
       "src/services/messaging.service.js",
       "src/services/admin.service.js",
       "src/services/report.service.js",
-      "src/services/subscription.service.js"
-      
+      "src/services/subscription.service.js",
+      "src/services/notification.service.js",
+      "src/controllers/notification.controller.js",
+      "src/sockets/notification.socket.js",
+      "src/services/discovery.service.js",
+      "src/services/search.service.js"
     ],
     "reporter": [
       "text"
@@ -48,9 +52,11 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
+    "firebase-admin": "^13.8.0",
     "fluent-ffmpeg": "^2.1.3",
     "google-auth-library": "^10.6.2",
     "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
     "joi": "^18.0.2",
     "jsonwebtoken": "^9.0.3",
     "meilisearch": "^0.57.0",

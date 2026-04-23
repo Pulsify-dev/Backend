@@ -1,0 +1,207 @@
+{
+  "info": {
+    "name": "10. 🔔 Real-Time Notifications",
+    "description": "Handles fetching, reading, and managing real-time notifications. All endpoints require authentication. Real-time delivery is handled via Socket.IO (see WebSocket events at the bottom).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Get Notifications (Paginated)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/notifications?page=1&limit=20",
+          "host": ["{{baseUrl}}"],
+          "path": ["notifications"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number (default: 1)."
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Items per page (default: 20, max: 100)."
+            }
+          ]
+        },
+        "description": "## 1. Get Notifications\n\nRetrieves a paginated list of the authenticated user's notifications, sorted by most recent first. Each notification's `actor_id` is populated with `display_name` and `avatar_url`.\n\n**Authentication:** Required (User)\n\n### Query Parameters\n\n| Parameter | Type | Default | Description |\n|-----------|------|---------|-------------|\n| `page` | Number | 1 | The current page. |\n| `limit` | Number | 20 | Results per page (max 100). |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": [\n        {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"recipient_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"actor_id\": {\n                \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n                \"display_name\": \"DJ Shadow\",\n                \"avatar_url\": \"https://cdn.pulsify.page/avatars/djshadow.jpg\"\n            },\n            \"entity_type\": \"Track\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d3\",\n            \"action_type\": \"LIKE\",\n            \"is_read\": false,\n            \"created_at\": \"2026-04-21T10:30:00.000Z\"\n        },\n        {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e3\",\n            \"recipient_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"actor_id\": {\n                \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d4\",\n                \"display_name\": \"BeatMaker99\",\n                \"avatar_url\": \"https://cdn.pulsify.page/avatars/beatmaker.jpg\"\n            },\n            \"entity_type\": \"Follow\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"action_type\": \"FOLLOW\",\n            \"is_read\": true,\n            \"created_at\": \"2026-04-21T09:15:00.000Z\"\n        }\n    ],\n    \"meta\": {\n        \"currentPage\": 1,\n        \"itemsPerPage\": 20,\n        \"totalItems\": 2,\n        \"totalPages\": 1\n    }\n}"
+        },
+        {
+          "name": "401 Unauthorized",
+          "status": "Unauthorized",
+          "code": 401,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Unauthorized: Missing or invalid Bearer token.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "2. Get Unread Count",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/notifications/unread-count",
+          "host": ["{{baseUrl}}"],
+          "path": ["notifications", "unread-count"]
+        },
+        "description": "## 2. Get Unread Count\n\nReturns the total number of unread notifications for the authenticated user. Useful for displaying a badge count in the UI.\n\n**Authentication:** Required (User)"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"unread_count\": 5\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "3. Mark All Notifications as Read",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/notifications/read-all",
+          "host": ["{{baseUrl}}"],
+          "path": ["notifications", "read-all"]
+        },
+        "description": "## 3. Mark All as Read\n\nMarks all of the authenticated user's unread notifications as read in a single bulk operation.\n\n**Authentication:** Required (User)"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"message\": \"All notifications marked as read\"\n    }\n}"
+        }
+      ]
+    },
+    {
+      "name": "4. Mark Single Notification as Read",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/notifications/:id/read",
+          "host": ["{{baseUrl}}"],
+          "path": ["notifications", ":id", "read"],
+          "variable": [
+            {
+              "key": "id",
+              "value": "65e2b3c4d5e6f7a8b9c0d1e2",
+              "description": "The Notification ID to mark as read."
+            }
+          ]
+        },
+        "description": "## 4. Mark Single Notification as Read\n\nMarks a specific notification as read. Only the notification's owner (recipient) can mark it. Returns the updated notification object.\n\n**Authentication:** Required (User)\n\n### Path Parameters\n\n| Parameter | Type | Required | Description |\n|-----------|------|----------|-------------|\n| `id` | String | Yes | The MongoDB ObjectId of the notification. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n        \"recipient_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n        \"actor_id\": \"64f1a2b3c4d5e6f7a8b9c0d2\",\n        \"entity_type\": \"Track\",\n        \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d3\",\n        \"action_type\": \"LIKE\",\n        \"is_read\": true,\n        \"created_at\": \"2026-04-21T10:30:00.000Z\"\n    }\n}"
+        },
+        {
+          "name": "404 Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Notification not found or unauthorized\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "5. Register Push Token (FCM)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"fcm_device_token_string_here\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/notifications/push-token",
+          "host": ["{{baseUrl}}"],
+          "path": ["notifications", "push-token"]
+        },
+        "description": "## 5. Register Push Token\n\nRegisters a Firebase Cloud Messaging (FCM) device token for the authenticated user. This enables push notifications to be sent to the user's device. Duplicate tokens are automatically prevented via `$addToSet`.\n\n**Authentication:** Required (User)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `token` | String | Yes | The FCM device token obtained from the client SDK. |"
+      },
+      "response": [
+        {
+          "name": "200 OK",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"message\": \"Push token registered successfully\"\n    }\n}"
+        },
+        {
+          "name": "400 Bad Request – Missing Token",
+          "status": "Bad Request",
+          "code": 400,
+          "_postman_previewlanguage": "json",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Push token is required\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "── WebSocket Events (Reference) ──",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}",
+          "host": ["{{baseUrl}}"]
+        },
+        "description": "## 🔌 WebSocket Events (Socket.IO)\n\nReal-time notification delivery uses Socket.IO. Connect to the server root with a valid JWT.\n\n### Connection\n\n```javascript\nimport { io } from \"socket.io-client\";\n\nconst socket = io(\"http://localhost:3000\", {\n  auth: { token: \"<your_access_token>\" }\n});\n```\n\n---\n\n### Client → Server Events\n\n| Event | Payload | Description |\n|-------|---------|-------------|\n| `join_notifications` | _None_ | Subscribes the user to their personal notification room. **Must be emitted after connecting.** |\n| `leave_notifications` | _None_ | Unsubscribes the user from their notification room. |\n\n### Server → Client Events\n\n| Event | Payload | Description |\n|-------|---------|-------------|\n| `new_notification` | `Notification` object | Emitted when a new notification is created (like, repost, comment, follow, message). |\n\n### Example: Listening for Notifications\n\n```javascript\n// 1. Join the notification room after connecting\nsocket.emit(\"join_notifications\");\n\n// 2. Listen for real-time notifications\nsocket.on(\"new_notification\", (notification) => {\n  console.log(\"New notification:\", notification);\n  // notification = {\n  //   _id: \"65e2...\",\n  //   recipient_id: \"64f1...\",\n  //   actor_id: \"64f1...\",\n  //   entity_type: \"Track\",\n  //   entity_id: \"64f1...\",\n  //   action_type: \"LIKE\",\n  //   is_read: false,\n  //   created_at: \"2026-04-21T10:30:00.000Z\"\n  // }\n});\n\n// 3. Leave when done (optional)\nsocket.emit(\"leave_notifications\");\n```\n\n### Notification Action Types\n\n| action_type | entity_type | Triggered When |\n|-------------|-------------|----------------|\n| `LIKE` | `Track` | A user likes your track. |\n| `REPOST` | `Track` | A user reposts your track. |\n| `COMMENT` | `Comment` | A user comments on your track. |\n| `FOLLOW` | `Follow` | A user follows you. |\n| `MESSAGE` | `Message` | A user sends you a direct message. |"
+      },
+      "response": []
+    }
+  ]
+}
