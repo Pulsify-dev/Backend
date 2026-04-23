@@ -46,4 +46,7 @@ router.use("/notifications", notificationRoutes);
 router.use("/reports", reportRoutes);
 router.use("/admin", adminRoutes);
 
+// Module 12: Premium Subscriptions & Quotas
+router.use("/", subscriptionRoutes);
+
 export default router;
