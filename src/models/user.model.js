@@ -1,6 +1,8 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 import searchService from "../services/search.service.js";
+import { config } from "../config/index.js";
+
 const userSchema = mongoose.Schema(
   {
     email: {
@@ -74,11 +76,11 @@ const userSchema = mongoose.Schema(
     },
     avatar_url: {
       type: String,
-      default: "avatar-url.png",
+      default: config.defaults.userAvatar,
     },
     cover_url: {
       type: String,
-      default: "cover-url.png",
+      default: config.defaults.userCover,
     },
     favorite_genres: {
       type: [String],

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 import searchService from "../services/search.service.js";
+import { config } from "../config/index.js";
 
 const albumSchema = mongoose.Schema(
   {
@@ -53,7 +54,7 @@ const albumSchema = mongoose.Schema(
     },
     artwork_url: {
       type: String,
-      default: "default-album-artwork.png",
+      default: config.defaults.albumArtwork,
     },
     tracks: [
       {

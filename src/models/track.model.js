@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 import searchService from "../services/search.service.js";
+import { config } from "../config/index.js";
 
 const trackSchema = mongoose.Schema(
   {
@@ -81,7 +82,7 @@ const trackSchema = mongoose.Schema(
     },
     artwork_url: {
       type: String,
-      default: "default-artwork.png", //when we setup aws there will be default artwork if artists didn't provide any
+      default: config.defaults.trackArtwork,
     },
     format: {
       type: String,
