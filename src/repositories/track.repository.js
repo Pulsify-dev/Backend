@@ -65,7 +65,7 @@ const findByArtistId = function (artistId, page = 1, limit = 20,extraFields = ""
 };
 
 const countByArtistId = function (artistId) {
-  return Track.countDocuments({ artist_id: artistId });
+  return Track.countDocuments({ artist_id: artistId, is_hidden: false });
 };
 
 const findByPermalinkAndArtist = function (permalink, artistId, extraFields = "") {

@@ -11,6 +11,7 @@ import adminRoutes from "./admin.routes.js";
 import playlistRoutes from "./playlist.routes.js";
 import discoveryRoutes from "./discovery.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import subscriptionRoutes from "./subscription.routes.js";
 
 const router = Router();
 
@@ -45,5 +46,8 @@ router.use("/notifications", notificationRoutes);
 // Module 11: Moderation & Admin Dashboard (report, resolve, suspend, restore)
 router.use("/reports", reportRoutes);
 router.use("/admin", adminRoutes);
+
+// Module 12: Premium Subscriptions & Quotas
+router.use("/", subscriptionRoutes);
 
 export default router;

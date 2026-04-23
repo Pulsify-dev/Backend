@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import streamingService from "../services/streaming.service.js";
+import subscriptionService from "../services/subscription.service.js";
 import trackRepository from "../repositories/track.repository.js";
 import playHistoryRepository from "../repositories/play-history.repository.js";
 import { NotFoundError, ForbiddenError } from "../utils/errors.utils.js";
@@ -112,6 +113,7 @@ describe("StreamingService Unit Tests", () => {
 
   describe("getDownloadUrl()", () => {
     it("should return the download URL for Artist Pro users", async () => {
+      sinon.stub(subscriptionService, "assertCanOfflineListen").resolves();
       sinon.stub(trackRepository, "findById").resolves(mockTrack);
 
       const result = await streamingService.getDownloadUrl(MOCK_TRACK_ID, MOCK_ARTIST_PRO);
@@ -119,13 +121,43 @@ describe("StreamingService Unit Tests", () => {
       expect(result.url).to.equal(mockTrack.audio_url);
     });
 
-    it("should throw ForbiddenError for non-Artist Pro users", async () => {
+    it("should throw ForbiddenError when offline listening is not allowed", async () => {
+      sinon
+        .stub(subscriptionService, "assertCanOfflineListen")
+        .rejects(new ForbiddenError("Offline listening is not available on the Free plan."));
+
       try {
         await streamingService.getDownloadUrl(MOCK_TRACK_ID, MOCK_USER);
         expect.fail("Should have thrown ForbiddenError");
       } catch (err) {
         expect(err).to.be.instanceOf(ForbiddenError);
-        expect(err.message).to.equal("Requires ArtistPro plan.");
+        expect(err.message).to.equal("Offline listening is not available on the Free plan.");
+      }
+    });
+
+    it("should throw NotFoundError when track does not exist for download", async () => {
+      sinon.stub(subscriptionService, "assertCanOfflineListen").resolves();
+      sinon.stub(trackRepository, "findById").resolves(null);
+
+      try {
+        await streamingService.getDownloadUrl(MOCK_TRACK_ID, MOCK_ARTIST_PRO);
+        expect.fail("Should have thrown NotFoundError");
+      } catch (err) {
+        expect(err).to.be.instanceOf(NotFoundError);
+      }
+    });
+
+    it("should throw ForbiddenError for private track when user is not owner (download)", async () => {
+      sinon.stub(subscriptionService, "assertCanOfflineListen").resolves();
+      const privateTrack = { ...mockTrack, visibility: "private" };
+      sinon.stub(trackRepository, "findById").resolves(privateTrack);
+
+      try {
+        await streamingService.getDownloadUrl(MOCK_TRACK_ID, MOCK_USER);
+        expect.fail("Should have thrown ForbiddenError");
+      } catch (err) {
+        expect(err).to.be.instanceOf(ForbiddenError);
+        expect(err.message).to.equal("You do not have access to this private track.");
       }
     });
   });

@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import trackService from "../services/track.service.js";
+import subscriptionService from "../services/subscription.service.js";
 import trackRepository from "../repositories/track.repository.js";
 import audioUtils from "../utils/audio.utils.js";
 import photoUtils from "../utils/photo.utils.js";
@@ -9,6 +10,7 @@ import {
   BadRequestError,
   NotFoundError,
   ForbiddenError,
+  UnauthorizedError,
 } from "../utils/errors.utils.js";
 
 const MOCK_USER_ID = "507f1f77bcf86cd799439011";
@@ -64,6 +66,17 @@ describe("TrackService", () => {
       description: "My new track",
       tags: ["electronic", "dance"],
     };
+
+    beforeEach(() => {
+      sinon.stub(subscriptionService, "getPlanLimitForUser").resolves({
+        effectivePlan: "Free",
+        planLimit: {
+          can_upload: true,
+          upload_track_limit: 3,
+        },
+      });
+      sinon.stub(trackRepository, "countByArtistId").resolves(0);
+    });
 
     it("should successfully create a new track", async () => {
       sinon.stub(photoUtils, "validateImageFile").returns(true);
@@ -247,6 +260,88 @@ describe("TrackService", () => {
       );
 
       expect(result).to.have.property("_id");
+    });
+
+    it("should throw ForbiddenError when upload quota is reached", async () => {
+      trackRepository.countByArtistId.resolves(3);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "mp3",
+        duration: 180,
+        bitrate: 320000,
+      });
+
+      try {
+        await trackService.createTrack(
+          MOCK_USER_ID,
+          validTrackData,
+          mockAudioFile,
+          null,
+        );
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(ForbiddenError);
+        expect(err.message).to.equal(
+          "Track upload limit reached for Free plan (3 tracks).",
+        );
+      }
+    });
+
+    it("should throw ForbiddenError when plan does not allow uploads", async () => {
+      subscriptionService.getPlanLimitForUser.resolves({
+        effectivePlan: "Free",
+        planLimit: {
+          can_upload: false,
+          upload_track_limit: 3,
+        },
+      });
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "mp3",
+        duration: 180,
+        bitrate: 320000,
+      });
+
+      try {
+        await trackService.createTrack(
+          MOCK_USER_ID,
+          validTrackData,
+          mockAudioFile,
+          null,
+        );
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(ForbiddenError);
+        expect(err.message).to.equal(
+          "Track uploads are not available on the Free plan.",
+        );
+      }
+    });
+
+    it("should rollback S3 uploads when DB createTrack throws", async () => {
+      sinon.stub(photoUtils, "validateImageFile").returns(true);
+      sinon.stub(audioUtils, "extractAudioMetadata").resolves({
+        format: "mp3",
+        duration: 180,
+        bitrate: 320000,
+      });
+      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
+      sinon.stub(S3Utils, "uploadToS3")
+        .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
+        .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
+      sinon.stub(trackRepository, "createTrack").rejects(new Error("DB failure"));
+      const deleteStub = sinon.stub(S3Utils, "deleteFromS3").resolves();
+
+      try {
+        await trackService.createTrack(
+          MOCK_USER_ID,
+          validTrackData,
+          mockAudioFile,
+          mockCoverFile,
+        );
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err.message).to.equal("DB failure");
+        expect(deleteStub.calledTwice).to.be.true;
+      }
     });
   });
 
@@ -494,6 +589,15 @@ describe("TrackService", () => {
 
       // Should only delete audio, not default artwork
       expect(s3Stub.calledOnce).to.be.true;
+    });
+
+    it("should throw UnauthorizedError when userId is falsy", async () => {
+      try {
+        await trackService.deleteTrack(MOCK_TRACK_ID, null);
+        expect.fail("Should have thrown");
+      } catch (err) {
+        expect(err).to.be.instanceOf(UnauthorizedError);
+      }
     });
   });
 

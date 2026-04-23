@@ -1,5 +1,6 @@
 import playlistRepository from "../repositories/playlist.repository.js";
 import Track from "../models/track.model.js";
+import { ForbiddenError } from "../utils/errors.utils.js";
 
 const createPlaylist = async (creatorId, playlistData) => {
   const playlist = await playlistRepository.create({
@@ -100,6 +101,7 @@ const addTrackToPlaylist = async (playlistId, trackId, creatorId) => {
   if (!track) {
     throw new Error("Track not found");
   }
+
   playlist.addTrack(trackId);
   playlist.track_count = playlist.tracks.length;
 

@@ -153,6 +153,13 @@ const countPlaylistsByCreator = async (creatorId) => {
   return Playlist.countDocuments({ creator_id: creatorId });
 };
 
+const countManagedPlaylistsByCreator = async (creatorId) => {
+  return Playlist.countDocuments({
+    creator_id: creatorId,
+    title: { $not: /^likes$/i },
+  });
+};
+
 const getTotalTrackDuration = async (playlistId) => {
   const playlist = await Playlist.findById(playlistId)
     .populate({
@@ -204,6 +211,7 @@ export default {
   deleteById,
   deleteByCreatorId,
   countPlaylistsByCreator,
+  countManagedPlaylistsByCreator,
   getTotalTrackDuration,
   searchByTitle,
   findByCreatorIdAndTitle,

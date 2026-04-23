@@ -49,6 +49,14 @@ const updateSubscriptionByUserId = function (userId, updatePatch) {
 	);
 };
 
+const findExpiredPaidSubscriptions = function (referenceDate = new Date()) {
+	return Subscription.find({
+		plan: { $ne: "Free" },
+		current_period_end: { $ne: null, $lte: referenceDate },
+		status: { $in: ["Active", "Cancelled"] },
+	});
+};
+
 const findPlanLimitByPlan = function (plan) {
 	return PlanLimit.findOne({ plan });
 };
@@ -82,6 +90,7 @@ export default {
 	createDefaultFreeSubscription,
 	upsertSubscriptionByUserId,
 	updateSubscriptionByUserId,
+	findExpiredPaidSubscriptions,
 	findPlanLimitByPlan,
 	getAllPlanLimits,
 	createPlanLimit,
