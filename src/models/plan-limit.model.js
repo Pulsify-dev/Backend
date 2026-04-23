@@ -27,13 +27,13 @@ const planLimitSchema = mongoose.Schema(
 			min: 0,
 			validate: integerOrNull,
 		},
-		playlist_limit: {
+		album_limit: {
 			type: Number,
 			default: null,
 			min: 0,
 			validate: integerOrNull,
 		},
-		playlist_track_limit: {
+		album_track_limit: {
 			type: Number,
 			default: null,
 			min: 1,

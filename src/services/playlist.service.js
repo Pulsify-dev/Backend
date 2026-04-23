@@ -1,37 +1,8 @@
 import playlistRepository from "../repositories/playlist.repository.js";
 import Track from "../models/track.model.js";
-import subscriptionService from "./subscription.service.js";
 import { ForbiddenError } from "../utils/errors.utils.js";
 
-const enforcePlaylistCreationQuota = async (creatorId) => {
-  const entitlement = await subscriptionService.getPlanLimitForUser(creatorId);
-  if (Number.isInteger(entitlement.planLimit.playlist_limit)) {
-    const playlistCount = await playlistRepository.countManagedPlaylistsByCreator(
-      creatorId,
-    );
-
-    if (playlistCount >= entitlement.planLimit.playlist_limit) {
-      throw new ForbiddenError(
-        `Playlist limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.playlist_limit} playlists).`,
-      );
-    }
-  }
-};
-
-const enforcePlaylistTrackQuota = async (creatorId, currentTrackCount) => {
-  const entitlement = await subscriptionService.getPlanLimitForUser(creatorId);
-  if (Number.isInteger(entitlement.planLimit.playlist_track_limit)) {
-    if (currentTrackCount >= entitlement.planLimit.playlist_track_limit) {
-      throw new ForbiddenError(
-        `Playlist track limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.playlist_track_limit} tracks per playlist).`,
-      );
-    }
-  }
-};
-
 const createPlaylist = async (creatorId, playlistData) => {
-  await enforcePlaylistCreationQuota(creatorId);
-
   const playlist = await playlistRepository.create({
     ...playlistData,
     creator_id: creatorId,
@@ -130,8 +101,6 @@ const addTrackToPlaylist = async (playlistId, trackId, creatorId) => {
   if (!track) {
     throw new Error("Track not found");
   }
-
-  await enforcePlaylistTrackQuota(creatorId, playlist.tracks.length);
 
   playlist.addTrack(trackId);
   playlist.track_count = playlist.tracks.length;

@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const PLAN_ENUM = ["Free", "Artist Pro"];
-const STATUS_ENUM = ["Active", "Cancelled", "Past_Due", "Trialing"];
+const STATUS_ENUM = ["Active", "Cancelled"];
 
 const subscriptionSchema = mongoose.Schema(
 	{

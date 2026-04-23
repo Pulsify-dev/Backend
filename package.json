@@ -28,7 +28,9 @@
       "src/services/social.service.js",
       "src/services/messaging.service.js",
       "src/services/admin.service.js",
-      "src/services/report.service.js"
+      "src/services/report.service.js",
+      "src/services/subscription.service.js"
+      
     ],
     "reporter": [
       "text"
