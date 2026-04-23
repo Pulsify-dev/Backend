@@ -34,7 +34,8 @@
       "src/sockets/notification.socket.js",
       "src/services/discovery.service.js",
       "src/services/search.service.js",
-      "src/services/subscription.service.js"
+      "src/services/subscription.service.js",
+      "src/services/album.service.js"
     ],
     "reporter": [
       "text"
