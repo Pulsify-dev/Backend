@@ -24,9 +24,32 @@ class AlbumService {
       artworkUrl = await S3Utils.uploadToS3(coverFile, "albums/artwork");
     }
 
+    // Handle initial tracks if provided
+    let tracks = [];
+    let totalDuration = 0;
+    if (albumData.track_ids) {
+      const trackIds = Array.isArray(albumData.track_ids) 
+        ? albumData.track_ids 
+        : [albumData.track_ids];
+
+      for (let i = 0; i < trackIds.length; i++) {
+        const trackId = trackIds[i];
+        const track = await trackRepository.findById(trackId);
+        if (!track) throw new NotFoundError(`Track ${trackId} not found.`);
+        if (track.artist_id.toString() !== userId.toString()) {
+          throw new ForbiddenError(`Track ${trackId} does not belong to you.`);
+        }
+        tracks.push({ track_id: trackId, position: i });
+        totalDuration += track.duration || 0;
+      }
+    }
+
     const newAlbum = {
       ...albumData,
       artist_id: userId,
+      tracks,
+      track_count: tracks.length,
+      total_duration: totalDuration,
       ...(artworkUrl && { artwork_url: artworkUrl }),
     };
 
@@ -144,6 +167,7 @@ class AlbumService {
       throw new ForbiddenError("You are not the owner of this album.");
     }
 
+    let additionalDuration = 0;
     // Check that all tracks exist and belong to this artist
     for (const trackId of trackIds) {
       const track = await trackRepository.findById(trackId);
@@ -161,9 +185,13 @@ class AlbumService {
       if (alreadyInAlbum) {
         throw new BadRequestError(`Track ${trackId} is already in this album.`);
       }
+
+      additionalDuration += track.duration || 0;
     }
 
-    return await albumRepository.addTracks(albumId, trackIds);
+    const newTotalDuration = (album.total_duration || 0) + additionalDuration;
+
+    return await albumRepository.addTracks(albumId, trackIds, newTotalDuration);
   }
 
   async removeTrack(userId, albumId, trackId) {
@@ -174,7 +202,12 @@ class AlbumService {
       throw new ForbiddenError("You are not the owner of this album.");
     }
 
-    return await albumRepository.removeTrack(albumId, trackId);
+    // Find the track to subtract its duration
+    const trackToRemove = await trackRepository.findById(trackId);
+    const durationToSubtract = trackToRemove ? (trackToRemove.duration || 0) : 0;
+    const newTotalDuration = Math.max(0, (album.total_duration || 0) - durationToSubtract);
+
+    return await albumRepository.removeTrack(albumId, trackId, newTotalDuration);
   }
 
   async reorderTracks(userId, albumId, orderedIds) {
