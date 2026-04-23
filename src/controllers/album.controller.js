@@ -30,8 +30,9 @@ const getAlbumById = async (req, res, next) => {
 // GET /artists/:id/albums
 const getArtistAlbums = async (req, res, next) => {
   try {
+    const requesterId = req.user?.user_id || req.user?._id || null;
     const { page, limit } = req.query;
-    const result = await albumService.getArtistAlbums(req.params.id, page, limit);
+    const result = await albumService.getArtistAlbums(req.params.id, page, limit, requesterId);
     res.status(200).json(result);
   } catch (err) {
     next(err);

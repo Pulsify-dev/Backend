@@ -87,6 +87,17 @@ class AlbumService {
     if (!albumData.title) throw new BadRequestError("Album title is required.");
     if (!albumData.genre) throw new BadRequestError("Album genre is required.");
 
+    // ── Album creation quota ──
+    const entitlement = await subscriptionService.getPlanLimitForUser(userId);
+    if (Number.isInteger(entitlement.planLimit.album_limit)) {
+      const albumCount = await albumRepository.countByArtist(userId);
+      if (albumCount >= entitlement.planLimit.album_limit) {
+        throw new ForbiddenError(
+          `Album limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.album_limit} albums).`,
+        );
+      }
+    }
+
     if (coverFile) {
       photoUtils.validateImageFile(coverFile, MAX_COVER_BYTES);
     }
@@ -186,11 +197,13 @@ class AlbumService {
     return album;
   }
 
-  async getArtistAlbums(artistId, page = 1, limit = 20) {
+  async getArtistAlbums(artistId, page = 1, limit = 20, requesterId = null) {
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
     const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-    return await albumRepository.findByArtist(artistId, parsedPage, parsedLimit);
+    const isOwner = requesterId && artistId.toString() === requesterId.toString();
+
+    return await albumRepository.findByArtist(artistId, parsedPage, parsedLimit, isOwner);
   }
 
   async updateAlbum(userId, albumId, updateData) {
@@ -301,6 +314,17 @@ class AlbumService {
       }
 
       additionalDuration += track.duration || 0;
+    }
+
+    // ── Per-album track quota ──
+    const entitlement = await subscriptionService.getPlanLimitForUser(userId);
+    if (Number.isInteger(entitlement.planLimit.album_track_limit)) {
+      const newTotal = album.tracks.length + trackIds.length;
+      if (newTotal > entitlement.planLimit.album_track_limit) {
+        throw new ForbiddenError(
+          `Album track limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.album_track_limit} tracks per album).`,
+        );
+      }
     }
 
     const newTotalDuration = (album.total_duration || 0) + additionalDuration;

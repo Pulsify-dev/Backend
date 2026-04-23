@@ -58,14 +58,17 @@ const searchTracks = async (q, page, limit) => {
   return { tracks, total };
 };
 
-const findByArtistId = function (artistId, page = 1, limit = 20,extraFields = "") {
-  const filter = { artist_id: artistId, is_hidden: false };
+const findByArtistId = function (artistId, page = 1, limit = 20, extraFields = "", includeHidden = false) {
+  const filter = { artist_id: artistId };
+  if (!includeHidden) filter.is_hidden = false;
   const skip = (page - 1) * limit;
   return Track.find(filter).select(extraFields).skip(skip).limit(limit).lean();
 };
 
-const countByArtistId = function (artistId) {
-  return Track.countDocuments({ artist_id: artistId, is_hidden: false });
+const countByArtistId = function (artistId, includeHidden = false) {
+  const filter = { artist_id: artistId };
+  if (!includeHidden) filter.is_hidden = false;
+  return Track.countDocuments(filter);
 };
 
 const findByPermalinkAndArtist = function (permalink, artistId, extraFields = "") {
@@ -117,6 +120,32 @@ const invalidateTrackCache = async (trackId) => {
   await cache.del(`track:${trackId}`);
 };
 
+const hideOldestTracks = async (artistId, keepCount) => {
+  const tracksToHide = await Track.find({ artist_id: artistId, is_hidden: false })
+    .sort({ createdAt: -1 })
+    .skip(keepCount)
+    .select("_id")
+    .lean();
+
+  if (tracksToHide.length === 0) return 0;
+
+  const trackIds = tracksToHide.map((t) => t._id);
+  const result = await Track.updateMany(
+    { _id: { $in: trackIds } },
+    { $set: { is_hidden: true } }
+  );
+
+  return result.modifiedCount;
+};
+
+const unhideAllTracks = async (artistId) => {
+  const result = await Track.updateMany(
+    { artist_id: artistId, is_hidden: true },
+    { $set: { is_hidden: false } }
+  );
+  return result.modifiedCount;
+};
+
 export default {
   findById,
   updateTrackById,
@@ -131,5 +160,7 @@ export default {
   findTrending,
   findCharts,
   invalidateTrackCache,
+  hideOldestTracks,
+  unhideAllTracks,
 };
 

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 import searchService from "../services/search.service.js";
+import { config } from "../config/index.js";
 
 const albumSchema = mongoose.Schema(
   {
@@ -53,7 +54,7 @@ const albumSchema = mongoose.Schema(
     },
     artwork_url: {
       type: String,
-      default: "default-album-artwork.png",
+      default: config.defaults.albumArtwork,
     },
     tracks: [
       {
@@ -149,14 +150,22 @@ const syncAlbum = async (doc) => {
     createdAt: doc.createdAt,
   };
   
-  await searchService.indexDocument("albums", albumDoc);
+  try {
+    await searchService.indexDocument("albums", albumDoc);
+  } catch (err) {
+    console.warn(`[Search] Failed to index album ${doc._id}: ${err.message}`);
+  }
 };
 
 albumSchema.post("save", syncAlbum);
 albumSchema.post("findOneAndUpdate", syncAlbum);
 albumSchema.post("findOneAndDelete", async (doc) => {
   if (doc) {
-    await searchService.removeDocument("albums", doc._id.toString());
+    try {
+      await searchService.removeDocument("albums", doc._id.toString());
+    } catch (err) {
+      console.warn(`[Search] Failed to remove album ${doc._id}: ${err.message}`);
+    }
   }
 });
 

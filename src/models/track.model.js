@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 import searchService from "../services/search.service.js";
+import { config } from "../config/index.js";
 
 const trackSchema = mongoose.Schema(
   {
@@ -81,7 +82,7 @@ const trackSchema = mongoose.Schema(
     },
     artwork_url: {
       type: String,
-      default: "default-artwork.png", //when we setup aws there will be default artwork if artists didn't provide any
+      default: config.defaults.trackArtwork,
     },
     format: {
       type: String,
@@ -268,14 +269,22 @@ const syncTrack = async (doc) => {
     preview_start_seconds: doc.preview_start_seconds,
     play_count: doc.play_count,
   };
-  await searchService.indexDocument("tracks", trackDoc);
+  try {
+    await searchService.indexDocument("tracks", trackDoc);
+  } catch (err) {
+    console.warn(`[Search] Failed to index track ${doc._id}: ${err.message}`);
+  }
 };
 
 trackSchema.post("save", syncTrack);
 trackSchema.post("findOneAndUpdate", syncTrack);
 trackSchema.post("findOneAndDelete", async (doc) => {
   if (doc) {
-    await searchService.removeDocument("tracks", doc._id.toString());
+    try {
+      await searchService.removeDocument("tracks", doc._id.toString());
+    } catch (err) {
+      console.warn(`[Search] Failed to remove track ${doc._id}: ${err.message}`);
+    }
   }
 });
 

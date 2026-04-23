@@ -1,6 +1,6 @@
 import subscriptionRepository from "../repositories/subscription.repository.js";
 import trackRepository from "../repositories/track.repository.js";
-// TODO: import albumRepository once album module is delivered by teammate
+import albumRepository from "../repositories/album.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import {
 	BadRequestError,
@@ -52,7 +52,31 @@ const downgradeSubscriptionToFree = async (userId) => {
 	}
 
 	await syncUserTier(userId, FREE_PLAN);
+
+	try {
+		const freeLimits = await subscriptionRepository.findPlanLimitByPlan(FREE_PLAN);
+		if (freeLimits) {
+			if (Number.isInteger(freeLimits.upload_track_limit)) {
+				await trackRepository.hideOldestTracks(userId, freeLimits.upload_track_limit);
+			}
+			if (Number.isInteger(freeLimits.album_limit)) {
+				await albumRepository.hideOldestAlbums(userId, freeLimits.album_limit);
+			}
+		}
+	} catch (error) {
+		console.warn(`[Downgrade] Failed to hide oldest content for user ${userId}:`, error.message);
+	}
+
 	return updatedSubscription;
+};
+
+const unhideOldestContent = async (userId) => {
+	try {
+		await trackRepository.unhideAllTracks(userId);
+		await albumRepository.unhideAllAlbums(userId);
+	} catch (error) {
+		console.warn(`[Upgrade] Failed to unhide content for user ${userId}:`, error.message);
+	}
 };
 
 const getEffectivePlan = (subscription) => {
@@ -116,10 +140,10 @@ const buildRemaining = (used, limit) => {
 const getUsageForUser = async (userId) => {
 	const entitlement = await getPlanLimitForUser(userId);
 
-	const trackCount = await trackRepository.countByArtistId(userId);
-
-	// TODO: replace with albumRepository.countByArtistId(userId) once album module lands
-	const albumCount = 0;
+	const [trackCount, albumCount] = await Promise.all([
+		trackRepository.countByArtistId(userId),
+		albumRepository.countByArtist(userId),
+	]);
 
 	return {
 		plan: entitlement.effectivePlan,
@@ -193,6 +217,7 @@ const activatePlanForUser = async ({
 	);
 
 	await syncUserTier(userId, normalizedPlan);
+	await unhideOldestContent(userId);
 
 	return updatedSubscription;
 };
@@ -314,6 +339,8 @@ const handleWebhook = async (eventPayload = {}) => {
 		}
 
 		await subscriptionRepository.updateSubscriptionByUserId(userId, updatePatch);
+		await syncUserTier(userId, "Artist Pro"); // Since payment succeeded, they are Pro
+		await unhideOldestContent(userId);
 
 		return { processed: true, event: eventType };
 	}
