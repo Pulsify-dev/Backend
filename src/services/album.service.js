@@ -3,6 +3,7 @@ import trackRepository from "../repositories/track.repository.js";
 import trackService from "./track.service.js";
 import S3Utils from "../utils/s3.utils.js";
 import photoUtils from "../utils/photo.utils.js";
+import subscriptionService from "./subscription.service.js";
 import {
   BadRequestError,
   NotFoundError,
