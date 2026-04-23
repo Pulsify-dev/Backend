@@ -1,8 +1,9 @@
 {
   "info": {
     "name": "Module 6 - Engagement & Social Interactions",
-    "description": "API collection for Likes, Reposts, and Timestamped Comments",
-    "version": "1.0.0"
+    "description": "API collection for likes, reposts, and timestamped comments. Likes and reposts now support both tracks and albums, while comments remain track-only.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variables": [
     {
@@ -16,6 +17,10 @@
     {
       "key": "trackId",
       "value": "65d8f7b2c1a2b3c4d5e6f7g8"
+    },
+    {
+      "key": "albumId",
+      "value": "65d8f7b2c1a2b3c4d5e6f7a9"
     },
     {
       "key": "commentId",
@@ -114,6 +119,154 @@
             "description": "Check if current user has liked this track"
           },
           "response": []
+        },
+        {
+          "name": "Like an Album",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "like"]
+            },
+          "description": "Like an album. Album likes are stored separately and do not add anything to the track Likes playlist."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Album liked successfully.\"\n}"
+            },
+            {
+              "name": "409 Conflict - Already Liked",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"You have already liked this album.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Unlike an Album",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/like",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "like"]
+            },
+          "description": "Remove like from an album"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Album unliked successfully.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Album's Likers (Engagement List)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/likes?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "likes"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+          "description": "Get paginated list of users who liked this album"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"album_id\": \"65d8f7b2c1a2b3c4d5e6f7a9\",\n    \"likes_count\": 3,\n    \"likers\": [\n        {\n            \"user_id\": \"69ceb4dac65280182638c8cb\",\n            \"username\": \"username\",\n            \"display_name\": \"username\",\n            \"avatar_url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775605627700_avatar.jpg\",\n            \"liked_at\": \"2026-04-14T15:30:00.000Z\"\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"limit\": 20,\n        \"total\": 1,\n        \"pages\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Check if User Liked Album",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/liked",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "liked"]
+            },
+          "description": "Check if current user has liked this album"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"album_id\": \"65d8f7b2c1a2b3c4d5e6f7a9\",\n    \"liked\": true\n}"
+            }
+          ]
         }
       ]
     },
@@ -208,6 +361,154 @@
             "description": "Check if current user has reposted this track"
           },
           "response": []
+        },
+        {
+          "name": "Repost an Album",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/repost",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "repost"]
+            },
+          "description": "Share an album to the user's feed/profile"
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Album reposted successfully.\"\n}"
+            },
+            {
+              "name": "409 Conflict - Already Reposted",
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"error\": \"You have already reposted this album.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Unrepost an Album",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/repost",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "repost"]
+            },
+          "description": "Remove album repost from the user's feed"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"message\": \"Album unreposted successfully.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Album's Reposters (Engagement List)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/reposts?page=1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "reposts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+          "description": "Get paginated list of users who reposted this album"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"album_id\": \"65d8f7b2c1a2b3c4d5e6f7a9\",\n    \"reposts_count\": 1,\n    \"reposters\": [\n        {\n            \"user_id\": \"69ceb4dac65280182638c8cb\",\n            \"username\": \"username\",\n            \"display_name\": \"username\",\n            \"avatar_url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775605627700_avatar.jpg\",\n            \"reposted_at\": \"2026-04-14T15:35:00.000Z\"\n        }\n    ],\n    \"pagination\": {\n        \"page\": 1,\n        \"limit\": 20,\n        \"total\": 1,\n        \"pages\": 1\n    }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Check if User Reposted Album",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/albums/{{albumId}}/reposted",
+              "host": ["{{baseUrl}}"],
+              "path": ["albums", "{{albumId}}", "reposted"]
+            },
+          "description": "Check if current user has reposted this album"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n    \"album_id\": \"65d8f7b2c1a2b3c4d5e6f7a9\",\n    \"reposted\": true\n}"
+            }
+          ]
         }
       ]
     },

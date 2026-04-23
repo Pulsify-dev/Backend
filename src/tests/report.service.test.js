@@ -7,6 +7,7 @@ import { BadRequestError } from "../utils/errors.utils.js";
 const MOCK_REPORTER_ID = "507f1f77bcf86cd799439011";
 const MOCK_TARGET_USER_ID = "607f1f77bcf86cd799439022";
 const MOCK_TRACK_ID = "707f1f77bcf86cd799439033";
+const MOCK_ALBUM_ID = "807f1f77bcf86cd799439044";
 
 describe("ReportService", () => {
   afterEach(() => sinon.restore());
@@ -39,6 +40,32 @@ describe("ReportService", () => {
       expect(result).to.have.property("_id", "report123");
       expect(result.entity_type).to.equal("Track");
       expect(result.reason).to.equal("Copyright");
+    });
+
+    it("should successfully create a report for an Album", async () => {
+      const payload = {
+        entity_type: "Album",
+        entity_id: MOCK_ALBUM_ID,
+        reason: "InappropriateContent",
+        description: "Album artwork violates policy.",
+      };
+
+      const mockCreatedReport = {
+        _id: "report-album-1",
+        reporter_id: MOCK_REPORTER_ID,
+        ...payload,
+      };
+
+      sinon.stub(reportRepository, "create").resolves(mockCreatedReport);
+
+      const result = await reportService.submitReport(
+        MOCK_REPORTER_ID,
+        payload,
+      );
+
+      expect(result).to.have.property("_id", "report-album-1");
+      expect(result.entity_type).to.equal("Album");
+      expect(result.entity_id).to.equal(MOCK_ALBUM_ID);
     });
 
     it("should throw BadRequestError if a user tries to report their own account", async () => {
