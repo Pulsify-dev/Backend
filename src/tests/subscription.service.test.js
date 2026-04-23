@@ -3,6 +3,7 @@ import sinon from "sinon";
 import subscriptionService from "../services/subscription.service.js";
 import subscriptionRepository from "../repositories/subscription.repository.js";
 import trackRepository from "../repositories/track.repository.js";
+import albumRepository from "../repositories/album.repository.js";
 import userRepository from "../repositories/user.repository.js";
 import {
   BadRequestError,
@@ -147,20 +148,22 @@ describe("SubscriptionService Unit Tests", () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(FREE_SUB);
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(FREE_PLAN_LIMIT);
       sinon.stub(trackRepository, "countByArtistId").resolves(2);
+      sinon.stub(albumRepository, "countByArtist").resolves(1);
 
       const usage = await subscriptionService.getUsageForUser(USER_ID);
 
       expect(usage.plan).to.equal("Free");
       expect(usage.usage.uploaded_tracks.used).to.equal(2);
       expect(usage.usage.uploaded_tracks.remaining).to.equal(1);
-      expect(usage.usage.albums.used).to.equal(0);
-      expect(usage.usage.albums.remaining).to.equal(2);
+      expect(usage.usage.albums.used).to.equal(1);
+      expect(usage.usage.albums.remaining).to.equal(1);
     });
 
     it("should return null remaining when limit is not an integer (unlimited)", async () => {
       sinon.stub(subscriptionRepository, "findSubscriptionByUserId").resolves(ACTIVE_PRO_SUB);
       sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(PRO_PLAN_LIMIT);
       sinon.stub(trackRepository, "countByArtistId").resolves(50);
+      sinon.stub(albumRepository, "countByArtist").resolves(10);
 
       const usage = await subscriptionService.getUsageForUser(USER_ID);
 

@@ -1,5 +1,6 @@
 import albumRepository from "../repositories/album.repository.js";
 import trackRepository from "../repositories/track.repository.js";
+import subscriptionService from "./subscription.service.js";
 import S3Utils from "../utils/s3.utils.js";
 import photoUtils from "../utils/photo.utils.js";
 import {
@@ -14,6 +15,17 @@ class AlbumService {
   async createAlbum(userId, albumData, coverFile) {
     if (!albumData.title) throw new BadRequestError("Album title is required.");
     if (!albumData.genre) throw new BadRequestError("Album genre is required.");
+
+    // ── Album creation quota ──
+    const entitlement = await subscriptionService.getPlanLimitForUser(userId);
+    if (Number.isInteger(entitlement.planLimit.album_limit)) {
+      const albumCount = await albumRepository.countByArtist(userId);
+      if (albumCount >= entitlement.planLimit.album_limit) {
+        throw new ForbiddenError(
+          `Album limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.album_limit} albums).`,
+        );
+      }
+    }
 
     if (coverFile) {
       photoUtils.validateImageFile(coverFile, MAX_COVER_BYTES);
@@ -160,6 +172,17 @@ class AlbumService {
       );
       if (alreadyInAlbum) {
         throw new BadRequestError(`Track ${trackId} is already in this album.`);
+      }
+    }
+
+    // ── Per-album track quota ──
+    const entitlement = await subscriptionService.getPlanLimitForUser(userId);
+    if (Number.isInteger(entitlement.planLimit.album_track_limit)) {
+      const newTotal = album.tracks.length + trackIds.length;
+      if (newTotal > entitlement.planLimit.album_track_limit) {
+        throw new ForbiddenError(
+          `Album track limit reached for ${entitlement.effectivePlan} plan (${entitlement.planLimit.album_track_limit} tracks per album).`,
+        );
       }
     }
 
