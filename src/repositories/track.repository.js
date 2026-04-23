@@ -58,14 +58,17 @@ const searchTracks = async (q, page, limit) => {
   return { tracks, total };
 };
 
-const findByArtistId = function (artistId, page = 1, limit = 20,extraFields = "") {
-  const filter = { artist_id: artistId, is_hidden: false };
+const findByArtistId = function (artistId, page = 1, limit = 20, extraFields = "", includeHidden = false) {
+  const filter = { artist_id: artistId };
+  if (!includeHidden) filter.is_hidden = false;
   const skip = (page - 1) * limit;
   return Track.find(filter).select(extraFields).skip(skip).limit(limit).lean();
 };
 
-const countByArtistId = function (artistId) {
-  return Track.countDocuments({ artist_id: artistId, is_hidden: false });
+const countByArtistId = function (artistId, includeHidden = false) {
+  const filter = { artist_id: artistId };
+  if (!includeHidden) filter.is_hidden = false;
+  return Track.countDocuments(filter);
 };
 
 const findByPermalinkAndArtist = function (permalink, artistId, extraFields = "") {

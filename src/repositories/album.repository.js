@@ -25,14 +25,17 @@ class AlbumRepository {
     return await Album.findByIdAndDelete(id);
   }
 
-  async findByArtist(artistId, page = 1, limit = 20) {
+  async findByArtist(artistId, page = 1, limit = 20, includeHidden = false) {
     const skip = (page - 1) * limit;
-    const albums = await Album.find({ artist_id: artistId, visibility: "public" })
+    const filter = { artist_id: artistId, visibility: "public" };
+    if (!includeHidden) filter.is_hidden = false;
+
+    const albums = await Album.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
     
-    const total = await Album.countDocuments({ artist_id: artistId, visibility: "public" });
+    const total = await Album.countDocuments(filter);
     
     return { albums, total };
   }

@@ -84,11 +84,13 @@ class AlbumService {
     return album;
   }
 
-  async getArtistAlbums(artistId, page = 1, limit = 20) {
+  async getArtistAlbums(artistId, page = 1, limit = 20, requesterId = null) {
     const parsedPage = Math.max(parseInt(page, 10) || 1, 1);
     const parsedLimit = Math.min(Math.max(parseInt(limit, 10) || 20, 1), 100);
 
-    return await albumRepository.findByArtist(artistId, parsedPage, parsedLimit);
+    const isOwner = requesterId && artistId.toString() === requesterId.toString();
+
+    return await albumRepository.findByArtist(artistId, parsedPage, parsedLimit, isOwner);
   }
 
   async updateAlbum(userId, albumId, updateData) {

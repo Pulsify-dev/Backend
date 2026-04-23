@@ -218,10 +218,13 @@ const deleteTrack = async (trackId, userId) => {
   return { message: "Track successfully deleted." };
 };
 
-const getTracksByArtistId = async (artistId, page, limit) => {
+const getTracksByArtistId = async (artistId, page, limit, requesterId = null) => {
   if (!artistId) throw new BadRequestError("Artist ID is required.");
-  const tracks = await trackRepository.findByArtistId(artistId, page, limit);
-  const total = await trackRepository.countByArtistId(artistId);
+  
+  const isOwner = requesterId && artistId.toString() === requesterId.toString();
+  
+  const tracks = await trackRepository.findByArtistId(artistId, page, limit, "", isOwner);
+  const total = await trackRepository.countByArtistId(artistId, isOwner);
   return { tracks, total };
 };
 

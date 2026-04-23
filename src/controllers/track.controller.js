@@ -67,10 +67,12 @@ const deleteTrack = async (req, res, next) => {
 // Look at the service exports and figure out what function to call instead.
 const getArtistTracks = async (req, res, next) => {
   try {
+    const requesterId = req.user?.user_id || req.user?._id || null;
     const tracks = await trackService.getTracksByArtistId(
       req.params.id,
       req.pagination.page,
-      req.pagination.limit
+      req.pagination.limit,
+      requesterId
     );
     res.status(200).json(tracks);
   } catch (err) {

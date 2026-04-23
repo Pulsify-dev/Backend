@@ -149,14 +149,22 @@ const syncAlbum = async (doc) => {
     createdAt: doc.createdAt,
   };
   
-  await searchService.indexDocument("albums", albumDoc);
+  try {
+    await searchService.indexDocument("albums", albumDoc);
+  } catch (err) {
+    console.warn(`[Search] Failed to index album ${doc._id}: ${err.message}`);
+  }
 };
 
 albumSchema.post("save", syncAlbum);
 albumSchema.post("findOneAndUpdate", syncAlbum);
 albumSchema.post("findOneAndDelete", async (doc) => {
   if (doc) {
-    await searchService.removeDocument("albums", doc._id.toString());
+    try {
+      await searchService.removeDocument("albums", doc._id.toString());
+    } catch (err) {
+      console.warn(`[Search] Failed to remove album ${doc._id}: ${err.message}`);
+    }
   }
 });
 
