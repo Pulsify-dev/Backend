@@ -37,7 +37,7 @@ class AlbumRepository {
     return { albums, total };
   }
 
-  async addTracks(albumId, trackIds) {
+  async addTracks(albumId, trackIds, totalDuration) {
     const album = await Album.findById(albumId);
     if (!album) throw new Error("Album not found");
 
@@ -50,7 +50,10 @@ class AlbumRepository {
     album.tracks.push(...newTracks);
     album.track_count = album.tracks.length;
     
-    // We would ideally calculate total_duration here by fetching track info
+    if (totalDuration !== undefined) {
+      album.total_duration = totalDuration;
+    }
+
     return await album.save();
   }
 
@@ -66,7 +69,7 @@ class AlbumRepository {
     return await album.save();
   }
 
-  async removeTrack(albumId, trackId) {
+  async removeTrack(albumId, trackId, totalDuration) {
     const album = await Album.findById(albumId);
     if (!album) throw new Error("Album not found");
 
@@ -77,6 +80,10 @@ class AlbumRepository {
     // Re-index positions
     album.tracks.forEach((t, i) => (t.position = i));
     album.track_count = album.tracks.length;
+
+    if (totalDuration !== undefined) {
+      album.total_duration = totalDuration;
+    }
 
     return await album.save();
   }
