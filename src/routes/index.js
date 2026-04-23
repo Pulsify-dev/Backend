@@ -12,6 +12,7 @@ import playlistRoutes from "./playlist.routes.js";
 import discoveryRoutes from "./discovery.routes.js";
 import notificationRoutes from "./notification.routes.js";
 import subscriptionRoutes from "./subscription.routes.js";
+import albumRoutes from "./album.routes.js";
 
 const router = Router();
 
@@ -22,7 +23,7 @@ router.use("/auth", authRoutes);
 router.use("/users", profileRoutes);
 router.use("/users", socialRoutes);
 
-// Module 4: Tracks & Artists (trackRoutes handles /tracks and /artists internally)
+// Module 4: Tracks, Artists (trackRoutes/ handle their endpoints internally)
 router.use("/", trackRoutes);
 
 // Module 5: Playback & Streaming (handles /tracks/:track_id/... and /users/me/...)
@@ -49,5 +50,8 @@ router.use("/admin", adminRoutes);
 
 // Module 12: Premium Subscriptions & Quotas
 router.use("/", subscriptionRoutes);
+
+// Module 13: Albums
+router.use("/", albumRoutes);
 
 export default router;
