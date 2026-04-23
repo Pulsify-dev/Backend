@@ -1,0 +1,686 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "13. 💿 Albums",
+		"description": "Create and manage music albums, EPs, and singles. Artists can group tracks into albums, reorder them, and manage artwork. All album artwork is stored in AWS S3 under `albums/artwork/`.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Album Management (Artist Only)",
+			"item": [
+				{
+					"name": "1. Create Album",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "title",
+									"value": "My Awesome Album",
+									"type": "text"
+								},
+								{
+									"key": "genre",
+									"value": "Electronic",
+									"type": "text"
+								},
+								{
+									"key": "description",
+									"value": "This is a description of my album.",
+									"type": "text"
+								},
+								{
+									"key": "type",
+									"value": "Album",
+									"type": "text"
+								},
+								{
+									"key": "visibility",
+									"value": "public",
+									"type": "text"
+								},
+								{
+									"key": "artwork",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/albums",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums"
+							]
+						},
+						"description": "## 1. Create Album\n\nCreates a new album shell. Artwork is uploaded to AWS S3. Tracks are added separately after the album is created.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Album Created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "title",
+											"value": "My Awesome Album",
+											"type": "text"
+										},
+										{
+											"key": "genre",
+											"value": "Electronic",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/albums",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums"
+									]
+								}
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"This is a description of my album.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T16:50:42.000Z\",\n    \"__v\": 0\n}"
+						}
+					]
+				},
+				{
+					"name": "2. Update Album Metadata",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"title\": \"My Updated Album Title\",\n    \"description\": \"Updated description.\",\n    \"visibility\": \"private\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								}
+							]
+						},
+						"description": "## 2. Update Album Metadata\n\nUpdates metadata fields like title, description, or visibility. Only the artist can update their own album.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Album Updated",
+							"originalRequest": {
+								"method": "PATCH",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"title\": \"My Updated Album Title\"\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Updated Album Title\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"Updated description.\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"2024-04-12T16:50:42.000Z\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/default-album-artwork.png\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"private\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:00:00.000Z\",\n    \"__v\": 0\n}"
+						}
+					]
+				},
+				{
+					"name": "3. Update Album Artwork",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "artwork",
+									"type": "file",
+									"src": []
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id/artwork",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id",
+								"artwork"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								}
+							]
+						},
+						"description": "## 3. Update Album Artwork\n\nReplaces the existing album artwork with a new file. Old artwork is deleted from S3.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Artwork Updated",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "artwork",
+											"type": "file"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id/artwork",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id",
+										"artwork"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Updated Album Title\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"artwork_url\": \"https://pulsify-bucket.s3.amazonaws.com/albums/artwork/new-artwork.jpg\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"total_duration\": 0,\n    \"visibility\": \"private\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"2024-04-12T16:50:42.000Z\",\n    \"updatedAt\": \"2024-04-12T17:05:00.000Z\",\n    \"__v\": 0\n}"
+						}
+					]
+				},
+				{
+					"name": "4. Delete Album",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								}
+							]
+						},
+						"description": "## 4. Delete Album\n\nPermanently deletes the album and its artwork from S3. Tracks remain in the database but are no longer associated with this album.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Album Deleted",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"message\": \"Album deleted successfully.\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Track Management (Artist Only)",
+			"item": [
+				{
+					"name": "5. Add Tracks to Album",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"track_ids\": [\"6619223e78f99e39626639c5\", \"6619223e78f99e39626639c6\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id/tracks",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id",
+								"tracks"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								}
+							]
+						},
+						"description": "## 5. Add Tracks\n\nAdds existing tracks to the album. Tracks must belong to the same artist.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Tracks Added",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"track_ids\": [\"6619223e78f99e39626639c5\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id/tracks",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id",
+										"tracks"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"tracks\": [\n        {\n            \"track_id\": {\n                \"_id\": \"6619223e78f99e39626639c5\",\n                \"title\": \"Track 1\",\n                \"duration\": 180,\n                \"audio_url\": \"...\"\n            },\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"createdAt\": \"...\",\n    \"updatedAt\": \"...\"\n}"
+						}
+					]
+				},
+				{
+					"name": "6. Reorder Tracks",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ordered_ids\": [\"6619223e78f99e39626639c6\", \"6619223e78f99e39626639c5\"]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id/tracks/order",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id",
+								"tracks",
+								"order"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								}
+							]
+						},
+						"description": "## 6. Reorder Tracks\n\nUpdates the position of tracks within the album based on the provided array of IDs.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Tracks Reordered",
+							"originalRequest": {
+								"method": "PUT",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"ordered_ids\": [\"6619223e78f99e39626639c6\", \"6619223e78f99e39626639c5\"]\n}"
+								},
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id/tracks/order",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id",
+										"tracks",
+										"order"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"tracks\": [\n        { \"track_id\": \"6619223e78f99e39626639c6\", \"position\": 0 },\n        { \"track_id\": \"6619223e78f99e39626639c5\", \"position\": 1 }\n    ],\n    \"track_count\": 2,\n    \"updatedAt\": \"...\"\n}"
+						}
+					]
+				},
+				{
+					"name": "7. Remove Track from Album",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id/tracks/:trackId",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id",
+								"tracks",
+								":trackId"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								},
+								{
+									"key": "trackId",
+									"value": "6619223e78f99e39626639c5"
+								}
+							]
+						},
+						"description": "## 7. Remove Track\n\nRemoves a track from the album. The track remains in the database.\n\n**Authentication:** Required"
+					},
+					"response": [
+						{
+							"name": "Track Removed",
+							"originalRequest": {
+								"method": "DELETE",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id/tracks/:trackId",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id",
+										"tracks",
+										":trackId"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										},
+										{
+											"key": "trackId",
+											"value": "6619223e78f99e39626639c5"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"tracks\": [],\n    \"track_count\": 0,\n    \"updatedAt\": \"...\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Retrieval & Discovery (Public)",
+			"item": [
+				{
+					"name": "8. Get Album by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/albums/:id",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"albums",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "66196602325e8360f0896263"
+								}
+							]
+						},
+						"description": "## 8. Get Album by ID\n\nRetrieves full album details, including populated track information. Private albums require the artist's token.\n\n**Authentication:** Optional"
+					},
+					"response": [
+						{
+							"name": "Album Details",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/albums/:id",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"albums",
+										":id"
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "66196602325e8360f0896263"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"_id\": \"66196602325e8360f0896263\",\n    \"artist_id\": \"6619223e78f99e39626639c0\",\n    \"title\": \"My Awesome Album\",\n    \"permalink\": \"my-awesome-album-a1b2c3d4\",\n    \"description\": \"...\",\n    \"genre\": \"Electronic\",\n    \"type\": \"Album\",\n    \"release_date\": \"...\",\n    \"artwork_url\": \"...\",\n    \"tracks\": [\n        {\n            \"track_id\": {\n                \"_id\": \"6619223e78f99e39626639c5\",\n                \"artist_id\": \"6619223e78f99e39626639c0\",\n                \"title\": \"Track 1\",\n                \"permalink\": \"track-1-xyz\",\n                \"description\": \"...\",\n                \"genre\": \"Electronic\",\n                \"tags\": [\"cool\", \"vibe\"],\n                \"release_date\": \"...\",\n                \"audio_url\": \"...\",\n                \"artwork_url\": \"...\",\n                \"format\": \"mp3\",\n                \"duration\": 180,\n                \"file_size_bytes\": 5000000,\n                \"bitrate\": 192,\n                \"status\": \"finished\",\n                \"visibility\": \"public\",\n                \"playback_state\": \"playable\",\n                \"preview_start_seconds\": 0,\n                \"is_hidden\": false,\n                \"play_count\": 100,\n                \"like_count\": 10,\n                \"repost_count\": 2,\n                \"comment_count\": 5,\n                \"createdAt\": \"...\",\n                \"updatedAt\": \"...\"\n            },\n            \"position\": 0,\n            \"_id\": \"66196602325e8360f0896264\"\n        }\n    ],\n    \"track_count\": 1,\n    \"total_duration\": 180,\n    \"visibility\": \"public\",\n    \"is_hidden\": false,\n    \"play_count\": 0,\n    \"like_count\": 0,\n    \"repost_count\": 0,\n    \"createdAt\": \"...\",\n    \"updatedAt\": \"...\",\n    \"__v\": 0\n}"
+						}
+					]
+				},
+				{
+					"name": "9. Get Artist Albums",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/artists/:id/albums?page=1&limit=20",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"artists",
+								":id",
+								"albums"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "6619223e78f99e39626639c0"
+								}
+							]
+						},
+						"description": "## 9. Get Artist Albums\n\nRetrieves a list of public albums by a specific artist. Results are paginated.\n\n**Authentication:** Not required"
+					},
+					"response": [
+						{
+							"name": "Artist Albums List",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{baseUrl}}/artists/:id/albums?page=1&limit=20",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"artists",
+										":id",
+										"albums"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "1"
+										},
+										{
+											"key": "limit",
+											"value": "20"
+										}
+									],
+									"variable": [
+										{
+											"key": "id",
+											"value": "6619223e78f99e39626639c0"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [],
+							"cookie": [],
+							"body": "{\n    \"albums\": [\n        {\n            \"_id\": \"66196602325e8360f0896263\",\n            \"artist_id\": \"6619223e78f99e39626639c0\",\n            \"title\": \"My Awesome Album\",\n            \"permalink\": \"my-awesome-album-a1b2c3d4\",\n            \"artwork_url\": \"...\",\n            \"track_count\": 1,\n            \"visibility\": \"public\",\n            \"createdAt\": \"...\"\n        }\n    ],\n    \"total\": 1\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

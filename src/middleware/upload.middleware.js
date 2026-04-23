@@ -66,6 +66,12 @@ export const trackArtworkUpload = multer({
   fileFilter: imageFileFilter,
 }).single("file");
 
+export const albumArtworkUpload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB for album covers
+  fileFilter: imageFileFilter,
+}).single("file");
+
 export const trackUpload = multer({
   storage,
   limits: { fileSize: 30 * 1024 * 1024 }, // 30 MB
