@@ -11,6 +11,7 @@ import adminRoutes from "./admin.routes.js";
 import playlistRoutes from "./playlist.routes.js";
 import discoveryRoutes from "./discovery.routes.js";
 import notificationRoutes from "./notification.routes.js";
+import subscriptionRoutes from "./subscription.routes.js";
 
 const router = Router();
 
