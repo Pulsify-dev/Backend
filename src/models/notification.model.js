@@ -15,7 +15,7 @@ const notificationSchema = new mongoose.Schema(
     },
     entity_type: {
       type: String,
-      enum: ["Track", "Comment", "Follow", "Playlist", "Message"],
+      enum: ["Track", "Album", "Comment", "Follow", "Playlist", "Message"],
       required: true,
     },
     entity_id: {
