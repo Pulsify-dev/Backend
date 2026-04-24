@@ -129,6 +129,39 @@ const getAnalytics = async (req, res, next) => {
   }
 };
 
+const getUsers = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const { page, limit } = req.pagination;
+    const data = await adminService.getUsers(status, page, limit);
+    res.status(200).json({ status: "success", data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTracks = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const { page, limit } = req.pagination;
+    const data = await adminService.getTracks(status, page, limit);
+    res.status(200).json({ status: "success", data });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAlbums = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+    const { page, limit } = req.pagination;
+    const data = await adminService.getAlbums(status, page, limit);
+    res.status(200).json({ status: "success", data });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   suspendUser,
   restoreUser,
@@ -142,4 +175,7 @@ export default {
   deleteAlbum,
   updateUserRole,
   getAnalytics,
+  getUsers,
+  getTracks,
+  getAlbums,
 };
