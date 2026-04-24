@@ -17,5 +17,16 @@ router.patch("/reports/:id/resolve", adminController.resolveReport);
 
 router.put("/users/:id/suspend", adminController.suspendUser);
 router.put("/users/:id/restore", adminController.restoreUser);
+router.patch("/users/:id/role", adminController.updateUserRole);
+
+router.patch("/tracks/:id/block", adminController.blockTrack);
+router.patch("/tracks/:id/unblock", adminController.unblockTrack);
+router.delete("/tracks/:id", adminController.deleteTrack);
+
+router.patch("/albums/:id/block", adminController.blockAlbum);
+router.patch("/albums/:id/unblock", adminController.unblockAlbum);
+router.delete("/albums/:id", adminController.deleteAlbum);
+
+router.get("/analytics", adminController.getAnalytics);
 
 export default router;
