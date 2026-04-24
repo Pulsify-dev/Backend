@@ -251,7 +251,7 @@ class AlbumService {
     // Delete old artwork if it's not the default
     if (
       album.artwork_url &&
-      !album.artwork_url.includes("default-album-artwork.png")
+      !album.artwork_url.includes("Default.png")
     ) {
       await S3Utils.deleteFromS3(album.artwork_url).catch((err) =>
         console.error(`[S3] Failed to delete old album artwork: ${err.message}`)
@@ -272,7 +272,7 @@ class AlbumService {
     // Delete artwork from S3
     if (
       album.artwork_url &&
-      !album.artwork_url.includes("default-album-artwork.png")
+      !album.artwork_url.includes("Default.png")
     ) {
       await S3Utils.deleteFromS3(album.artwork_url).catch((err) =>
         console.error(`[S3] Failed to delete album artwork: ${err.message}`)

@@ -133,7 +133,7 @@ class AuthService {
           email,
           username: generatedUsername,
           display_name: displayName || generatedUsername,
-          avatar_url: avatarUrl || "avatar-url.png",
+          avatar_url: avatarUrl || "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png",
           is_verified: true,
           tier: "Free",
         };

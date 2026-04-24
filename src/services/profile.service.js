@@ -149,7 +149,7 @@ const uploadProfileImage = async (userId, file, type) => {
   // Determine S3 folder and which DB field to update
   const folder = type === "avatar" ? "users/avatars" : "users/covers";
   const urlField = type === "avatar" ? "avatar_url" : "cover_url";
-  const defaultPlaceholder = type === "avatar" ? "avatar-url.png" : "cover-url.png";
+  const defaultPlaceholder = "Default.png";
 
   // Delete old image from S3 (skip if it's the default placeholder)
   const user = await userRepository.findById(userId);

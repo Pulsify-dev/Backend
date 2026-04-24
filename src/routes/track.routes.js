@@ -20,6 +20,6 @@ router.get("/tracks/:id/lyrics", authMiddleware.requireAuth, trackController.get
 router.put("/tracks/:id/artwork", authMiddleware.requireAuth, trackArtworkUpload, trackController.updateArtwork);
 router.patch("/tracks/:id", authMiddleware.requireAuth, trackController.updateTrack);
 router.delete("/tracks/:id", authMiddleware.requireAuth, trackController.deleteTrack);
-router.get("/artists/:id/tracks", authMiddleware.requireAuth, paginationMiddleware.paginate, trackController.getArtistTracks);
+router.get("/artists/:id/tracks", authMiddleware.optionalAuth, paginationMiddleware.paginate, trackController.getArtistTracks);
 
 export default router;

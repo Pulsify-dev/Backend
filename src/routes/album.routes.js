@@ -79,6 +79,7 @@ router.get(
 // Get all albums by a specific artist
 router.get(
   "/artists/:id/albums",
+  authMiddleware.optionalAuth,
   paginationMiddleware.paginate,
   albumController.getArtistAlbums
 );

@@ -228,7 +228,7 @@ const deleteTrack = async (trackId, userId) => {
     throw new ForbiddenError("You are not the owner of this track.");
   }
   // Delete audio and artwork from S3
-  if (track.artwork_url && !track.artwork_url.includes("default-artwork")) {
+  if (track.artwork_url && !track.artwork_url.includes("Default.png")) {
     await S3Utils.deleteFromS3(track.artwork_url);
   }
   await S3Utils.deleteFromS3(track.audio_url);
@@ -285,7 +285,7 @@ const updateArtwork = async (trackId, userId, artworkFile) => {
   }
 
   // Delete old artwork from S3 (if not default)
-  if (track.artwork_url && !track.artwork_url.includes("default-artwork")) {
+  if (track.artwork_url && !track.artwork_url.includes("Default.png")) {
     await S3Utils.deleteFromS3(track.artwork_url);
   }
 
