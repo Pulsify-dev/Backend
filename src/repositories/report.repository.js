@@ -27,8 +27,18 @@ const updateById = async (id, updateData) => {
   });
 };
 
+const getReportStats = async () => {
+  const [pending, resolved, dismissed] = await Promise.all([
+    Report.countDocuments({ status: "Pending" }),
+    Report.countDocuments({ status: "Resolved" }),
+    Report.countDocuments({ status: "Dismissed" }),
+  ]);
+  return { pending, resolved, dismissed, total: pending + resolved + dismissed };
+};
+
 export default {
   create,
   findPaginated,
   updateById,
+  getReportStats,
 };
