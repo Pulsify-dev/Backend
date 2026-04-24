@@ -53,9 +53,93 @@ const resolveReport = async (req, res, next) => {
   }
 };
 
+const blockTrack = async (req, res, next) => {
+  try {
+    const track = await adminService.blockTrack(req.params.id);
+    res.status(200).json({ status: "success", message: "Track blocked", data: { track } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const unblockTrack = async (req, res, next) => {
+  try {
+    const track = await adminService.unblockTrack(req.params.id);
+    res.status(200).json({ status: "success", message: "Track unblocked", data: { track } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteTrack = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteTrack(req.params.id);
+    res.status(200).json({ status: "success", message: result.message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const blockAlbum = async (req, res, next) => {
+  try {
+    const album = await adminService.blockAlbum(req.params.id);
+    res.status(200).json({ status: "success", message: "Album blocked", data: { album } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const unblockAlbum = async (req, res, next) => {
+  try {
+    const album = await adminService.unblockAlbum(req.params.id);
+    res.status(200).json({ status: "success", message: "Album unblocked", data: { album } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteAlbum = async (req, res, next) => {
+  try {
+    const result = await adminService.deleteAlbum(req.params.id);
+    res.status(200).json({ status: "success", message: result.message });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const updateUserRole = async (req, res, next) => {
+  try {
+    const adminId = req.user.user_id;
+    const targetUserId = req.params.id;
+    const { role } = req.body;
+    
+    const user = await adminService.updateUserRole(adminId, targetUserId, role);
+    res.status(200).json({ status: "success", message: "User role updated", data: { user } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getAnalytics = async (req, res, next) => {
+  try {
+    const analytics = await adminService.getAnalytics();
+    res.status(200).json({ status: "success", data: analytics });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   suspendUser,
   restoreUser,
   getReports,
   resolveReport,
+  blockTrack,
+  unblockTrack,
+  deleteTrack,
+  blockAlbum,
+  unblockAlbum,
+  deleteAlbum,
+  updateUserRole,
+  getAnalytics,
 };
