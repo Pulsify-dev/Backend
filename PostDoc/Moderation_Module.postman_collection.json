@@ -558,6 +558,126 @@
         },
         "description": "Gets platform analytics (Total users, storage usage, and play-through rates)."
       }
+    },
+    {
+      "name": "14. Get Users List (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/users?page=1&limit=20&status=suspended",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "users"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Pagination page number."
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Items per page."
+            },
+            {
+              "key": "status",
+              "value": "suspended",
+              "description": "Filter by status (e.g., suspended)."
+            }
+          ]
+        },
+        "description": "Retrieves a paginated list of users. Can be filtered by suspended status."
+      }
+    },
+    {
+      "name": "15. Get Tracks List (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/tracks?page=1&limit=20&status=blocked",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "tracks"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Pagination page number."
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Items per page."
+            },
+            {
+              "key": "status",
+              "value": "blocked",
+              "description": "Filter by playback_state (e.g., blocked)."
+            }
+          ]
+        },
+        "description": "Retrieves a paginated list of tracks. Can be filtered by blocked status."
+      }
+    },
+    {
+      "name": "16. Get Albums List (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/albums?page=1&limit=20&status=hidden",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "albums"
+          ],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Pagination page number."
+            },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Items per page."
+            },
+            {
+              "key": "status",
+              "value": "hidden",
+              "description": "Filter by is_hidden (e.g., hidden)."
+            }
+          ]
+        },
+        "description": "Retrieves a paginated list of albums. Can be filtered by hidden status."
+      }
     }
   ]
 }
