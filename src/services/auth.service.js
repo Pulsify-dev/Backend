@@ -69,6 +69,10 @@ class AuthService {
     if (user.is_suspended)
       throw new ForbiddenError("Forbidden: Suspended account.");
 
+    if (!user.is_verified) {
+      throw new ForbiddenError("Please verify your email address before logging in.");
+    }
+
     const isPasswordValid = await user.comparePassword(password, user.password);
     if (!isPasswordValid) throw new UnauthorizedError("Invalid credentials.");
 
