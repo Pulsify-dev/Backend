@@ -100,6 +100,32 @@ const addDeviceToken = function (userId, token) {
   );
 };
 
+const getUserAdminStats = async () => {
+  const [total_active_users, total_active_admins, total_suspended, tier_free, tier_pro] = await Promise.all([
+    User.countDocuments({ is_suspended: false, role: "User" }),
+    User.countDocuments({ is_suspended: false, role: "Admin" }),
+    User.countDocuments({ is_suspended: true }),
+    User.countDocuments({ tier: "Free" }),
+    User.countDocuments({ tier: "Artist Pro" }),
+  ]);
+  return { total_active_users, total_active_admins, total_suspended, tier_free, tier_pro };
+};
+
+const findPaginatedUsers = async (filter, page, limit) => {
+  const skip = (page - 1) * limit;
+  const [users, total] = await Promise.all([
+    User.find(filter)
+      .select("username display_name email role tier is_suspended is_verified createdAt")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .lean(),
+    User.countDocuments(filter),
+  ]);
+  return { users, total };
+};
+
+
 export default {
   findById,
   updateById,
@@ -117,4 +143,6 @@ export default {
   findByEmail,
   findByUsername,
   addDeviceToken,
+  getUserAdminStats,
+  findPaginatedUsers,
 };
