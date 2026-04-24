@@ -120,6 +120,14 @@ const invalidateTrackCache = async (trackId) => {
   await cache.del(`track:${trackId}`);
 };
 
+const getTotalStorageUsage = async () => {
+  const [result] = await Track.aggregate([
+    { $group: { _id: null, total_bytes: { $sum: "$file_size_bytes" } } },
+  ]);
+  return result?.total_bytes || 0;
+};
+
+
 const hideOldestTracks = async (artistId, keepCount) => {
   const tracksToHide = await Track.find({ artist_id: artistId, is_hidden: false })
     .sort({ createdAt: -1 })
@@ -160,7 +168,7 @@ export default {
   findTrending,
   findCharts,
   invalidateTrackCache,
+  getTotalStorageUsage,
   hideOldestTracks,
   unhideAllTracks,
 };
-
