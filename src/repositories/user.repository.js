@@ -100,6 +100,15 @@ const addDeviceToken = function (userId, token) {
   );
 };
 
+const getActiveUserCounts = async () => {
+  const [users, admins] = await Promise.all([
+    User.countDocuments({ is_suspended: false, role: "User" }),
+    User.countDocuments({ is_suspended: false, role: "Admin" }),
+  ]);
+  return { users, admins };
+};
+
+
 export default {
   findById,
   updateById,
@@ -117,4 +126,5 @@ export default {
   findByEmail,
   findByUsername,
   addDeviceToken,
+  getActiveUserCounts,
 };
