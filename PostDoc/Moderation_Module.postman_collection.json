@@ -10,8 +10,14 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{accessToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -19,8 +25,12 @@
         },
         "url": {
           "raw": "{{baseUrl}}/reports",
-          "host": ["{{baseUrl}}"],
-          "path": ["reports"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "reports"
+          ]
         },
         "description": "## 1. Create Report\n\nAllows a registered user to flag a Track, Album, User, or Comment for moderation. Users cannot report their own entities.\n\n**Authentication:** Required (User)\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `entity_type` | String | Yes | Enum: `Track`, `Album`, `User`, `Comment`. |\n| `entity_id` | String | Yes | The MongoDB ObjectId of the entity being reported. |\n| `reason` | String | Yes | Enum: `Copyright`, `InappropriateContent`, `Spam`, `HateSpeech`, `Other`. |\n| `description` | String | No | Optional context provided by the user (Max 500 chars). |"
       },
@@ -30,7 +40,12 @@
           "status": "Created",
           "code": 201,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"report\": {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"reporter_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"entity_type\": \"Album\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"reason\": \"Copyright\",\n            \"description\": \"This album illegally reuses my artwork and audio without permission.\",\n            \"status\": \"Pending\",\n            \"createdAt\": \"2026-04-13T10:00:00.000Z\",\n            \"updatedAt\": \"2026-04-13T10:00:00.000Z\",\n            \"__v\": 0\n        }\n    }\n}"
         },
@@ -39,7 +54,12 @@
           "status": "Bad Request",
           "code": 400,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"You cannot report your own account.\"\n}"
         }
@@ -50,20 +70,35 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/admin/reports?page=1&limit=20&status=Pending",
-          "host": ["{{baseUrl}}"],
-          "path": ["admin", "reports"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "reports"
+          ],
           "query": [
             {
               "key": "page",
               "value": "1",
               "description": "Pagination page number."
             },
-            { "key": "limit", "value": "20", "description": "Items per page." },
+            {
+              "key": "limit",
+              "value": "20",
+              "description": "Items per page."
+            },
             {
               "key": "status",
               "value": "Pending",
@@ -79,7 +114,12 @@
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"reports\": [\n            {\n                \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n                \"reporter_id\": {\n                    \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                    \"username\": \"johndoe\",\n                    \"email\": \"johndoe@example.com\"\n                },\n                \"entity_type\": \"Album\",\n                \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n                \"reason\": \"Copyright\",\n                \"description\": \"This album illegally reuses my artwork and audio without permission.\",\n                \"status\": \"Pending\",\n                \"admin_notes\": \"\",\n                \"createdAt\": \"2026-04-13T10:00:00.000Z\",\n                \"updatedAt\": \"2026-04-13T10:00:00.000Z\",\n                \"__v\": 0\n            }\n        ],\n        \"total\": 1\n    }\n}"
         },
@@ -88,7 +128,12 @@
           "status": "Forbidden",
           "code": 403,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"error\": \"Forbidden: Admin access only.\"\n}"
         }
@@ -99,8 +144,14 @@
       "request": {
         "method": "PATCH",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
@@ -108,8 +159,15 @@
         },
         "url": {
           "raw": "{{baseUrl}}/admin/reports/:id/resolve",
-          "host": ["{{baseUrl}}"],
-          "path": ["admin", "reports", ":id", "resolve"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "reports",
+            ":id",
+            "resolve"
+          ],
           "variable": [
             {
               "key": "id",
@@ -126,7 +184,12 @@
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"success\",\n    \"data\": {\n        \"report\": {\n            \"_id\": \"65e2b3c4d5e6f7a8b9c0d1e2\",\n            \"entity_type\": \"Album\",\n            \"entity_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"reason\": \"Copyright\",\n            \"description\": \"This album illegally reuses my artwork and audio without permission.\",\n            \"status\": \"Dismissed\",\n            \"admin_notes\": \"Reviewed the album report. No action taken.\",\n            \"updatedAt\": \"2026-04-13T11:00:00.000Z\"\n        }\n    }\n}"
         },
@@ -135,7 +198,12 @@
           "status": "Not Found",
           "code": 404,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"fail\",\n    \"message\": \"Report not found.\"\n}"
         }
@@ -146,13 +214,26 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/admin/users/:id/suspend",
-          "host": ["{{baseUrl}}"],
-          "path": ["admin", "users", ":id", "suspend"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "users",
+            ":id",
+            "suspend"
+          ],
           "variable": [
             {
               "key": "id",
@@ -169,7 +250,12 @@
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"success\",\n    \"message\": \"User suspended\",\n    \"data\": {\n        \"user\": {\n            \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"username\": \"johndoe\",\n            \"is_suspended\": true\n        }\n    }\n}"
         }
@@ -180,13 +266,26 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{adminToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/admin/users/:id/restore",
-          "host": ["{{baseUrl}}"],
-          "path": ["admin", "users", ":id", "restore"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "users",
+            ":id",
+            "restore"
+          ],
           "variable": [
             {
               "key": "id",
@@ -203,11 +302,262 @@
           "status": "OK",
           "code": 200,
           "_postman_previewlanguage": "json",
-          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
           "cookie": [],
           "body": "{\n    \"status\": \"success\",\n    \"message\": \"User restored\",\n    \"data\": {\n        \"user\": {\n            \"_id\": \"64f1a2b3c4d5e6f7a8b9c0d1\",\n            \"username\": \"johndoe\",\n            \"is_suspended\": false\n        }\n    }\n}"
         }
       ]
+    },
+    {
+      "name": "6. Block Track (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/tracks/:id/block",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "tracks",
+            ":id",
+            "block"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Blocks a track, making it unplayable across the platform."
+      }
+    },
+    {
+      "name": "7. Unblock Track (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/tracks/:id/unblock",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "tracks",
+            ":id",
+            "unblock"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Restores a blocked track, making it playable again."
+      }
+    },
+    {
+      "name": "8. Delete Track (Admin)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/tracks/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "tracks",
+            ":id"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Permanently deletes a track and its S3 assets."
+      }
+    },
+    {
+      "name": "9. Block Album (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/albums/:id/block",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "albums",
+            ":id",
+            "block"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Blocks an album (hides it), making it invisible across the platform."
+      }
+    },
+    {
+      "name": "10. Unblock Album (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/albums/:id/unblock",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "albums",
+            ":id",
+            "unblock"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Restores a blocked album, making it visible again."
+      }
+    },
+    {
+      "name": "11. Delete Album (Admin)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/albums/:id",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "albums",
+            ":id"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Permanently deletes an album and its S3 artwork."
+      }
+    },
+    {
+      "name": "12. Update User Role (Admin)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"role\": \"Admin\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/admin/users/:id/role",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "users",
+            ":id",
+            "role"
+          ],
+          "variable": [
+            {
+              "key": "id",
+              "value": "64f1a2b3c4d5e6f7a8b9c0d1"
+            }
+          ]
+        },
+        "description": "Updates a user's role to Admin or User."
+      }
+    },
+    {
+      "name": "13. Get Analytics (Admin)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{adminToken}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/admin/analytics",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "admin",
+            "analytics"
+          ]
+        },
+        "description": "Gets platform analytics (Total users, storage usage, and play-through rates)."
+      }
     }
   ]
 }
