@@ -126,18 +126,51 @@ const updateUserRole = async (adminId, targetUserId, role) => {
 };
 
 const getAnalytics = async () => {
-  const [activeUserCounts, storageUsage, playStats] = await Promise.all([
-    userRepository.getActiveUserCounts(),
+  const [userAdminStats, storageUsage, playStats, trackStats, albumStats, reportStats] = await Promise.all([
+    userRepository.getUserAdminStats(),
     trackRepository.getTotalStorageUsage(),
     playHistoryRepository.getPlatformPlayStats(),
+    trackRepository.getTrackModerationStats(),
+    albumRepository.getAlbumModerationStats(),
+    reportRepository.getReportStats(),
   ]);
 
   return {
-    total_active_users: activeUserCounts.users,
-    total_active_admins: activeUserCounts.admins,
-    total_storage_bytes: storageUsage,
-    play_statistics: playStats,
+    users: userAdminStats,
+    content_moderation: {
+      hidden_tracks: trackStats.total_blocked,
+      hidden_albums: albumStats.total_hidden,
+    },
+    reports: reportStats,
+    platform: {
+      total_storage_bytes: storageUsage,
+      play_statistics: playStats,
+    }
   };
+};
+
+const getUsers = async (status, page, limit) => {
+  const filter = {};
+  if (status === "suspended") {
+    filter.is_suspended = true;
+  }
+  return await userRepository.findPaginatedUsers(filter, page, limit);
+};
+
+const getTracks = async (status, page, limit) => {
+  const filter = {};
+  if (status === "blocked") {
+    filter.playback_state = "blocked";
+  }
+  return await trackRepository.findPaginatedTracks(filter, page, limit);
+};
+
+const getAlbums = async (status, page, limit) => {
+  const filter = {};
+  if (status === "hidden") {
+    filter.is_hidden = true;
+  }
+  return await albumRepository.findPaginatedAlbums(filter, page, limit);
 };
 
 export default {
@@ -153,4 +186,7 @@ export default {
   deleteAlbum,
   updateUserRole,
   getAnalytics,
+  getUsers,
+  getTracks,
+  getAlbums,
 };
