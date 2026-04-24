@@ -127,6 +127,27 @@ const getTotalStorageUsage = async () => {
   return result?.total_bytes || 0;
 };
 
+const getTrackModerationStats = async () => {
+  const total_blocked = await Track.countDocuments({ playback_state: "blocked" });
+  return { total_blocked };
+};
+
+const findPaginatedTracks = async (filter, page, limit) => {
+  const skip = (page - 1) * limit;
+  const [tracks, total] = await Promise.all([
+    Track.find(filter)
+      .select("title artist_id playback_state is_hidden visibility createdAt file_size_bytes")
+      .populate("artist_id", "username email")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .lean(),
+    Track.countDocuments(filter),
+  ]);
+  return { tracks, total };
+};
+
+
 
 const hideOldestTracks = async (artistId, keepCount) => {
   const tracksToHide = await Track.find({ artist_id: artistId, is_hidden: false })
@@ -169,6 +190,8 @@ export default {
   findCharts,
   invalidateTrackCache,
   getTotalStorageUsage,
+  getTrackModerationStats,
+  findPaginatedTracks,
   hideOldestTracks,
   unhideAllTracks,
 };
