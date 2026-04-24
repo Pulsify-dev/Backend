@@ -131,4 +131,5 @@ jobs:
               -v /home/pulsify/${{ secrets.FIREBASE_KEY_NAME }}:/usr/src/app/src/config/firebase-service-account.json \
               -e GOOGLE_APPLICATION_CREDENTIALS=/usr/src/app/src/config/firebase-service-account.json \
               ${{ secrets.DOCKER_HUB_USERNAME }}/pulsify-backend:latest
-
+            sudo docker image prune -f
+  
