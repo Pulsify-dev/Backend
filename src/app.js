@@ -3,7 +3,9 @@ import mongoose from "mongoose";
 import cors from "cors";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import RedisStore from "rate-limit-redis";
 import errorMiddleware from "./middleware/error.middleware.js";
+import redisClient from "./config/redis.js";
 import routes from "./routes/index.js";
 const app = express();
 
@@ -57,6 +59,12 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Use Redis store if Redis is available, otherwise falls back to memory store
+  ...(redisClient && {
+    store: new RedisStore({
+      sendCommand: (...args) => redisClient.call(...args),
+    }),
+  }),
 });
 
 app.use("/v1", apiLimiter, routes);
