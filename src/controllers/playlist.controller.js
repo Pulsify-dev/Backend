@@ -1,4 +1,5 @@
 import playlistService from "../services/playlist.service.js";
+import s3Utils from "../utils/s3.utils.js";
 
 const createPlaylist = async (req, res, next) => {
   try {
@@ -19,10 +20,19 @@ const createPlaylist = async (req, res, next) => {
       });
     }
 
+    let cover_url = null;
+
+    // Upload cover image if provided
+    if (req.file) {
+      const folderPath = `playlists/${userId}`;
+      cover_url = await s3Utils.uploadToS3(req.file, folderPath);
+    }
+
     const playlist = await playlistService.createPlaylist(userId, {
       title,
       description,
       is_private: is_private ?? false,
+      cover_url,
     });
 
     res.status(201).json({

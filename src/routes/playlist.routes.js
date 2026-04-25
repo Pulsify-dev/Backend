@@ -2,6 +2,7 @@ import { Router } from "express";
 import playlistController from "../controllers/playlist.controller.js";
 import authMiddleware from "../middleware/auth.middleware.js";
 import playlistValidation from "../middleware/playlist.validation.middleware.js";
+import { coverUpload } from "../middleware/upload.middleware.js";
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.get("/:playlistId", playlistController.getPlaylist);
 router.post(
   "/",
   authMiddleware.requireAuth,
+  coverUpload,
   playlistValidation.validateCreatePlaylist,
   playlistController.createPlaylist
 );
