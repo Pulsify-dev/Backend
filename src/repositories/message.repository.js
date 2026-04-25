@@ -1,7 +1,7 @@
 import Message from "../models/message.model.js";
 
 const findById = function (id, extraFields = "") {
-	return Message.findById(id).select(extraFields);
+  return Message.findById(id).select(extraFields).lean();
 };
 
 const createMessage = function (messageData) {

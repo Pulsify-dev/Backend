@@ -6,12 +6,13 @@ class AlbumRepository {
   }
 
   async findById(id) {
-    return await Album.findById(id).populate("tracks.track_id");
+    return await Album.findById(id).populate("tracks.track_id").lean();
   }
 
   async findByPermalink(artistId, permalink) {
     return await Album.findOne({ artist_id: artistId, permalink })
-      .populate("tracks.track_id");
+      .populate("tracks.track_id")
+      .lean();
   }
 
   async update(id, updateData) {
@@ -33,7 +34,8 @@ class AlbumRepository {
     const albums = await Album.find(filter)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit);
+      .limit(limit)
+      .lean();
     
     const total = await Album.countDocuments(filter);
     
