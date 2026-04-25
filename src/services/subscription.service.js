@@ -56,11 +56,22 @@ const downgradeSubscriptionToFree = async (userId) => {
 	try {
 		const freeLimits = await subscriptionRepository.findPlanLimitByPlan(FREE_PLAN);
 		if (freeLimits) {
-			if (Number.isInteger(freeLimits.upload_track_limit)) {
-				await trackRepository.hideOldestTracks(userId, freeLimits.upload_track_limit);
-			}
 			if (Number.isInteger(freeLimits.album_limit)) {
+				// Hide oldest albums first to establish which albums are visible
 				await albumRepository.hideOldestAlbums(userId, freeLimits.album_limit);
+			}
+
+			if (Number.isInteger(freeLimits.upload_track_limit)) {
+				// Fetch the track IDs from the remaining visible albums
+				const visibleAlbumTrackIds = await albumRepository.getVisibleAlbumTrackIds(userId);
+				
+				// Calculate how many standalone tracks we can still keep
+				// If visible albums already have >= upload_track_limit, this becomes 0.
+				const remainingQuota = Math.max(0, freeLimits.upload_track_limit - visibleAlbumTrackIds.length);
+
+				// Hide the oldest standalone tracks beyond the remaining quota
+				// Also explicitly unhides any tracks in `visibleAlbumTrackIds` that were previously hidden!
+				await trackRepository.hideOldestTracks(userId, remainingQuota, visibleAlbumTrackIds);
 			}
 		}
 	} catch (error) {
@@ -227,13 +238,30 @@ const createCheckoutSession = async ({ userId, plan, successUrl, cancelUrl }) =>
 		throw new BadRequestError("User ID is required.");
 	}
 
-	const updatedSubscription = await activatePlanForUser({ userId, plan });
+	const normalizedPlan = normalizePlanInput(plan);
+
+	if (normalizedPlan === "Free") {
+		throw new BadRequestError(
+			"Use cancellation/downgrade flow for Free plan."
+		);
+	}
 
 	return {
 		checkout_mode: "mock",
-		checkout_url: successUrl || null,
-		cancel_url: cancelUrl || null,
-		subscription: updatedSubscription,
+		checkout_url: successUrl || "http://localhost:3000/success",
+		cancel_url: cancelUrl || "http://localhost:3000/cancel",
+		message: "Mock checkout created. To complete the upgrade, manually send a POST request to /webhooks/stripe with the checkout.session.completed event.",
+		webhook_payload_example: {
+			type: "checkout.session.completed",
+			data: {
+				object: {
+					metadata: {
+						user_id: userId,
+						plan: normalizedPlan
+					}
+				}
+			}
+		}
 	};
 };
 

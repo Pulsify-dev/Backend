@@ -20,7 +20,7 @@ const PLAN_LIMIT_ROWS = [
 	{
 		plan: "Free",
 		can_upload: true,
-		upload_track_limit: 3,
+		upload_track_limit: 10,
 		album_limit: 2,
 		album_track_limit: 5,
 		is_ad_free: false,

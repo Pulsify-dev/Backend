@@ -47,6 +47,7 @@ describe("SubscriptionService Unit Tests", () => {
   beforeEach(() => {
     sinon.stub(trackRepository, "hideOldestTracks").resolves(0);
     sinon.stub(albumRepository, "hideOldestAlbums").resolves(0);
+    sinon.stub(albumRepository, "getVisibleAlbumTrackIds").resolves([]);
     sinon.stub(trackRepository, "unhideAllTracks").resolves(0);
     sinon.stub(albumRepository, "unhideAllAlbums").resolves(0);
     sinon.stub(subscriptionRepository, "findPlanLimitByPlan").resolves(FREE_PLAN_LIMIT);
@@ -190,12 +191,7 @@ describe("SubscriptionService Unit Tests", () => {
   // createCheckoutSession()
   // ═══════════════════════════════════════════
   describe("createCheckoutSession()", () => {
-    it("should activate Artist Pro plan in mock checkout mode", async () => {
-      sinon.stub(subscriptionRepository, "upsertSubscriptionByUserId").resolves({
-        user_id: USER_ID, plan: "Artist Pro", status: "Active",
-      });
-      sinon.stub(userRepository, "updateById").resolves({});
-
+    it("should return webhook payload in mock checkout mode", async () => {
       const result = await subscriptionService.createCheckoutSession({
         userId: USER_ID,
         plan: "Artist Pro",
@@ -204,7 +200,8 @@ describe("SubscriptionService Unit Tests", () => {
       });
 
       expect(result.checkout_mode).to.equal("mock");
-      expect(result.subscription.plan).to.equal("Artist Pro");
+      expect(result.checkout_url).to.equal("https://example.com/success");
+      expect(result.webhook_payload_example.data.object.metadata.plan).to.equal("Artist Pro");
     });
 
     it("should throw BadRequestError when userId is falsy", async () => {
@@ -247,16 +244,11 @@ describe("SubscriptionService Unit Tests", () => {
     });
 
     it("should normalize 'pro' to Artist Pro", async () => {
-      sinon.stub(subscriptionRepository, "upsertSubscriptionByUserId").resolves({
-        user_id: USER_ID, plan: "Artist Pro", status: "Active",
-      });
-      sinon.stub(userRepository, "updateById").resolves({});
-
       const result = await subscriptionService.createCheckoutSession({
         userId: USER_ID, plan: "pro",
       });
 
-      expect(result.subscription.plan).to.equal("Artist Pro");
+      expect(result.webhook_payload_example.data.object.metadata.plan).to.equal("Artist Pro");
     });
   });
 

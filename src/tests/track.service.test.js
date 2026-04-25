@@ -685,7 +685,7 @@ describe("TrackService", () => {
     it("should not delete default artwork from S3", async () => {
       const trackWithDefaultArtwork = {
         ...mockTrack,
-        artwork_url: "default-artwork.png",
+        artwork_url: "Default.png",
       };
       sinon.stub(trackRepository, "findById").resolves(trackWithDefaultArtwork);
       const s3Stub = sinon.stub(S3Utils, "deleteFromS3").resolves();
@@ -906,7 +906,7 @@ describe("TrackService", () => {
     it("should not delete default artwork from S3", async () => {
       const trackWithDefaultArtwork = {
         ...mockTrack,
-        artwork_url: "default-artwork.png",
+        artwork_url: "Default.png",
       };
       sinon.stub(photoUtils, "validateImageFile").returns(true);
       sinon.stub(trackRepository, "findById").resolves(trackWithDefaultArtwork);

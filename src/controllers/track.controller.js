@@ -7,8 +7,14 @@ const createTrack = async (req, res, next) => {
     // 1. Field names must match middleware: "audio_file" not "audio", "artwork_file" not "cover"
     // 2. With .fields(), files come as arrays, so we need [0] to get the first file
     // 3. Using optional chaining for artwork since it passes undefined to service for proper error handling
+    if (!req.files || !req.files.audio_file || req.files.audio_file.length === 0) {
+      const error = new Error("Audio file is required under the 'audio_file' key.");
+      error.statusCode = 400;
+      throw error;
+    }
+
     const audioFile = req.files.audio_file[0];
-    const artworkFile = req.files.artwork_file?.[0];
+    const artworkFile = req.files?.artwork_file?.[0];
 
     const track = await trackService.createTrack(
       req.user.user_id,

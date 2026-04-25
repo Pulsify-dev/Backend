@@ -113,6 +113,22 @@ class AlbumRepository {
     return result.modifiedCount;
   }
 
+  async getVisibleAlbumTrackIds(artistId) {
+    const visibleAlbums = await Album.find({ artist_id: artistId, is_hidden: false })
+      .select("tracks.track_id")
+      .lean();
+
+    const trackIds = new Set();
+    for (const album of visibleAlbums) {
+      for (const track of album.tracks) {
+        if (track.track_id) {
+          trackIds.add(track.track_id.toString());
+        }
+      }
+    }
+    return Array.from(trackIds);
+  }
+
   async unhideAllAlbums(artistId) {
     const result = await Album.updateMany(
       { artist_id: artistId, is_hidden: true },

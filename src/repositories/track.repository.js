@@ -120,8 +120,21 @@ const invalidateTrackCache = async (trackId) => {
   await cache.del(`track:${trackId}`);
 };
 
-const hideOldestTracks = async (artistId, keepCount) => {
-  const tracksToHide = await Track.find({ artist_id: artistId, is_hidden: false })
+const hideOldestTracks = async (artistId, keepCount, exemptTrackIds = []) => {
+  // First, ensure all exempt tracks are explicitly unhidden
+  if (exemptTrackIds.length > 0) {
+    await Track.updateMany(
+      { _id: { $in: exemptTrackIds }, artist_id: artistId },
+      { $set: { is_hidden: false } }
+    );
+  }
+
+  // Find standalone tracks that are NOT exempt
+  const tracksToHide = await Track.find({ 
+      artist_id: artistId, 
+      _id: { $nin: exemptTrackIds },
+      is_hidden: false 
+    })
     .sort({ createdAt: -1 })
     .skip(keepCount)
     .select("_id")

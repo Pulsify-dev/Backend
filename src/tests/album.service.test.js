@@ -11,6 +11,7 @@ import {
   NotFoundError,
   ForbiddenError,
 } from "../utils/errors.utils.js";
+import subscriptionService from "../services/subscription.service.js";
 
 const MOCK_USER_ID = "507f1f77bcf86cd799439011";
 const MOCK_OTHER_USER_ID = "507f1f77bcf86cd799439022";
@@ -51,6 +52,14 @@ const secondMockAudioFile = {
 };
 
 describe("AlbumService", () => {
+  beforeEach(() => {
+    sinon.stub(subscriptionService, "getPlanLimitForUser").resolves({
+      effectivePlan: "Artist Pro",
+      planLimit: { album_limit: null, album_track_limit: null },
+    });
+    sinon.stub(albumRepository, "countByArtist").resolves(0);
+  });
+
   afterEach(() => sinon.restore());
 
   describe("createAlbum()", () => {
