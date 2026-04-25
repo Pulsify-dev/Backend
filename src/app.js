@@ -9,6 +9,9 @@ import redisClient from "./config/redis.js";
 import routes from "./routes/index.js";
 const app = express();
 
+// Trust the first proxy (e.g. Nginx, Heroku, Cloudflare) to get real user IP
+app.set("trust proxy", 1);
+
 // ── Security Headers ────────────────────────────────────────
 // Set global security headers to protect against common web vulnerabilities
 app.use(helmet());
