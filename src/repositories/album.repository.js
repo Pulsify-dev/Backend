@@ -136,6 +136,26 @@ class AlbumRepository {
     );
     return result.modifiedCount;
   }
+
+  async getAlbumModerationStats() {
+    const total_hidden = await Album.countDocuments({ is_hidden: true });
+    return { total_hidden };
+  }
+
+  async findPaginatedAlbums(filter, page, limit) {
+    const skip = (page - 1) * limit;
+    const [albums, total] = await Promise.all([
+      Album.find(filter)
+        .select("title artist_id is_hidden visibility track_count release_date createdAt")
+        .populate("artist_id", "username email")
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      Album.countDocuments(filter),
+    ]);
+    return { albums, total };
+  }
 }
 
 export default new AlbumRepository();

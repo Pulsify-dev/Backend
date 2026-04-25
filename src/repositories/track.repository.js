@@ -120,6 +120,33 @@ const invalidateTrackCache = async (trackId) => {
   await cache.del(`track:${trackId}`);
 };
 
+const getTotalStorageUsage = async () => {
+  const [result] = await Track.aggregate([
+    { $group: { _id: null, total_bytes: { $sum: "$file_size_bytes" } } },
+  ]);
+  return result?.total_bytes || 0;
+};
+
+const getTrackModerationStats = async () => {
+  const total_blocked = await Track.countDocuments({ playback_state: "blocked" });
+  return { total_blocked };
+};
+
+const findPaginatedTracks = async (filter, page, limit) => {
+  const skip = (page - 1) * limit;
+  const [tracks, total] = await Promise.all([
+    Track.find(filter)
+      .select("title artist_id playback_state is_hidden visibility createdAt file_size_bytes")
+      .populate("artist_id", "username email")
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .lean(),
+    Track.countDocuments(filter),
+  ]);
+  return { tracks, total };
+};
+
 const hideOldestTracks = async (artistId, keepCount, exemptTrackIds = []) => {
   // First, ensure all exempt tracks are explicitly unhidden
   if (exemptTrackIds.length > 0) {
@@ -173,7 +200,9 @@ export default {
   findTrending,
   findCharts,
   invalidateTrackCache,
+  getTotalStorageUsage,
+  getTrackModerationStats,
+  findPaginatedTracks,
   hideOldestTracks,
   unhideAllTracks,
 };
-
