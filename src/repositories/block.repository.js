@@ -13,7 +13,7 @@ const findBlock = async (blockerId, blockedId) => {
   return Block.findOne({
     blocker_id: blockerId,
     blocked_id: blockedId,
-  });
+  }).lean();
 };
 
 const deleteBlock = async (blockerId, blockedId) => {
@@ -69,7 +69,7 @@ const isBlocked = async (blockerId, blockedId) => {
   const block = await Block.findOne({
     blocker_id: blockerId,
     blocked_id: blockedId,
-  });
+  }).lean();
   return !!block;
 };
 
@@ -127,7 +127,8 @@ const getBlockDetails = async (blockerId, blockedId) => {
     blocked_id: blockedId,
   })
     .populate("blocker_id", "username display_name")
-    .populate("blocked_id", "username display_name");
+    .populate("blocked_id", "username display_name")
+    .lean();
 };
 
 export default {

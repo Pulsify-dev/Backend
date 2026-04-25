@@ -6,7 +6,7 @@ const createRepost = async (userId, trackId) => {
 };
 
 const findRepost = async (userId, trackId) => {
-  return Repost.findOne({ user_id: userId, track_id: trackId });
+  return Repost.findOne({ user_id: userId, track_id: trackId }).lean();
 };
 
 const deleteRepost = async (userId, trackId) => {
@@ -31,7 +31,7 @@ const getRepostsByTrackId = async (trackId, page = 1, limit = 20) => {
 };
 
 const checkUserRepostedTrack = async (userId, trackId) => {
-  const repost = await Repost.findOne({ user_id: userId, track_id: trackId });
+  const repost = await Repost.findOne({ user_id: userId, track_id: trackId }).lean();
   return !!repost;
 };
 
@@ -53,7 +53,7 @@ const createAlbumRepost = async (userId, albumId) => {
 };
 
 const findAlbumRepost = async (userId, albumId) => {
-  return AlbumRepost.findOne({ user_id: userId, album_id: albumId });
+  return AlbumRepost.findOne({ user_id: userId, album_id: albumId }).lean();
 };
 
 const deleteAlbumRepost = async (userId, albumId) => {
@@ -74,7 +74,7 @@ const getRepostsByAlbumId = async (albumId, page = 1, limit = 20) => {
 };
 
 const checkUserRepostedAlbum = async (userId, albumId) => {
-  const repost = await AlbumRepost.findOne({ user_id: userId, album_id: albumId });
+  const repost = await AlbumRepost.findOne({ user_id: userId, album_id: albumId }).lean();
   return !!repost;
 };
 

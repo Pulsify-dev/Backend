@@ -13,7 +13,7 @@ const findFollow = async (followerId, followingId) => {
   return Follow.findOne({
     follower_id: followerId,
     following_id: followingId,
-  });
+  }).lean();
 };
 
 const deleteFollow = async (followerId, followingId) => {
@@ -89,7 +89,7 @@ const isFollowing = async (followerId, followingId) => {
   const follow = await Follow.findOne({
     follower_id: followerId,
     following_id: followingId,
-  });
+  }).lean();
   return !!follow;
 };
 
@@ -99,7 +99,7 @@ const getMutualFollowers = async (userId1, userId2, page = 1, limit = 20) => {
   // Find users following userId1
   const followersOfUser1 = await Follow.find({
     following_id: userId1,
-  }).select("follower_id");
+  }).select("follower_id").lean();
 
   const followerIds = followersOfUser1.map((f) => f.follower_id);
   

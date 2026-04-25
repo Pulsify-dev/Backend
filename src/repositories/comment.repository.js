@@ -7,7 +7,8 @@ const createComment = async (commentData) => {
 const findCommentById = async (commentId) => {
   return Comment.findById(commentId)
     .populate("user_id", "username display_name avatar_url")
-    .populate("parent_comment_id");
+    .populate("parent_comment_id")
+    .lean();
 };
 
 const updateCommentById = async (commentId, updateData) => {

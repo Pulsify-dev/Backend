@@ -1,6 +1,7 @@
 import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { BadRequestError } from "./errors.utils.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import photoUtils from "./photo.utils.js";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -18,12 +19,25 @@ const extractS3KeyFromUrl = (url) => {
 
 const uploadToS3 = async (file, folder) => {
   const bucketName = process.env.AWS_S3_BUCKET;
-  const key = `${folder}/${Date.now()}_${file.originalname}`;
+  
+  let fileBuffer = file.buffer;
+  let mimetype = file.mimetype;
+  let filename = file.originalname;
+
+  // Automatically compress images before saving to S3
+  if (mimetype.startsWith("image/")) {
+    fileBuffer = await photoUtils.compressImage(file.buffer);
+    mimetype = "image/webp";
+    // Change file extension to .webp
+    filename = filename.replace(/\.[^/.]+$/, "") + ".webp";
+  }
+
+  const key = `${folder}/${Date.now()}_${filename}`;
   const params = {
     Bucket: bucketName,
     Key: key,
-    Body: file.buffer,
-    ContentType: file.mimetype,
+    Body: fileBuffer,
+    ContentType: mimetype,
   };
   try {
     await s3.send(new PutObjectCommand(params));

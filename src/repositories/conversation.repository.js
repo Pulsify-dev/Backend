@@ -1,7 +1,7 @@
 import Conversation from "../models/conversation.model.js";
 
 const findById = function (id, extraFields = "") {
-  return Conversation.findById(id).select(extraFields);
+  return Conversation.findById(id).select(extraFields).lean();
 };
 
 const createConversation = function (conversationData) {
@@ -11,7 +11,7 @@ const createConversation = function (conversationData) {
 const getByPairId = function (participantPairId, extraFields = "") {
   return Conversation.findOne({ participant_pair_id: participantPairId }).select(
     extraFields,
-  );
+  ).lean();
 };
 
 const getUserInbox = function (userId, page = 1, limit = 20) {
@@ -50,7 +50,7 @@ const getConvoIfParticipant = function (
   return Conversation.findOne({
     _id: conversationId,
     participants: userId,
-  }).select(extraFields);
+  }).select(extraFields).lean();
 };
 
 export default {

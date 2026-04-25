@@ -18,7 +18,7 @@ const findById = async function (id, extraFields = "") {
 };
 
 const findPublicById = function (id, extraFields = "") {
-return Track.findOne({ _id: id, visibility: "public", is_hidden: false }).select(extraFields);}
+return Track.findOne({ _id: id, visibility: "public", is_hidden: false }).select(extraFields).lean();}
 
 const updateTrackById = async function (id, updatedPatch) {
   await cache.del(`track:${id}`);
@@ -38,7 +38,7 @@ const createTrack = function (trackData) {
 };
 
 const findByPermalink = function (permalink, extraFields = "") {
-  return Track.findOne({ permalink }).select(extraFields);
+  return Track.findOne({ permalink }).select(extraFields).lean();
 };
 
 const searchTracks = async (q, page, limit) => {
@@ -72,7 +72,7 @@ const countByArtistId = function (artistId, includeHidden = false) {
 };
 
 const findByPermalinkAndArtist = function (permalink, artistId, extraFields = "") {
-  return Track.findOne({ permalink, artist_id: artistId }).select(extraFields);
+  return Track.findOne({ permalink, artist_id: artistId }).select(extraFields).lean();
 };
 
 const findTrending = async function (page = 1, limit = 20, genre = null) {
