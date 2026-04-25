@@ -12,7 +12,7 @@ if (redisClient) {
   console.warn("[Jobs] Redis not available. Audio queue is disabled.");
 }
 
-export const addAudioJob = async (trackId, userId) => {
+const addAudioJob = async (trackId, userId) => {
   if (!audioQueue) {
     throw new Error("Audio queue is disabled because Redis is unavailable.");
   }
@@ -30,4 +30,5 @@ export const addAudioJob = async (trackId, userId) => {
   });
 };
 
-export default audioQueue;
+const audioQueueService = { addAudioJob };
+export default audioQueueService;

@@ -3,7 +3,7 @@ import subscriptionService from "./subscription.service.js";
 import audioUtils from "../utils/audio.utils.js";
 import photoUtils from "../utils/photo.utils.js";
 import S3Utils from "../utils/s3.utils.js";
-import { addAudioJob } from "../jobs/audio.queue.js";
+import audioQueueService from "../jobs/audio.queue.js";
 
 import {
   BadRequestError,
@@ -158,7 +158,7 @@ const createTrackFromUpload = async (userId, trackData, audioFile, coverFile) =>
 
     // Dispatch background job for audio processing
     try {
-      await addAudioJob(createdTrack._id, userId);
+      await audioQueueService.addAudioJob(createdTrack._id, userId);
     } catch (err) {
       console.error("[TrackService] Failed to enqueue audio job:", err);
     }

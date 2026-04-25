@@ -1,3 +1,14 @@
+
+const mockQuery = (result) => {
+  const promise = Promise.resolve(result);
+  promise.lean = () => promise;
+  promise.select = () => promise;
+  promise.populate = () => promise;
+  promise.sort = () => promise;
+  promise.skip = () => promise;
+  promise.limit = () => promise;
+  return promise;
+};
 import { expect } from 'chai';
 import sinon from 'sinon';
 import mongoose from 'mongoose';
@@ -442,7 +453,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
         sinon.stub(followRepository, 'findFollow').resolves(null);
         sinon.stub(blockRepository, 'isBlocked').resolves(false);
-        sinon.stub(User, 'findById').resolves(mockUser);
+        sinon.stub(User, 'findById').returns(mockQuery(mockUser));
         sinon.stub(followRepository, 'createFollow').resolves(mockFollow);
         sinon.stub(User, 'findByIdAndUpdate').resolves(mockUser);
 
@@ -941,10 +952,10 @@ describe('Module 3: Followers & Social Graph', () => {
         ];
 
         sinon.stub(Follow, 'find').returns({
-          select: sinon.stub().resolves([{ following_id: userId2 }]),
+          select: sinon.stub().returns(mockQuery([{ following_id: userId2 }])),
         });
         sinon.stub(Block, 'find').returns({
-          select: sinon.stub().resolves([]),
+          select: sinon.stub().returns(mockQuery([])),
         });
         sinon.stub(User, 'find').returns({
           select: sinon.stub().returns({
@@ -968,10 +979,10 @@ describe('Module 3: Followers & Social Graph', () => {
       it('should exclude blocked users from suggestions', async function() {
         this.timeout(5000);
         sinon.stub(Follow, 'find').returns({
-          select: sinon.stub().resolves([]),
+          select: sinon.stub().returns(mockQuery([])),
         });
         sinon.stub(Block, 'find').returns({
-          select: sinon.stub().resolves([{ blocked_id: userId2 }]),
+          select: sinon.stub().returns(mockQuery([{ blocked_id: userId2 }])),
         });
         sinon.stub(User, 'find').returns({
           select: sinon.stub().returns({
@@ -997,10 +1008,10 @@ describe('Module 3: Followers & Social Graph', () => {
       it('should apply pagination to suggestions', async function() {
         this.timeout(5000);
         sinon.stub(Follow, 'find').returns({
-          select: sinon.stub().resolves([]),
+          select: sinon.stub().returns(mockQuery([])),
         });
         sinon.stub(Block, 'find').returns({
-          select: sinon.stub().resolves([]),
+          select: sinon.stub().returns(mockQuery([])),
         });
         sinon.stub(User, 'find').returns({
           select: sinon.stub().returns({
@@ -1149,7 +1160,7 @@ describe('Module 3: Followers & Social Graph', () => {
         };
 
         sinon.stub(User, 'findById').returns({
-          select: sinon.stub().resolves(mockUser),
+          select: sinon.stub().returns(mockQuery(mockUser)),
         });
         sinon.stub(blockRepository, 'countBlockedUsers').resolves(2);
 
@@ -1164,7 +1175,7 @@ describe('Module 3: Followers & Social Graph', () => {
       it('should throw error if user not found', async function() {
         this.timeout(5000);
         sinon.stub(User, 'findById').returns({
-          select: sinon.stub().resolves(null),
+          select: sinon.stub().returns(mockQuery(null)),
         });
 
         try {
@@ -1185,7 +1196,7 @@ describe('Module 3: Followers & Social Graph', () => {
         };
 
         sinon.stub(User, 'findById').returns({
-          select: sinon.stub().resolves(mockUser),
+          select: sinon.stub().returns(mockQuery(mockUser)),
         });
         sinon.stub(blockRepository, 'countBlockedUsers').resolves(0);
 
@@ -1259,7 +1270,7 @@ describe('Module 3: Followers & Social Graph', () => {
     describe('canView', () => {
       it('should return false if viewer is blocked', async function() {
         this.timeout(5000);
-        sinon.stub(Block, 'findOne').resolves({ _id: new mongoose.Types.ObjectId() });
+        sinon.stub(Block, 'findOne').returns(mockQuery({ _id: new mongoose.Types.ObjectId() }));
 
         const result = await blockRepository.canView(userId1, userId2);
 
@@ -1268,7 +1279,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
       it('should return true if viewer is not blocked', async function() {
         this.timeout(5000);
-        sinon.stub(Block, 'findOne').resolves(null);
+        sinon.stub(Block, 'findOne').returns(mockQuery(null));
 
         const result = await blockRepository.canView(userId1, userId2);
 
@@ -1337,7 +1348,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
         sinon.stub(Block, 'findOne').returns({
           populate: sinon.stub().returns({
-            populate: sinon.stub().resolves(blockDetails),
+            populate: sinon.stub().returns(mockQuery(blockDetails)),
           }),
         });
 
@@ -1352,7 +1363,7 @@ describe('Module 3: Followers & Social Graph', () => {
         this.timeout(5000);
         sinon.stub(Block, 'findOne').returns({
           populate: sinon.stub().returns({
-            populate: sinon.stub().resolves(null),
+            populate: sinon.stub().returns(mockQuery(null)),
           }),
         });
 
@@ -1409,7 +1420,7 @@ describe('Module 3: Followers & Social Graph', () => {
           blocked_id: userId2,
         };
 
-        sinon.stub(Block, 'findOne').resolves(mockBlock);
+        sinon.stub(Block, 'findOne').returns(mockQuery(mockBlock));
 
         const result = await blockRepository.findBlock(userId1, userId2);
 
@@ -1419,7 +1430,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
       it('should return null if block does not exist', async function() {
         this.timeout(5000);
-        sinon.stub(Block, 'findOne').resolves(null);
+        sinon.stub(Block, 'findOne').returns(mockQuery(null));
 
         const result = await blockRepository.findBlock(userId1, userId2);
 
@@ -1553,7 +1564,7 @@ describe('Module 3: Followers & Social Graph', () => {
     describe('isBlocked', () => {
       it('should return true if user is blocked', async function() {
         this.timeout(5000);
-        sinon.stub(Block, 'findOne').resolves({ _id: new mongoose.Types.ObjectId() });
+        sinon.stub(Block, 'findOne').returns(mockQuery({ _id: new mongoose.Types.ObjectId() }));
 
         const result = await blockRepository.isBlocked(userId1, userId2);
 
@@ -1562,7 +1573,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
       it('should return false if user is not blocked', async function() {
         this.timeout(5000);
-        sinon.stub(Block, 'findOne').resolves(null);
+        sinon.stub(Block, 'findOne').returns(mockQuery(null));
 
         const result = await blockRepository.isBlocked(userId1, userId2);
 
@@ -1684,7 +1695,7 @@ describe('Module 3: Followers & Social Graph', () => {
           if (callCount === 1) {
             // First call - getFollowers query
             return {
-              select: sinon.stub().resolves(mockFollowersOfUser1),
+              select: sinon.stub().returns(mockQuery(mockFollowersOfUser1)),
             };
           } else {
             // Second call - mutual followers query
@@ -1739,7 +1750,7 @@ describe('Module 3: Followers & Social Graph', () => {
           following_id: userId2,
         };
 
-        sinon.stub(Follow, 'findOne').resolves(mockFollow);
+        sinon.stub(Follow, 'findOne').returns(mockQuery(mockFollow));
 
         const result = await followRepository.findFollow(userId1, userId2);
 
@@ -1749,7 +1760,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
       it('should return null if follow does not exist', async function() {
         this.timeout(5000);
-        sinon.stub(Follow, 'findOne').resolves(null);
+        sinon.stub(Follow, 'findOne').returns(mockQuery(null));
 
         const result = await followRepository.findFollow(userId1, userId2);
 
@@ -1835,7 +1846,7 @@ describe('Module 3: Followers & Social Graph', () => {
     describe('isFollowing', () => {
       it('should return true if user is following', async function() {
         this.timeout(5000);
-        sinon.stub(Follow, 'findOne').resolves({ _id: new mongoose.Types.ObjectId() });
+        sinon.stub(Follow, 'findOne').returns(mockQuery({ _id: new mongoose.Types.ObjectId() }));
 
         const result = await followRepository.isFollowing(userId1, userId2);
 
@@ -1844,7 +1855,7 @@ describe('Module 3: Followers & Social Graph', () => {
 
       it('should return false if user is not following', async function() {
         this.timeout(5000);
-        sinon.stub(Follow, 'findOne').resolves(null);
+        sinon.stub(Follow, 'findOne').returns(mockQuery(null));
 
         const result = await followRepository.isFollowing(userId1, userId2);
 
