@@ -1,4 +1,6 @@
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import redisClient from "../config/redis.js";
 import tokenUtility from "../utils/jwt.utils.js";
 import registerChatSocketHandlers from "./chat.socket.js";
 import { registerNotificationHandlers } from "./notification.socket.js";
@@ -61,6 +63,13 @@ const initializeSocketServer = (httpServer) => {
       credentials: true,
     },
   });
+
+  // Connect to Redis if available for multi-server scaling
+  if (redisClient) {
+    const pubClient = redisClient;
+    const subClient = pubClient.duplicate();
+    ioInstance.adapter(createAdapter(pubClient, subClient));
+  }
 
   ioInstance.use(authenticateSocket);
 

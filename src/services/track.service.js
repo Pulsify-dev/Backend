@@ -3,6 +3,7 @@ import subscriptionService from "./subscription.service.js";
 import audioUtils from "../utils/audio.utils.js";
 import photoUtils from "../utils/photo.utils.js";
 import S3Utils from "../utils/s3.utils.js";
+import { addAudioJob } from "../jobs/audio.queue.js";
 
 import {
   BadRequestError,
@@ -105,7 +106,7 @@ const buildTrackObject = ({
     bitrate: roundedBitrate,
     preview_start_seconds: previewStartSeconds,
     waveform,
-    status: "finished",
+    status: "processing",
   };
 };
 
@@ -136,26 +137,33 @@ const createTrackFromUpload = async (userId, trackData, audioFile, coverFile) =>
 
   await enforceUploadQuota(userId);
 
-  const waveform = await audioUtils.extractWaveform(audioFile.buffer);
-
   const audioUrl = await S3Utils.uploadToS3(audioFile, "tracks/audio");
   const artworkUrl = coverFile
     ? await S3Utils.uploadToS3(coverFile, "tracks/artwork")
     : trackData.artwork_url;
 
   try {
-    return await trackRepository.createTrack(
+    const createdTrack = await trackRepository.createTrack(
       buildTrackObject({
         userId,
         trackData,
         audioFile,
         audioMetadata,
         previewStartSeconds,
-        waveform,
+        waveform: [],
         audioUrl,
         artworkUrl,
       }),
     );
+
+    // Dispatch background job for audio processing
+    try {
+      await addAudioJob(createdTrack._id, userId);
+    } catch (err) {
+      console.error("[TrackService] Failed to enqueue audio job:", err);
+    }
+
+    return createdTrack;
   } catch (error) {
     await S3Utils.deleteFromS3(audioUrl).catch(() => {});
     await S3Utils.deleteFromS3(artworkUrl).catch(() => {});

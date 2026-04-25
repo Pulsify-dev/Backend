@@ -10,6 +10,7 @@ import {
   startSubscriptionExpiryCron,
   syncExpiredSubscriptionsNow,
 } from "./src/jobs/quota-reset.job.js";
+import "./src/jobs/audio.worker.js";
 
 connectDB();
 

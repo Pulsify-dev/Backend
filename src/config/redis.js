@@ -9,7 +9,7 @@ let client = null;
 
 try {
   client = new Redis(REDIS_URL, {
-    maxRetriesPerRequest: 3,
+    maxRetriesPerRequest: null, // Required by BullMQ (blocking commands)
     retryStrategy(times) {
       if (times > 5) {
         console.warn("[Redis] Max retries reached — running without cache.");

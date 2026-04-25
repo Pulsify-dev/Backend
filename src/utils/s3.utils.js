@@ -62,8 +62,28 @@ const getPresignedUrl = async (fileURL, expiresIn = 900) => {
   }
 };
 
+const downloadFromS3 = async (fileURL) => {
+  const bucketName = process.env.AWS_S3_BUCKET;
+  const key = extractS3KeyFromUrl(fileURL);
+  const params = {
+    Bucket: bucketName,
+    Key: key,
+  };
+  try {
+    const response = await s3.send(new GetObjectCommand(params));
+    const chunks = [];
+    for await (const chunk of response.Body) {
+      chunks.push(chunk);
+    }
+    return Buffer.concat(chunks);
+  } catch (error) {
+    throw new BadRequestError("Failed to download from S3.");
+  }
+};
+
 export default {
   uploadToS3,
   deleteFromS3,
   getPresignedUrl,
+  downloadFromS3,
 };

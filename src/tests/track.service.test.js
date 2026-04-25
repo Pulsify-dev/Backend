@@ -6,6 +6,7 @@ import trackRepository from "../repositories/track.repository.js";
 import audioUtils from "../utils/audio.utils.js";
 import photoUtils from "../utils/photo.utils.js";
 import S3Utils from "../utils/s3.utils.js";
+import * as audioQueue from "../jobs/audio.queue.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -76,6 +77,7 @@ describe("TrackService", () => {
         },
       });
       sinon.stub(trackRepository, "countByArtistId").resolves(0);
+      sinon.stub(audioQueue, "addAudioJob").resolves();
     });
 
     it("should successfully create a new track", async () => {
@@ -85,7 +87,6 @@ describe("TrackService", () => {
         duration: 180,
         bitrate: 320000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
       sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
         .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
@@ -112,7 +113,6 @@ describe("TrackService", () => {
         duration: 180,
         bitrate: 320000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
       sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
         .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
@@ -140,7 +140,6 @@ describe("TrackService", () => {
         duration: 50,
         bitrate: 320000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
       sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
         .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
@@ -226,7 +225,6 @@ describe("TrackService", () => {
         duration: 180,
         bitrate: 320000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
       sinon.stub(S3Utils, "uploadToS3").resolves("https://s3.amazonaws.com/audio/new.mp3"); // Only audio uploaded
       sinon.stub(trackRepository, "createTrack").resolves({
         ...mockTrack,
@@ -248,7 +246,6 @@ describe("TrackService", () => {
         duration: 180,
         bitrate: 320000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
       sinon.stub(S3Utils, "uploadToS3").resolves("https://s3.amazonaws.com/test.mp3");
       sinon.stub(trackRepository, "createTrack").resolves(mockTrack);
 
@@ -323,7 +320,6 @@ describe("TrackService", () => {
         duration: 180,
         bitrate: 320000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.5, 0.8]);
       sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/audio/new.mp3")
         .onSecondCall().resolves("https://s3.amazonaws.com/artwork/new.jpg");
@@ -361,6 +357,7 @@ describe("TrackService", () => {
           upload_track_limit: null,
         },
       });
+      sinon.stub(audioQueue, "addAudioJob").resolves();
     });
 
     it("should create a track from explicit file inputs and metadata overrides", async () => {
@@ -370,7 +367,6 @@ describe("TrackService", () => {
         duration: 181,
         bitrate: 192000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.2]);
       sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/tracks/audio/test.mp3")
         .onSecondCall().resolves("https://s3.amazonaws.com/tracks/artwork/test.jpg");
@@ -402,7 +398,6 @@ describe("TrackService", () => {
         duration: 181,
         bitrate: 192000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.2]);
       sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/tracks/audio/test.mp3")
         .onSecondCall().resolves("https://s3.amazonaws.com/tracks/artwork/test.jpg");
@@ -429,7 +424,6 @@ describe("TrackService", () => {
         duration: 181,
         bitrate: 192000,
       });
-      sinon.stub(audioUtils, "extractWaveform").resolves([0.1, 0.2]);
       const uploadStub = sinon.stub(S3Utils, "uploadToS3")
         .onFirstCall().resolves("https://s3.amazonaws.com/tracks/audio/test.mp3");
       sinon.stub(trackRepository, "createTrack").callsFake(async (payload) => payload);
