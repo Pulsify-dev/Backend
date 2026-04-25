@@ -240,7 +240,14 @@ const syncPlaylist = async (doc) => {
     track_count: doc.track_count,
     duration_ms: doc.duration_ms,
   };
-  await searchService.indexDocument("playlists", playlistDoc);
+  
+  // Sync to Meilisearch but don't block if it fails
+  try {
+    await searchService.indexDocument("playlists", playlistDoc);
+  } catch (error) {
+    console.warn("[Playlist Sync] Warning: Failed to sync playlist to Meilisearch:", error.message);
+    // Don't throw - allow playlist creation to succeed even if search sync fails
+  }
 };
 
 playlistSchema.post("save", syncPlaylist);

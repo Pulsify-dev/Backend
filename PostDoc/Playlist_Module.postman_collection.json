@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "✅ Module 7 - Playlists (Sets & Collections)",
+    "name": "Module 7 - Playlists (Sets & Collections)",
     "description": "API collection for Playlist CRUD, Track Sequencing, Privacy Control, and Embed Support",
     "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -44,23 +44,39 @@
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"My Favorite Tracks\",\n  \"description\": \"Collection of my favorite songs\",\n  \"is_private\": false\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Summer Vibes",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "Best summer songs collection",
+                  "type": "text"
+                },
+                {
+                  "key": "is_private",
+                  "value": "false",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/playlists",
               "host": ["{{baseUrl}}"],
               "path": ["playlists"]
             },
-            "description": "Create a new playlist"
+            "description": "Create a new playlist with optional cover image. Use form-data to upload file. Supported formats: JPEG, PNG, WebP (max 10MB)"
           },
           "response": [
             {
@@ -72,16 +88,32 @@
                     "key": "Authorization",
                     "value": "Bearer {{accessToken}}",
                     "type": "text"
-                  },
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json",
-                    "type": "text"
                   }
                 ],
                 "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"title\": \"Favorites\",\n  \"description\": \"Collection of my favorite songs\",\n  \"is_private\": false\n}"
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "title",
+                      "value": "Summer Vibes",
+                      "type": "text"
+                    },
+                    {
+                      "key": "description",
+                      "value": "Best summer songs collection",
+                      "type": "text"
+                    },
+                    {
+                      "key": "is_private",
+                      "value": "false",
+                      "type": "text"
+                    },
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
                 },
                 "url": {
                   "raw": "{{baseUrl}}/playlists",
@@ -97,7 +129,7 @@
                   "value": "application/json"
                 }
               ],
-              "body": "{\"success\":true,\"data\":{\"title\":\"Favorites\",\"description\":\"Collection of my favorite songs\",\"creator_id\":\"69ceb12527609bd853352560\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"default-playlist-cover.png\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"_id\":\"69e409983fc8616576b59144\",\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-18T22:45:44.020Z\",\"updatedAt\":\"2026-04-18T22:45:44.020Z\",\"permalink\":\"favorites-6340c3a5\",\"__v\":0}}"
+              "body": "{\"success\":true,\"data\":{\"title\":\"Summer Vibes\",\"description\":\"Best summer songs collection\",\"creator_id\":\"69cea87fc6e4f3324e7797d0\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/playlists/69cea87fc6e4f3324e7797d0/1777129923288_wp13512676-mercedes-benz-c-43-amg-wallpapers.jpg\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"_id\":\"69ecd9c786e1eb60bb1a3e9a\",\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-25T15:12:07.676Z\",\"updatedAt\":\"2026-04-25T15:12:07.676Z\",\"permalink\":\"summer-vibes-8d9d94f4\",\"__v\":0}}"
             }
           ]
         },
