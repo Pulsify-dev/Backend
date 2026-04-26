@@ -28,5 +28,6 @@ export const config = {
     albumArtwork: process.env.DEFAULT_ALBUM_ARTWORK || "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png",
     userAvatar: process.env.DEFAULT_USER_AVATAR || "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png",
     userCover: process.env.DEFAULT_USER_COVER || "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png",
+    playlistCover: process.env.DEFAULT_PLAYLIST_COVER || "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png",
   }
 };
