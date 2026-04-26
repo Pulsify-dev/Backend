@@ -1,6 +1,5 @@
 import messagingService from "../services/messaging.service.js";
 import NotificationService from "../services/notification.service.js";
-import Conversation from "../models/conversation.model.js";
 
 const getMyConversations = async (req, res, next) => {
   try {
@@ -35,12 +34,18 @@ const startOrGetConversation = async (req, res, next) => {
     const senderId = req.user.user_id;
     const { recipient_id: recipientId } = req.body;
 
-    const { conversation, created } =
+    const { conversation, created, block_status } =
       await messagingService.startOrGetConversation(senderId, recipientId);
+
+    // If it's a Mongoose document, convert to plain object before spreading
+    const conversationData = conversation.toObject ? conversation.toObject() : conversation;
 
     return res.status(created ? 201 : 200).json({
       success: true,
-      data: conversation,
+      data: {
+        ...conversationData,
+        block_status,
+      },
     });
   } catch (error) {
     next(error);

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "10. 🔌 Real-Time Sockets",
-    "description": "API collection detailing the real-time Socket.IO chat engine events, emits, and broadcasts.",
+    "description": "API collection detailing the real-time Socket.IO chat engine events, emits, and broadcasts.\n\n**v2 — Block Status Context:** Block status is NOT carried in Socket.IO events (it is a REST-layer concern). Before opening a chat view, the frontend must call `POST /v1/conversations` (Start or Get Conversation) which now returns `block_status` on both open and blocked conversations. Use that response to decide whether to render the full chat UI or a restricted 'blocked' state before setting up the socket listeners.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variables": [

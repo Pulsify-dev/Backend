@@ -38,33 +38,56 @@ describe("MessagingService Unit Tests", () => {
 			}
 		});
 
-		it("should throw ForbiddenError if recipient blocked sender", async () => {
+		it("should throw ForbiddenError if recipient blocked sender (no prior conversation)", async () => {
 			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
-			const stub = sinon.stub(blockRepository, "isBlocked");
-			stub.withArgs(RECIPIENT_ID, USER_ID).resolves(true);
+			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
+			// resolveBlockStatus: isBlocked(sender, recipient) = false, isBlocked(recipient, sender) = true
+			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(false);
+			isBlockedStub.withArgs(RECIPIENT_ID, USER_ID).resolves(true);
+			// No prior conversation exists
+			sinon.stub(conversationRepository, "getByPairId").resolves(null);
 
 			try {
 				await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
 				expect.fail("Should have thrown ForbiddenError");
 			} catch (err) {
 				expect(err).to.be.instanceOf(ForbiddenError);
-				expect(err.message).to.equal("Recipient has blocked the caller");
+				expect(err.message).to.equal("Recipient has blocked you.");
 			}
 		});
 
-		it("should throw ForbiddenError if sender blocked recipient", async () => {
+		it("should throw ForbiddenError if sender blocked recipient (no prior conversation)", async () => {
 			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
-			const stub = sinon.stub(blockRepository, "isBlocked");
-			stub.withArgs(RECIPIENT_ID, USER_ID).resolves(false);
-			stub.withArgs(USER_ID, RECIPIENT_ID).resolves(true);
+			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
+			// resolveBlockStatus: isBlocked(sender, recipient) = true, isBlocked(recipient, sender) = false
+			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(true);
+			isBlockedStub.withArgs(RECIPIENT_ID, USER_ID).resolves(false);
+			// No prior conversation exists
+			sinon.stub(conversationRepository, "getByPairId").resolves(null);
 
 			try {
 				await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
 				expect.fail("Should have thrown ForbiddenError");
 			} catch (err) {
 				expect(err).to.be.instanceOf(ForbiddenError);
-				expect(err.message).to.equal("Cannot message a user you have blocked");
+				expect(err.message).to.equal("Cannot message a user you have blocked.");
 			}
+		});
+
+		it("should return existing conversation with block_status when blocked", async () => {
+			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
+			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
+			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(true);
+			isBlockedStub.withArgs(RECIPIENT_ID, USER_ID).resolves(false);
+			const existingConvo = { _id: CONVO_ID };
+			sinon.stub(conversationRepository, "getByPairId").resolves(existingConvo);
+
+			const result = await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+			expect(result.conversation).to.equal(existingConvo);
+			expect(result.created).to.be.false;
+			expect(result.block_status.is_blocked).to.be.true;
+			expect(result.block_status.blocked_by_me).to.be.true;
+			expect(result.block_status.blocked_by_them).to.be.false;
 		});
 
 		it("should return existing conversation if pair holds", async () => {
@@ -233,7 +256,7 @@ describe("MessagingService Unit Tests", () => {
 	});
 
 	describe("getMyConversations()", () => {
-		it("should return formatted conversations with unread counts", async () => {
+		it("should return formatted conversations with unread counts and block_status", async () => {
 			const mockConvos = [
 				{
 					_id: CONVO_ID,
@@ -246,24 +269,58 @@ describe("MessagingService Unit Tests", () => {
 			sinon.stub(conversationRepository, "getUserInbox").resolves(mockConvos);
 			sinon.stub(conversationRepository, "countUserChats").resolves(1);
 			sinon.stub(messageRepository, "countUnreadInChat").resolves(5);
+			// resolveBlockStatus: no block in either direction
+			sinon.stub(blockRepository, "isBlocked").resolves(false);
 
 			const result = await messagingService.getMyConversations(USER_ID, 1, 10);
 			expect(result.total).to.equal(1);
 			expect(result.conversations).to.be.an("array").with.lengthOf(1);
 			expect(result.conversations[0].unread_count).to.equal(5);
 			expect(result.conversations[0].other_participant.username).to.equal("testuser");
+			expect(result.conversations[0].block_status.is_blocked).to.be.false;
+		});
+
+		it("should reflect blocked_by_me when caller has blocked the other participant", async () => {
+			const mockConvos = [
+				{
+					_id: CONVO_ID,
+					participants: [
+						{ _id: USER_ID },
+						{ _id: RECIPIENT_ID, username: "testuser" },
+					],
+				},
+			];
+			sinon.stub(conversationRepository, "getUserInbox").resolves(mockConvos);
+			sinon.stub(conversationRepository, "countUserChats").resolves(1);
+			sinon.stub(messageRepository, "countUnreadInChat").resolves(0);
+			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
+			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(true);  // caller blocked other
+			isBlockedStub.withArgs(RECIPIENT_ID, USER_ID).resolves(false);
+
+			const result = await messagingService.getMyConversations(USER_ID, 1, 10);
+			const bs = result.conversations[0].block_status;
+			expect(bs.is_blocked).to.be.true;
+			expect(bs.blocked_by_me).to.be.true;
+			expect(bs.blocked_by_them).to.be.false;
 		});
 	});
 
 	describe("getMessages()", () => {
-		it("should fetch chat history when authorized", async () => {
-			sinon.stub(conversationRepository, "getConvoIfParticipant").resolves({ _id: CONVO_ID });
+		it("should fetch chat history with block_status when authorized", async () => {
+			// Return conversation with participants so resolveBlockStatus can find the other user
+			sinon.stub(conversationRepository, "getConvoIfParticipant").resolves({
+				_id: CONVO_ID,
+				participants: [USER_ID, RECIPIENT_ID],
+			});
 			sinon.stub(messageRepository, "getChatHistory").resolves([{ text: "msg1" }]);
 			sinon.stub(messageRepository, "countInChat").resolves(1);
+			// No block in either direction
+			sinon.stub(blockRepository, "isBlocked").resolves(false);
 
 			const result = await messagingService.getMessages(CONVO_ID, USER_ID, 1, 20);
 			expect(result.messages).to.have.length(1);
 			expect(result.total).to.equal(1);
+			expect(result.block_status.is_blocked).to.be.false;
 		});
 	});
 

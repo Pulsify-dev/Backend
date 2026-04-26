@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "9. 💬 Messaging (REST)",
-    "description": "API collection for RESTful messaging. Includes starting conversations, fetching message histories, and sending messages via HTTP. Shared entities now support albums in addition to tracks and playlists.",
+    "description": "API collection for RESTful messaging. Includes starting conversations, fetching message histories, and sending messages via HTTP. Shared entities now support albums in addition to tracks and playlists.\n\n**v2 — Block Status Context:** Every conversation response now includes a `block_status` object with three boolean fields: `is_blocked`, `blocked_by_me`, and `blocked_by_them`. The frontend should use this to render the correct UI state (e.g. 'You blocked this user — tap to unblock' vs 'This user has blocked you'). `startOrGetConversation` now returns a soft 200 with `block_status` if the conversation already existed before the block, instead of always throwing 403.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variables": [
@@ -67,7 +67,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"conversations\": [\n            {\n                \"_id\": \"60d0fe4f5311236168a109ca\",\n                \"participants\": [\n                    \"60d0fe4f5311236168a109uu\",\n                    \"60d0fe4f5311236168a109cb\"\n                ],\n                \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n                \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n                \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n                \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n                \"other_participant\": {\n                    \"_id\": \"60d0fe4f5311236168a109cb\",\n                    \"username\": \"johndoe\",\n                    \"display_name\": \"John Doe\",\n                    \"avatar_url\": \"https://bucket.s3.region.amazonaws.com/profile/default.jpg\",\n                    \"is_verified\": true\n                },\n                \"unread_count\": 3\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"conversations\": [\n            {\n                \"_id\": \"60d0fe4f5311236168a109ca\",\n                \"participants\": [\n                    \"60d0fe4f5311236168a109uu\",\n                    \"60d0fe4f5311236168a109cb\"\n                ],\n                \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n                \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n                \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n                \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n                \"other_participant\": {\n                    \"_id\": \"60d0fe4f5311236168a109cb\",\n                    \"username\": \"johndoe\",\n                    \"display_name\": \"John Doe\",\n                    \"avatar_url\": \"https://bucket.s3.region.amazonaws.com/profile/default.jpg\",\n                    \"is_verified\": true\n                },\n                \"unread_count\": 3,\n                \"block_status\": {\n                    \"is_blocked\": false,\n                    \"blocked_by_me\": false,\n                    \"blocked_by_them\": false\n                }\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 20\n    }\n}"
         },
         {
           "name": "401 Unauthorized – Missing Token",
@@ -112,7 +112,7 @@
             "conversations"
           ]
         },
-        "description": "## 2. Start or Get Conversation\n\nInitiates a new conversation with a user or fetches the existing conversation document if it already exists. Blocks if either user has blocked the other.\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `recipient_id` | String | Yes | MongoDB ObjectId of the user you want to chat with. |"
+        "description": "## 2. Start or Get Conversation\n\nInitiates a new conversation with a user or fetches the existing conversation document if it already exists.\n\n**Block Handling (Hybrid):**\n- If a block exists **and** the conversation already existed (e.g. users were chatting before the block), returns **200** with the conversation and a populated `block_status`. The frontend should use this to render the restricted chat UI.\n- If a block exists and **no prior conversation exists**, returns **403** with a direction-aware message.\n\nAll non-blocked responses also include `block_status` (with all fields `false`).\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `recipient_id` | String | Yes | MongoDB ObjectId of the user you want to chat with. |"
       },
       "response": [
         {
@@ -127,7 +127,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": null,\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T10:00:00.000Z\",\n        \"__v\": 0\n    }\n}"
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": null,\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T10:00:00.000Z\",\n        \"__v\": 0,\n        \"block_status\": {\n            \"is_blocked\": false,\n            \"blocked_by_me\": false,\n            \"blocked_by_them\": false\n        }\n    }\n}"
         },
         {
           "name": "200 OK (Existing Conversation)",
@@ -141,7 +141,21 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n        \"__v\": 0\n    }\n}"
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n        \"__v\": 0,\n        \"block_status\": {\n            \"is_blocked\": false,\n            \"blocked_by_me\": false,\n            \"blocked_by_them\": false\n        }\n    }\n}"
+        },
+        {
+          "name": "200 OK – Blocked (Prior Conversation Exists)",
+          "status": "OK",
+          "code": 200,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"_id\": \"60d0fe4f5311236168a109ca\",\n        \"participants\": [\n            \"60d0fe4f5311236168a109uu\",\n            \"60d0fe4f5311236168a109cb\"\n        ],\n        \"participant_pair_id\": \"60d0fe4f5311236168a109cb-60d0fe4f5311236168a109uu\",\n        \"last_message_at\": \"2026-04-14T15:30:00.000Z\",\n        \"createdAt\": \"2026-04-14T10:00:00.000Z\",\n        \"updatedAt\": \"2026-04-14T15:30:00.000Z\",\n        \"block_status\": {\n            \"is_blocked\": true,\n            \"blocked_by_me\": true,\n            \"blocked_by_them\": false\n        }\n    }\n}"
         },
         {
           "name": "400 Bad Request – Messaging Self",
@@ -183,7 +197,21 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"error\": \"Recipient has blocked the caller\"\n}"
+          "body": "{\n    \"error\": \"Recipient has blocked you.\"\n}"
+        },
+        {
+          "name": "403 Forbidden – You Blocked Them (No Prior Conversation)",
+          "status": "Forbidden",
+          "code": 403,
+          "_postman_previewlanguage": "json",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "cookie": [],
+          "body": "{\n    \"error\": \"Cannot message a user you have blocked.\"\n}"
         },
         {
           "name": "404 Not Found – User Doesn't Exist",
@@ -286,7 +314,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"messages\": [\n            {\n                \"_id\": \"60d0fe4f5311236168a109dd\",\n                \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n                \"sender_id\": \"60d0fe4f5311236168a109cb\",\n                \"text\": \"Check out this new track!\",\n                \"shared_entity\": {\n                    \"type\": \"Track\",\n                    \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\"\n                },\n                \"is_read\": true,\n                \"read_at\": \"2026-04-14T15:32:00.000Z\",\n                \"createdAt\": \"2026-04-14T15:30:00.000Z\",\n                \"updatedAt\": \"2026-04-14T15:32:00.000Z\",\n                \"__v\": 0\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 50\n    }\n}"
+          "body": "{\n    \"success\": true,\n    \"data\": {\n        \"messages\": [\n            {\n                \"_id\": \"60d0fe4f5311236168a109dd\",\n                \"conversation_id\": \"60d0fe4f5311236168a109ca\",\n                \"sender_id\": \"60d0fe4f5311236168a109cb\",\n                \"text\": \"Check out this new track!\",\n                \"shared_entity\": {\n                    \"type\": \"Track\",\n                    \"id\": \"64f1a2b3c4d5e6f7a8b9c0d1\"\n                },\n                \"is_read\": true,\n                \"read_at\": \"2026-04-14T15:32:00.000Z\",\n                \"createdAt\": \"2026-04-14T15:30:00.000Z\",\n                \"updatedAt\": \"2026-04-14T15:32:00.000Z\",\n                \"__v\": 0\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 50,\n        \"block_status\": {\n            \"is_blocked\": false,\n            \"blocked_by_me\": false,\n            \"blocked_by_them\": false\n        }\n    }\n}"
         },
         {
           "name": "403 Forbidden – Not in Conversation",
