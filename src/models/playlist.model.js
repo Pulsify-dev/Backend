@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import crypto from "crypto";
 import searchService from "../services/search.service.js";
+import { config } from "../config/index.js";
 
 const playlistSchema = mongoose.Schema(
   {
@@ -57,7 +58,7 @@ const playlistSchema = mongoose.Schema(
     ],
     cover_url: {
       type: String,
-      default: "default-playlist-cover.png",
+      default: config.defaults.playlistCover,
     },
     track_count: {
       type: Number,

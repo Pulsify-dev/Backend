@@ -48,6 +48,19 @@ const uploadToS3 = async (file, folder) => {
 };
 
 const deleteFromS3 = async (fileURL) => {
+  if (!fileURL) return;
+  
+  // Prevent deleting default images
+  if (
+    fileURL.includes("Default.png") || 
+    fileURL.includes("default-playlist-cover") ||
+    fileURL.includes("default-artwork") ||
+    fileURL.includes("default-album-artwork") ||
+    fileURL.includes("default-user-")
+  ) {
+    return;
+  }
+
   const bucketName = process.env.AWS_S3_BUCKET;
   const key = extractS3KeyFromUrl(fileURL);
   const params = {
