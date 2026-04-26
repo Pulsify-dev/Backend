@@ -53,6 +53,29 @@ app.get("/v1/health", async (req, res) => {
 
 // ── Rate Limiting ───────────────────────────────────────────
 // Limit each IP to 500 API requests per 15-minute window
+
+/**
+ * Extract the real client IP from proxy headers.
+ * Checks (in order): X-Forwarded-For, X-Real-IP, CF-Connecting-IP, then req.ip.
+ */
+function getRealIp(req) {
+  // X-Forwarded-For may contain a comma-separated list: "client, proxy1, proxy2"
+  const xff = req.headers["x-forwarded-for"];
+  if (xff) {
+    const firstIp = xff.split(",")[0].trim();
+    if (firstIp) return firstIp;
+  }
+
+  // Some proxies set X-Real-IP directly
+  if (req.headers["x-real-ip"]) return req.headers["x-real-ip"].trim();
+
+  // Cloudflare sets CF-Connecting-IP
+  if (req.headers["cf-connecting-ip"]) return req.headers["cf-connecting-ip"].trim();
+
+  // Fallback to Express's req.ip (uses trust proxy setting)
+  return req.ip;
+}
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   max: 500, 
@@ -62,6 +85,13 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Use the real client IP instead of the default req.ip
+  keyGenerator: (req) => {
+    const ip = getRealIp(req);
+    // Debug log — remove once confirmed working
+    console.log(`[RateLimit] IP: ${ip} | XFF: ${req.headers["x-forwarded-for"] || "none"} | req.ip: ${req.ip}`);
+    return ip;
+  },
   // Use Redis store if Redis is available, otherwise falls back to memory store
   ...(redisClient && {
     store: new RedisStore({
