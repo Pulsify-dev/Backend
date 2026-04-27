@@ -79,13 +79,6 @@ router.patch(
   playlistController.updatePlaylistPrivacy
 );
 
-router.patch(
-  "/:playlistId/cover",
-  authMiddleware.requireAuth,
-  coverUpload,
-  playlistController.updatePlaylistCover
-);
-
 router.post(
   "/:playlistId/regenerate-token",
   authMiddleware.requireAuth,

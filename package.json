@@ -32,6 +32,7 @@
       "src/services/notification.service.js",
       "src/controllers/notification.controller.js",
       "src/sockets/notification.socket.js",
+      "src/sockets/chat.socket.js",
       "src/services/discovery.service.js",
       "src/services/search.service.js",
       "src/services/subscription.service.js",
@@ -70,6 +71,7 @@
     "node-cron": "^4.2.1",
     "nodemailer": "^8.0.4",
     "rate-limit-redis": "^4.3.1",
+    "sharp": "^0.34.5",
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
