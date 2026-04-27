@@ -10,6 +10,8 @@ const updateProfileSchema = Joi.object({
   social_links: Joi.object({
     instagram: Joi.string().allow("").optional(),
     twitter: Joi.string().allow("").optional(),
+    x: Joi.string().allow("").optional(),
+    facebook: Joi.string().allow("").optional(),
     website: Joi.string().allow("").optional(),
   }).optional(),
   is_private: Joi.boolean().optional(),
