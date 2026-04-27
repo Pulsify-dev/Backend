@@ -6,6 +6,8 @@ import userRepository from "../repositories/user.repository.js";
 import trackRepository from "../repositories/track.repository.js";
 import playlistRepository from "../repositories/playlist.repository.js";
 import albumRepository from "../repositories/album.repository.js";
+import playHistoryRepository from "../repositories/play-history.repository.js";
+import Follow from "../models/follow.model.js";
 import cache from "../utils/cache.utils.js";
 import { NotFoundError, BadRequestError } from "../utils/errors.utils.js";
 
@@ -248,6 +250,158 @@ describe("Discovery Service", () => {
       } catch (error) {
         expect(error).to.be.instanceOf(BadRequestError);
       }
+    });
+  });
+
+  describe("getDiscoverHome", () => {
+    const mockTracks = [{ _id: "t1", title: "Hit Song" }];
+
+    it("should return cached guest shelves if available", async () => {
+      const cachedShelves = [{ id: "trending", title: "Trending Now", type: "track_list", items: mockTracks }];
+      sinon.stub(cache, "get").resolves(cachedShelves);
+
+      const result = await discoveryService.getDiscoverHome(null);
+      expect(result).to.deep.equal(cachedShelves);
+    });
+
+    it("should build and cache shelves for guest when no cache", async () => {
+      sinon.stub(cache, "get").resolves(null);
+      const setStub = sinon.stub(cache, "set").resolves();
+      sinon.stub(trackRepository, "findTrending").resolves({ tracks: mockTracks, total: 1 });
+      sinon.stub(trackRepository, "findCharts").resolves(mockTracks);
+      sinon.stub(trackRepository, "findNewReleases").resolves(mockTracks);
+
+      const result = await discoveryService.getDiscoverHome(null);
+
+      expect(result).to.be.an("array").with.lengthOf(3);
+      expect(result[0].id).to.equal("trending");
+      expect(result[1].id).to.equal("charts");
+      expect(result[2].id).to.equal("new_releases");
+      expect(setStub.calledOnce).to.be.true;
+    });
+
+    it("should skip empty shelves", async () => {
+      sinon.stub(cache, "get").resolves(null);
+      sinon.stub(cache, "set").resolves();
+      sinon.stub(trackRepository, "findTrending").resolves({ tracks: [], total: 0 });
+      sinon.stub(trackRepository, "findCharts").resolves([]);
+      sinon.stub(trackRepository, "findNewReleases").resolves(mockTracks);
+
+      const result = await discoveryService.getDiscoverHome(null);
+
+      expect(result).to.be.an("array").with.lengthOf(1);
+      expect(result[0].id).to.equal("new_releases");
+    });
+
+    it("should add personalized shelves for authenticated user with history and genres", async () => {
+      const trendingStub = sinon.stub(trackRepository, "findTrending");
+      trendingStub.onFirstCall().resolves({ tracks: mockTracks, total: 1 });
+      trendingStub.onSecondCall().resolves({ tracks: [{ _id: "g1", title: "Genre Hit" }], total: 1 });
+      trendingStub.onThirdCall().resolves({ tracks: [{ _id: "f1", title: "Fav Hit" }], total: 1 });
+
+      sinon.stub(trackRepository, "findCharts").resolves(mockTracks);
+      sinon.stub(trackRepository, "findNewReleases").resolves(mockTracks);
+      sinon.stub(playHistoryRepository, "getRecentlyPlayed").resolves({
+        tracks: [{ track: { _id: "t1", title: "Last Song", genre: "Electronic" } }],
+        total: 1,
+      });
+      sinon.stub(userRepository, "findById").resolves({
+        _id: "user1",
+        favorite_genres: ["Pop"],
+      });
+
+      const result = await discoveryService.getDiscoverHome("user1");
+
+      expect(result).to.be.an("array").with.lengthOf(5);
+      expect(result[3].id).to.equal("because_you_listened");
+      expect(result[3].title).to.include("Electronic");
+      expect(result[4].id).to.equal("favorite_genre");
+      expect(result[4].title).to.include("Pop");
+    });
+
+    it("should skip personalized shelves when user has no history", async () => {
+      sinon.stub(trackRepository, "findTrending").resolves({ tracks: mockTracks, total: 1 });
+      sinon.stub(trackRepository, "findCharts").resolves(mockTracks);
+      sinon.stub(trackRepository, "findNewReleases").resolves(mockTracks);
+      sinon.stub(playHistoryRepository, "getRecentlyPlayed").resolves({ tracks: [], total: 0 });
+      sinon.stub(userRepository, "findById").resolves({ _id: "user1", favorite_genres: [] });
+
+      const result = await discoveryService.getDiscoverHome("user1");
+
+      expect(result).to.be.an("array").with.lengthOf(3);
+      const ids = result.map((s) => s.id);
+      expect(ids).to.not.include("because_you_listened");
+      expect(ids).to.not.include("favorite_genre");
+    });
+
+    it("should not cache authenticated user responses", async () => {
+      sinon.stub(trackRepository, "findTrending").resolves({ tracks: mockTracks, total: 1 });
+      sinon.stub(trackRepository, "findCharts").resolves([]);
+      sinon.stub(trackRepository, "findNewReleases").resolves([]);
+      sinon.stub(playHistoryRepository, "getRecentlyPlayed").resolves({ tracks: [], total: 0 });
+      sinon.stub(userRepository, "findById").resolves({ _id: "user1", favorite_genres: [] });
+      const setStub = sinon.stub(cache, "set").resolves();
+
+      await discoveryService.getDiscoverHome("user1");
+
+      expect(setStub.called).to.be.false;
+    });
+  });
+
+  describe("getDiscoverFeed", () => {
+    const mockTracks = [
+      { _id: "t1", title: "Discover Hit", artist_id: { username: "artist1" } },
+    ];
+
+    it("should return tracks for unauthenticated user", async () => {
+      sinon.stub(trackRepository, "findDiscoverFeed").resolves({ tracks: mockTracks, total: 1 });
+
+      const result = await discoveryService.getDiscoverFeed(null, 1, 15);
+
+      expect(result.tracks).to.deep.equal(mockTracks);
+      expect(result.total).to.equal(1);
+      expect(result.page).to.equal(1);
+    });
+
+    it("should exclude followed artists for authenticated user", async () => {
+      sinon.stub(Follow, "find").returns({
+        select: sinon.stub().returns({
+          lean: sinon.stub().resolves([{ following_id: "artist-A" }, { following_id: "artist-B" }]),
+        }),
+      });
+      const feedStub = sinon.stub(trackRepository, "findDiscoverFeed").resolves({ tracks: mockTracks, total: 1 });
+
+      await discoveryService.getDiscoverFeed("user1", 1, 15);
+
+      const excludeArg = feedStub.firstCall.args[2];
+      expect(excludeArg).to.deep.equal(["artist-A", "artist-B"]);
+    });
+
+    it("should throw BadRequestError for invalid pagination", async () => {
+      try {
+        await discoveryService.getDiscoverFeed(null, 0, 15);
+        expect.fail("Should have thrown error");
+      } catch (error) {
+        expect(error).to.be.instanceOf(BadRequestError);
+      }
+    });
+
+    it("should throw BadRequestError if limit exceeds 50", async () => {
+      try {
+        await discoveryService.getDiscoverFeed(null, 1, 51);
+        expect.fail("Should have thrown error");
+      } catch (error) {
+        expect(error).to.be.instanceOf(BadRequestError);
+      }
+    });
+
+    it("should return empty results when no tracks match", async () => {
+      sinon.stub(trackRepository, "findDiscoverFeed").resolves({ tracks: [], total: 0 });
+
+      const result = await discoveryService.getDiscoverFeed(null, 1, 15);
+
+      expect(result.tracks).to.have.lengthOf(0);
+      expect(result.total).to.equal(0);
     });
   });
 });

@@ -201,6 +201,48 @@ const searchSuggestions = async (req, res, next) => {
     }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /discover
+//  Home page discovery hub — shelves of trending, charts, new releases,
+//  and personalized recommendations.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getDiscoverHome = async (req, res, next) => {
+    try {
+        const userId = req.user?.user_id || null;
+        const shelves = await discoveryService.getDiscoverHome(userId);
+
+        return res.status(200).json({
+            success: true,
+            data: shelves,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /feed/discover
+//  TikTok-style "For You" reel feed — flat paginated stream of tracks.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getDiscoverFeed = async (req, res, next) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 15;
+        const userId = req.user?.user_id || null;
+
+        const result = await discoveryService.getDiscoverFeed(userId, page, limit);
+
+        return res.status(200).json({
+            success: true,
+            data: result,
+        });
+    } catch (err) {
+        next(err);
+    }
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
@@ -209,4 +251,6 @@ export default {
     searchSuggestions,
     getTrending,
     getCharts,
+    getDiscoverHome,
+    getDiscoverFeed,
 };

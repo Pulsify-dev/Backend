@@ -116,6 +116,49 @@ const findCharts = async function (limit = 50, genre = null) {
   return tracks;
 };
 
+const findNewReleases = async function (limit = 10, genre = null) {
+  const filter = {
+    visibility: "public",
+    is_hidden: false,
+    status: "finished",
+  };
+  if (genre) filter.genre = genre;
+
+  const tracks = await Track.find(filter)
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("artist_id", "username display_name avatar_url is_verified")
+    .lean();
+
+  return tracks;
+};
+
+const findDiscoverFeed = async function (page = 1, limit = 15, excludeArtistIds = []) {
+  const filter = {
+    visibility: "public",
+    is_hidden: false,
+    status: "finished",
+    playback_state: "playable",
+  };
+  if (excludeArtistIds.length > 0) {
+    filter.artist_id = { $nin: excludeArtistIds };
+  }
+
+  const skip = (page - 1) * limit;
+  const [tracks, total] = await Promise.all([
+    Track.find(filter)
+      .sort({ trending_score: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .select("title permalink genre tags artwork_url audio_url duration preview_start_seconds play_count like_count repost_count comment_count artist_id createdAt")
+      .populate("artist_id", "username display_name avatar_url is_verified")
+      .lean(),
+    Track.countDocuments(filter),
+  ]);
+
+  return { tracks, total };
+};
+
 const invalidateTrackCache = async (trackId) => {
   await cache.del(`track:${trackId}`);
 };
@@ -199,6 +242,8 @@ export default {
   findByPermalinkAndArtist,
   findTrending,
   findCharts,
+  findNewReleases,
+  findDiscoverFeed,
   invalidateTrackCache,
   getTotalStorageUsage,
   getTrackModerationStats,

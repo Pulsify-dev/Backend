@@ -30,6 +30,13 @@ router.get(
     discoveryController.getCharts
 );
 
+// GET /feed/discover  — TikTok-style "For You" reel feed (optionalAuth)
+router.get(
+    "/feed/discover",
+    authMiddleware.optionalAuth,
+    discoveryController.getDiscoverFeed
+);
+
 // GET /feed  — personal feed (logged in only)
 router.get(
     "/feed",
@@ -47,6 +54,13 @@ router.get(
 router.get(
     "/resolve",
     discoveryController.resolveResource
+);
+
+// GET /discover  — home page discovery hub (optionalAuth for personalization)
+router.get(
+    "/discover",
+    authMiddleware.optionalAuth,
+    discoveryController.getDiscoverHome
 );
 
 export default router;
