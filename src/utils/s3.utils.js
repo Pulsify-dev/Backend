@@ -50,14 +50,8 @@ const uploadToS3 = async (file, folder) => {
 const deleteFromS3 = async (fileURL) => {
   if (!fileURL) return;
   
-  // Prevent deleting default images
-  if (
-    fileURL.includes("Default.png") || 
-    fileURL.includes("default-playlist-cover") ||
-    fileURL.includes("default-artwork") ||
-    fileURL.includes("default-album-artwork") ||
-    fileURL.includes("default-user-")
-  ) {
+  // Prevent deleting default images - check for the actual default S3 URL
+  if (fileURL.includes("Default.png")) {
     return;
   }
 

@@ -70,7 +70,7 @@ const deleteTrack = async (trackId) => {
   const track = await trackRepository.findById(trackId);
   if (!track) throw new NotFoundError("Track not found.");
 
-  if (track.artwork_url && !track.artwork_url.includes("default-artwork")) {
+  if (track.artwork_url && !track.artwork_url.includes("Default.png")) {
     await S3Utils.deleteFromS3(track.artwork_url).catch(() => {});
   }
   if (track.audio_url) {
@@ -97,7 +97,7 @@ const deleteAlbum = async (albumId) => {
   const album = await albumRepository.findById(albumId);
   if (!album) throw new NotFoundError("Album not found.");
 
-  if (album.artwork_url && !album.artwork_url.includes("default-album-artwork")) {
+  if (album.artwork_url && !album.artwork_url.includes("Default.png")) {
     await S3Utils.deleteFromS3(album.artwork_url).catch(() => {});
   }
   

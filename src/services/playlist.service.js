@@ -82,8 +82,8 @@ const deletePlaylist = async (playlistId, creatorId) => {
     throw new Error("Unauthorized: You can only delete your own playlists");
   }
   
-  // Cleanup S3 image
-  if (playlist.cover_url) {
+  // Cleanup S3 image (skip if it's the default image)
+  if (playlist.cover_url && !playlist.cover_url.includes("Default.png")) {
     await S3Utils.deleteFromS3(playlist.cover_url).catch(() => {});
   }
   
