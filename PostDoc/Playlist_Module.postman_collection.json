@@ -1,6 +1,6 @@
 {
   "info": {
-    "name": "Module 7 - Playlists (Sets & Collections)",
+    "name": "Module 7 ✅ - Playlists (Sets & Collections)",
     "description": "API collection for Playlist CRUD, Track Sequencing, Privacy Control, and Embed Support",
     "version": "1.0.0",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
@@ -444,6 +444,74 @@
                 }
               ],
               "body": "{\"success\":true,\"message\":\"Playlist deleted successfully\"}"
+            }
+          ]
+        },
+        {
+          "name": "Update Playlist Cover Image",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/playlists/{{playlistId}}/cover",
+              "host": ["{{baseUrl}}"],
+              "path": ["playlists", "{{playlistId}}", "cover"]
+            },
+            "description": "Update the cover image of a playlist. Only the playlist owner can update the cover. Supported formats: JPEG, PNG, WebP (max 10MB)"
+          },
+          "response": [
+            {
+              "name": "Update Cover Image Response",
+              "originalRequest": {
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{accessToken}}",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "formdata",
+                  "formdata": [
+                    {
+                      "key": "file",
+                      "type": "file",
+                      "src": ""
+                    }
+                  ]
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/playlists/{{playlistId}}/cover",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["playlists", "{{playlistId}}", "cover"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\"success\":true,\"message\":\"Playlist cover updated successfully\",\"data\":{\"_id\":\"69ecd98b86e1eb60bb1a3e96\",\"title\":\"My Favorite Tracks\",\"description\":\"Collection of my favorite songs\",\"creator_id\":\"69cea87fc6e4f3324e7797d0\",\"is_private\":false,\"secret_token\":null,\"cover_url\":\"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/playlists/69cea87fc6e4f3324e7797d0/1777314222720_IMG_1562.JPG\",\"track_count\":0,\"duration_ms\":0,\"is_collaborative\":false,\"tracks\":[],\"collaborators\":[],\"createdAt\":\"2026-04-25T15:11:07.904Z\",\"updatedAt\":\"2026-04-27T18:23:43.381Z\",\"permalink\":\"my-favorite-tracks-10af3577\",\"__v\":0}}"
             }
           ]
         }
