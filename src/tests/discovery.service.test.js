@@ -185,40 +185,7 @@ describe("Discovery Service", () => {
     });
   });
 
-  describe("getGuestFeed", () => {
-    it("should return cached guest feed if available", async () => {
-      const cachedFeed = { type: "discovery", items: [] };
-      sinon.stub(cache, "get").resolves(cachedFeed);
 
-      const result = await discoveryService.getGuestFeed(1, 20);
-      expect(result).to.deep.equal(cachedFeed);
-    });
-
-    it("should compute and return guest feed if not cached", async () => {
-      sinon.stub(cache, "get").resolves(null);
-      const setStub = sinon.stub(cache, "set").resolves();
-      
-      const mockTrending = {
-        tracks: [{ _id: "1", title: "Hit", createdAt: new Date() }],
-        total: 1
-      };
-      sinon.stub(trackRepository, "findTrending").resolves(mockTrending);
-
-      const result = await discoveryService.getGuestFeed(1, 20);
-      expect(result.type).to.equal("discovery");
-      expect(result.items.length).to.equal(1);
-      expect(setStub.calledOnce).to.be.true;
-    });
-
-    it("should throw BadRequestError for invalid pagination", async () => {
-      try {
-        await discoveryService.getGuestFeed(0, 20);
-        expect.fail("Should have thrown error");
-      } catch (error) {
-        expect(error).to.be.instanceOf(BadRequestError);
-      }
-    });
-  });
 
   describe("getTrending", () => {
     it("should return cached trending if available", async () => {

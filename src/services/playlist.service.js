@@ -1,6 +1,7 @@
 import playlistRepository from "../repositories/playlist.repository.js";
 import Track from "../models/track.model.js";
 import { ForbiddenError } from "../utils/errors.utils.js";
+import S3Utils from "../utils/s3.utils.js";
 
 const createPlaylist = async (creatorId, playlistData) => {
   const playlist = await playlistRepository.create({
@@ -80,6 +81,12 @@ const deletePlaylist = async (playlistId, creatorId) => {
   if (playlist.creator_id.toString() !== creatorId.toString()) {
     throw new Error("Unauthorized: You can only delete your own playlists");
   }
+  
+  // Cleanup S3 image
+  if (playlist.cover_url) {
+    await S3Utils.deleteFromS3(playlist.cover_url).catch(() => {});
+  }
+  
   return await playlistRepository.deleteById(playlistId);
 };
 

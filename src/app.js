@@ -53,6 +53,37 @@ app.get("/v1/health", async (req, res) => {
 
 // ── Rate Limiting ───────────────────────────────────────────
 // Limit each IP to 500 API requests per 15-minute window
+
+/**
+ * Extract the real client IP from proxy headers.
+ * Checks (in order): X-Forwarded-For, X-Real-IP, CF-Connecting-IP, then req.ip.
+ * Normalises IPv4-mapped IPv6 addresses (e.g. "::ffff:1.2.3.4" → "1.2.3.4").
+ */
+function getRealIp(req) {
+  let ip;
+
+  // X-Forwarded-For may contain a comma-separated list: "client, proxy1, proxy2"
+  const xff = req.headers["x-forwarded-for"];
+  if (xff) {
+    const firstIp = xff.split(",")[0].trim();
+    if (firstIp) ip = firstIp;
+  }
+
+  // Some proxies set X-Real-IP directly
+  if (!ip && req.headers["x-real-ip"]) ip = req.headers["x-real-ip"].trim();
+
+  // Cloudflare sets CF-Connecting-IP
+  if (!ip && req.headers["cf-connecting-ip"]) ip = req.headers["cf-connecting-ip"].trim();
+
+  // Fallback to Express's req.ip (uses trust proxy setting)
+  if (!ip) ip = req.ip;
+
+  // Strip IPv4-mapped IPv6 prefix so "::ffff:1.2.3.4" becomes "1.2.3.4"
+  if (ip && ip.startsWith("::ffff:")) ip = ip.slice(7);
+
+  return ip;
+}
+
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
   max: 500, 
@@ -62,6 +93,10 @@ const apiLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  // Use the real client IP so each user gets their own rate-limit bucket
+  keyGenerator: (req) => getRealIp(req),
+  // We handle IP extraction ourselves — disable the IPv6 key-generator validation
+  validate: { keyGeneratorIpFallback: false },
   // Use Redis store if Redis is available, otherwise falls back to memory store
   ...(redisClient && {
     store: new RedisStore({

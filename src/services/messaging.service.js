@@ -14,6 +14,28 @@ const buildParticipantPairId = (userAId, userBId) => {
 	return participantIds.join("-");
 };
 
+/**
+ * Runs two isBlocked checks in parallel and returns a structured
+ * block_status object the frontend can use to render the correct UI.
+ *
+ * blocked_by_me   → caller blocked the other party (they can unblock)
+ * blocked_by_them → other party blocked the caller (nothing they can do)
+ */
+const resolveBlockStatus = async (callerId, otherUserId) => {
+	const [blockedByMe, blockedByThem] = await Promise.all([
+		blockRepository.isBlocked(callerId, otherUserId),
+		blockRepository.isBlocked(otherUserId, callerId),
+	]);
+
+	return {
+		is_blocked: blockedByMe || blockedByThem,
+		blocked_by_me: blockedByMe,
+		blocked_by_them: blockedByThem,
+	};
+};
+
+const UNBLOCKED_STATUS = { is_blocked: false, blocked_by_me: false, blocked_by_them: false };
+
 const assertCanShareAlbum = async (senderId, albumId) => {
 	const album = await albumRepository.findById(albumId);
 	if (!album || album.is_hidden) {
@@ -40,15 +62,18 @@ const getMyConversations = async (userId, page = 1, limit = 20) => {
 				(participant) => participant?._id?.toString() !== userId.toString(),
 			);
 
-			const unreadCount = await messageRepository.countUnreadInChat(
-				conversation._id,
-				userId,
-			);
+			const [unreadCount, blockStatus] = await Promise.all([
+				messageRepository.countUnreadInChat(conversation._id, userId),
+				otherParticipant
+					? resolveBlockStatus(userId, otherParticipant._id)
+					: Promise.resolve(UNBLOCKED_STATUS),
+			]);
 
 			return {
 				...conversation,
 				other_participant: otherParticipant || null,
 				unread_count: unreadCount,
+				block_status: blockStatus,
 			};
 		}),
 	);
@@ -85,29 +110,42 @@ const startOrGetConversation = async (senderId, recipientId) => {
 		throw new NotFoundError("Recipient user not found");
 	}
 
-	const blockedByRecipient = await blockRepository.isBlocked(recipientId, senderId);
-	if (blockedByRecipient) {
-		throw new ForbiddenError("Recipient has blocked the caller");
-	}
+	// Resolve block status before checking for an existing conversation
+	const blockStatus = await resolveBlockStatus(senderId, recipientId);
 
-	const blockedBySender = await blockRepository.isBlocked(senderId, recipientId);
-	if (blockedBySender) {
-		throw new ForbiddenError("Cannot message a user you have blocked");
+	if (blockStatus.is_blocked) {
+		// Hybrid approach:
+		// If the conversation already exists (e.g. they were chatting before
+		// the block), return it with block_status so the frontend can render
+		// the correct restricted UI instead of crashing with a 403.
+		// If no conversation ever existed, keep the hard error — there is
+		// nothing to return.
+		const participantPairId = buildParticipantPairId(senderId, recipientId);
+		const existingConversation = await conversationRepository.getByPairId(participantPairId);
+
+		if (existingConversation) {
+			return { conversation: existingConversation, created: false, block_status: blockStatus };
+		}
+
+		// No prior conversation — throw with a direction-aware message
+		if (blockStatus.blocked_by_me) {
+			throw new ForbiddenError("Cannot message a user you have blocked.");
+		}
+		throw new ForbiddenError("Recipient has blocked you.");
 	}
 
 	const participantPairId = buildParticipantPairId(senderId, recipientId);
-	let conversation =
-		await conversationRepository.getByPairId(participantPairId);
+	let conversation = await conversationRepository.getByPairId(participantPairId);
 
 	if (conversation) {
-		return { conversation, created: false };
+		return { conversation, created: false, block_status: UNBLOCKED_STATUS };
 	}
 
 	conversation = await conversationRepository.createConversation({
 		participants: [senderId, recipientId],
 	});
 
-	return { conversation, created: true };
+	return { conversation, created: true, block_status: UNBLOCKED_STATUS };
 };
 
 const sendMessage = async ({
@@ -215,14 +253,22 @@ const getTotalUnreadCount = async (userId) => {
 };
 
 const getMessages = async (conversationId, userId, page = 1, limit = 20) => {
-	await assertConversationParticipant(conversationId, userId);
+	const conversation = await assertConversationParticipant(conversationId, userId);
 
-	const [messages, total] = await Promise.all([
+	// Derive the other participant's ID from the conversation document
+	const otherParticipantId = (conversation.participants || [])
+		.map((p) => p.toString())
+		.find((p) => p !== userId.toString()) || null;
+
+	const [messages, total, blockStatus] = await Promise.all([
 		messageRepository.getChatHistory(conversationId, page, limit),
 		messageRepository.countInChat(conversationId),
+		otherParticipantId
+			? resolveBlockStatus(userId, otherParticipantId)
+			: Promise.resolve(UNBLOCKED_STATUS),
 	]);
 
-	return { messages, total, page, limit };
+	return { messages, total, page, limit, block_status: blockStatus };
 };
 
 export default {

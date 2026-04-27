@@ -6,7 +6,7 @@ const createLike = async (userId, trackId) => {
 };
 
 const findLike = async (userId, trackId) => {
-  return Like.findOne({ user_id: userId, track_id: trackId });
+  return Like.findOne({ user_id: userId, track_id: trackId }).lean();
 };
 
 const deleteLike = async (userId, trackId) => {
@@ -31,7 +31,7 @@ const getLikesByTrackId = async (trackId, page = 1, limit = 20) => {
 };
 
 const checkUserLikedTrack = async (userId, trackId) => {
-  const like = await Like.findOne({ user_id: userId, track_id: trackId });
+  const like = await Like.findOne({ user_id: userId, track_id: trackId }).lean();
   return !!like;
 };
 
@@ -53,7 +53,7 @@ const createAlbumLike = async (userId, albumId) => {
 };
 
 const findAlbumLike = async (userId, albumId) => {
-  return AlbumLike.findOne({ user_id: userId, album_id: albumId });
+  return AlbumLike.findOne({ user_id: userId, album_id: albumId }).lean();
 };
 
 const deleteAlbumLike = async (userId, albumId) => {
@@ -74,7 +74,7 @@ const getLikesByAlbumId = async (albumId, page = 1, limit = 20) => {
 };
 
 const checkUserLikedAlbum = async (userId, albumId) => {
-  const like = await AlbumLike.findOne({ user_id: userId, album_id: albumId });
+  const like = await AlbumLike.findOne({ user_id: userId, album_id: albumId }).lean();
   return !!like;
 };
 

@@ -127,43 +127,6 @@ const resolveUrl = async (urlStr) => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  Guest Feed  —  GET /feed (no auth)
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Returns a discovery feed for unauthenticated visitors.
- * Mixes trending tracks with recent public uploads so the platform
- * feels alive on first visit — similar to SoundCloud's guest experience.
- */
-const getGuestFeed = async (page = 1, limit = 20) => {
-    if (page < 1 || limit < 1 || limit > 100) {
-        throw new BadRequestError("Invalid page or limit parameters.");
-    }
-
-    const cacheKey = `guest-feed:p${page}:l${limit}`;
-    const cached = await cache.get(cacheKey);
-    if (cached) return cached;
-
-    // Fetch trending tracks (the main attraction for guests)
-    const trending = await trackRepository.findTrending(page, limit);
-
-    const result = {
-        type: "discovery",
-        items: trending.tracks.map((track) => ({
-            type: "track",
-            created_at: track.createdAt,
-            track,
-        })),
-        total: trending.total,
-        page,
-        limit,
-    };
-
-    await cache.set(cacheKey, result, TRENDING_TTL);
-    return result;
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
 //  Trending  —  GET /trending
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -210,7 +173,6 @@ const getCharts = async (limit = 50, genre = null) => {
 export default {
     getPersonalFeed,
     getUserProfileFeed,
-    getGuestFeed,
     resolveUrl,
     getTrending,
     getCharts,

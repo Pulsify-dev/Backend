@@ -16,11 +16,11 @@ const findByPermalinkAndCreator = async (
 ) => {
   return Playlist.findOne({ permalink, creator_id: creatorId }).populate(
     populateFields
-  );
+  ).lean();
 };
 
 const findByPermalink = async (permalink, populateFields = "") => {
-  return Playlist.findOne({ permalink }).populate(populateFields);
+  return Playlist.findOne({ permalink }).populate(populateFields).lean();
 };
 
 const findByCreatorId = async (creatorId, options = {}) => {
@@ -44,7 +44,7 @@ const findPublicPlaylists = async (options = {}) => {
 const findBySecretToken = async (secretToken, populateFields = "") => {
   return Playlist.findOne({ secret_token: secretToken }).populate(
     populateFields
-  );
+  ).lean();
 };
 
 const findWithTracks = async (playlistId) => {
@@ -57,7 +57,8 @@ const findWithTracks = async (playlistId) => {
         select: "username display_name avatar_url",
       },
     })
-    .populate("creator_id", "username display_name avatar_url");
+    .populate("creator_id", "username display_name avatar_url")
+    .lean();
 };
 
 const updateById = async (playlistId, updateData) => {
@@ -165,7 +166,8 @@ const getTotalTrackDuration = async (playlistId) => {
     .populate({
       path: "tracks.track_id",
       select: "duration",
-    });
+    })
+    .lean();
 
   if (!playlist) {
     throw new Error("Playlist not found");

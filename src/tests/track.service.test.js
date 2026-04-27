@@ -6,7 +6,7 @@ import trackRepository from "../repositories/track.repository.js";
 import audioUtils from "../utils/audio.utils.js";
 import photoUtils from "../utils/photo.utils.js";
 import S3Utils from "../utils/s3.utils.js";
-import * as audioQueue from "../jobs/audio.queue.js";
+import audioQueueService from "../jobs/audio.queue.js";
 import {
   BadRequestError,
   NotFoundError,
@@ -77,7 +77,7 @@ describe("TrackService", () => {
         },
       });
       sinon.stub(trackRepository, "countByArtistId").resolves(0);
-      sinon.stub(audioQueue, "addAudioJob").resolves();
+      sinon.stub(audioQueueService, "addAudioJob").resolves();
     });
 
     it("should successfully create a new track", async () => {
@@ -357,7 +357,7 @@ describe("TrackService", () => {
           upload_track_limit: null,
         },
       });
-      sinon.stub(audioQueue, "addAudioJob").resolves();
+      sinon.stub(audioQueueService, "addAudioJob").resolves();
     });
 
     it("should create a track from explicit file inputs and metadata overrides", async () => {

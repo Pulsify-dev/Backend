@@ -86,11 +86,11 @@ const findByProviderId = function (providerName, providerId) {
 };
 
 const findByEmail = function (email) {
-  return User.findOne({ email });
+  return User.findOne({ email }).lean();
 };
 
 const findByUsername = function (username, extraFields = "") {
-  return User.findOne({ username }).select(extraFields);
+  return User.findOne({ username }).select(extraFields).lean();
 };
 const addDeviceToken = function (userId, token) {
   return User.findByIdAndUpdate(
