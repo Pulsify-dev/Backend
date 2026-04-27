@@ -52,7 +52,7 @@ app.get("/v1/health", async (req, res) => {
 });
 
 // ── Rate Limiting ───────────────────────────────────────────
-// Limit each IP to 500 API requests per 15-minute window
+// Limit each IP to 2000 API requests per 15-minute window
 
 /**
  * Extract the real client IP from proxy headers.
@@ -86,7 +86,7 @@ function getRealIp(req) {
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, 
-  max: 500, 
+  max: 2000, 
   message: {
     success: false,
     error: "Too many requests from this IP, please try again after 15 minutes",
