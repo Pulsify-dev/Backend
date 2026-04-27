@@ -81,6 +81,16 @@ const updateMyProfile = async (userId, updateData) => {
   if (allowedUpdates.bio !== undefined && allowedUpdates.bio.length > 500)
     throw new BadRequestError("Bio cannot exceed 500 characters.");
 
+  if (allowedUpdates.social_links) {
+    if (
+      allowedUpdates.social_links.twitter !== undefined &&
+      allowedUpdates.social_links.x === undefined
+    ) {
+      allowedUpdates.social_links.x = allowedUpdates.social_links.twitter;
+    }
+    delete allowedUpdates.social_links.twitter;
+  }
+
   const updatedUser = await userRepository.updateById(userId, allowedUpdates);
   if (!updatedUser) throw new NotFoundError("User not found.");
 
