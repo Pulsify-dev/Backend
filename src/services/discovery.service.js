@@ -5,10 +5,13 @@ import playlistRepository from "../repositories/playlist.repository.js";
 import albumRepository from "../repositories/album.repository.js";
 import { NotFoundError, BadRequestError } from "../utils/errors.utils.js";
 import cache from "../utils/cache.utils.js";
+import playHistoryRepository from "../repositories/play-history.repository.js";
 
 // Cache TTLs (in seconds)
-const TRENDING_TTL = 60 * 60; // 60 minutes — matches cron interval
-const CHARTS_TTL   = 60 * 60; // 60 minutes
+const TRENDING_TTL  = 60 * 60; // 60 minutes — matches cron interval
+const CHARTS_TTL    = 60 * 60; // 60 minutes
+const DISCOVER_TTL  = 10 * 60; // 10 minutes
+
 
 
 //  Personal Feed  —  GET /feed
@@ -170,10 +173,145 @@ const getCharts = async (limit = 50, genre = null) => {
     return result;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  Discover Home  —  GET /discover
+//  Aggregates multiple "shelves" of content for the home page.
+//  Authenticated users get personalized shelves; guests get generic ones.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const SHELF_LIMIT = 10;
+
+const getDiscoverHome = async (userId = null) => {
+    // ── Try guest-level cache first (shared across all unauthenticated users) ──
+    if (!userId) {
+        const cached = await cache.get("discover:guest");
+        if (cached) return cached;
+    }
+
+    // ── Fetch base shelves (same for everyone) concurrently ──
+    const [trendingResult, chartsRaw, newReleases] = await Promise.all([
+        trackRepository.findTrending(1, SHELF_LIMIT),
+        trackRepository.findCharts(SHELF_LIMIT),
+        trackRepository.findNewReleases(SHELF_LIMIT),
+    ]);
+
+    const shelves = [];
+
+    // 1. Trending Now
+    if (trendingResult.tracks.length > 0) {
+        shelves.push({
+            id: "trending",
+            title: "Trending Now",
+            type: "track_list",
+            items: trendingResult.tracks,
+        });
+    }
+
+    // 2. Top Charts
+    if (chartsRaw.length > 0) {
+        shelves.push({
+            id: "charts",
+            title: "Top Charts",
+            type: "track_list",
+            items: chartsRaw,
+        });
+    }
+
+    // 3. New Releases
+    if (newReleases.length > 0) {
+        shelves.push({
+            id: "new_releases",
+            title: "New Releases",
+            type: "track_list",
+            items: newReleases,
+        });
+    }
+
+    // ── Personalized shelves (authenticated users only) ──
+    if (userId) {
+        const [historyResult, user] = await Promise.all([
+            playHistoryRepository.getRecentlyPlayed(userId, 1, 1),
+            userRepository.findById(userId),
+        ]);
+
+        // 4. "Because you listened to..." — same-genre tracks based on last listen
+        if (historyResult.tracks.length > 0) {
+            const lastTrack = historyResult.tracks[0].track;
+            if (lastTrack && lastTrack.genre) {
+                const genreTracks = await trackRepository.findTrending(1, SHELF_LIMIT, lastTrack.genre);
+                if (genreTracks.tracks.length > 0) {
+                    shelves.push({
+                        id: "because_you_listened",
+                        title: `Because you listened to ${lastTrack.genre}`,
+                        type: "track_list",
+                        items: genreTracks.tracks,
+                    });
+                }
+            }
+        }
+
+        // 5. "Top Hits in <genre>" — based on user's favorite genres
+        if (user && user.favorite_genres && user.favorite_genres.length > 0) {
+            const randomGenre = user.favorite_genres[
+                Math.floor(Math.random() * user.favorite_genres.length)
+            ];
+            const genreTracks = await trackRepository.findTrending(1, SHELF_LIMIT, randomGenre);
+            if (genreTracks.tracks.length > 0) {
+                shelves.push({
+                    id: "favorite_genre",
+                    title: `Top Hits in ${randomGenre}`,
+                    type: "track_list",
+                    items: genreTracks.tracks,
+                });
+            }
+        }
+    }
+
+    // Cache guest responses to reduce DB load
+    if (!userId) {
+        await cache.set("discover:guest", shelves, DISCOVER_TTL);
+    }
+
+    return shelves;
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  Discover Feed  —  GET /feed/discover
+//  TikTok-style "For You" stream: flat paginated list of public tracks
+//  excluding content from artists the user already follows.
+// ─────────────────────────────────────────────────────────────────────────────
+
+const getDiscoverFeed = async (userId = null, page = 1, limit = 15) => {
+    if (page < 1 || limit < 1 || limit > 50) {
+        throw new BadRequestError("Invalid page or limit parameters.");
+    }
+
+    let excludeArtistIds = [];
+
+    // If authenticated, exclude followed artists so they only see new content
+    if (userId) {
+        const Follow = (await import("../models/follow.model.js")).default;
+        const follows = await Follow.find({ follower_id: userId })
+            .select("following_id")
+            .lean();
+        excludeArtistIds = follows.map((f) => f.following_id);
+    }
+
+    const { tracks, total } = await trackRepository.findDiscoverFeed(
+        page,
+        limit,
+        excludeArtistIds
+    );
+
+    return { tracks, total, page, limit };
+};
+
 export default {
     getPersonalFeed,
     getUserProfileFeed,
     resolveUrl,
     getTrending,
     getCharts,
+    getDiscoverHome,
+    getDiscoverFeed,
 };

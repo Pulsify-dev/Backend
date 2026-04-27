@@ -180,6 +180,45 @@
       "name": "TRENDING & CHARTS",
       "item": [
         {
+          "name": "2. Get Discover Home",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "Optional token. If provided, the user gets personalized shelves."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/discover",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "discover"
+              ]
+            },
+            "description": "## 2. Get Discover Home\n\nReturns multiple \"shelves\" of content for the home page. Acts as the Discovery Hub.\n\n**Authentication:** Optional. Guests receive generic shelves (Trending, Charts, New Releases) while authenticated users receive additional personalized shelves.\n\n### Returned Shelves\n\n| Shelf ID | Title | Visibility | Source |\n|---|---|---|---|\n| `trending` | Trending Now | Everyone | Top 10 trending tracks |\n| `charts` | Top Charts | Everyone | Top 10 charted tracks |\n| `new_releases` | New Releases | Everyone | 10 most recent public tracks |\n| `because_you_listened` | Because you listened to {genre} | Auth only | Trending tracks matching the user's last played track genre |\n| `favorite_genre` | Top Hits in {genre} | Auth only | Trending tracks matching a random genre from the user's favorite_genres |"
+          },
+          "response": [
+            {
+              "name": "200 OK – Discover Shelves",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": [\n        {\n            \"id\": \"trending\",\n            \"title\": \"Trending Now\",\n            \"type\": \"track_list\",\n            \"items\": [\n                {\n                    \"_id\": \"69d512462f56034d691e3340\",\n                    \"title\": \"Fuck it I love you\"\n                }\n            ]\n        },\n        {\n            \"id\": \"charts\",\n            \"title\": \"Top Charts\",\n            \"type\": \"track_list\",\n            \"items\": [\n                {\n                    \"rank\": 1,\n                    \"_id\": \"69d512462f56034d691e3340\",\n                    \"title\": \"Fuck it I love you\"\n                }\n            ]\n        },\n        {\n            \"id\": \"new_releases\",\n            \"title\": \"New Releases\",\n            \"type\": \"track_list\",\n            \"items\": [\n                {\n                    \"_id\": \"69d512462f56034d691e3340\",\n                    \"title\": \"Fuck it I love you\"\n                }\n            ]\n        },\n        {\n            \"id\": \"because_you_listened\",\n            \"title\": \"Because you listened to Pop\",\n            \"type\": \"track_list\",\n            \"items\": [\n                {\n                    \"_id\": \"69d512462f56034d691e3340\",\n                    \"title\": \"Fuck it I love you\"\n                }\n            ]\n        }\n    ]\n}"
+            }
+          ]
+        },
+        {
           "name": "3. Get Trending Tracks",
           "request": {
             "method": "GET",
@@ -338,7 +377,87 @@
       "name": "FEEDS",
       "item": [
         {
-          "name": "5. Get Personal Feed",
+          "name": "5a. Get Discover Feed (Reels / For You)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "description": "Optional. If provided, tracks from followed artists are excluded."
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/feed/discover?page=1&limit=15",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "feed",
+                "discover"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number (default: 1)"
+                },
+                {
+                  "key": "limit",
+                  "value": "15",
+                  "description": "Results per page, max 50 (default: 15)"
+                }
+              ]
+            },
+            "description": "## 5a. Get Discover Feed (Reels / For You)\n\nReturns a flat, paginated stream of public tracks optimized for TikTok-style vertical swiping. Tracks are ranked by `trending_score` (engagement velocity) then by `createdAt`.\n\n**Authentication:** Optional\n\n### Behavior\n\n| Auth State | Behavior |\n|---|---|\n| **Guest** | Returns all public playable tracks, ranked by popularity |\n| **Logged in** | Excludes tracks from artists the user already follows, so the content feels fresh |\n\n### Query Parameters\n\n| Parameter | Type | Required | Default | Description |\n|-----------|------|----------|---------|-------------|\n| `page` | Number | No | `1` | Pagination page number |\n| `limit` | Number | No | `15` | Results per page (max 50) |\n\n### Mobile Usage\n\nThis endpoint powers the **Discover** tab in the mobile app's reel feed. The **Following** tab uses `GET /feed` instead.\n\n| Mobile Tab | Backend Endpoint |\n|---|---|\n| Discover (For You) | `GET /feed/discover` |\n| Following | `GET /feed` |"
+          },
+          "response": [
+            {
+              "name": "200 OK – Discover Feed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"tracks\": [\n            {\n                \"_id\": \"69d512462f56034d691e3340\",\n                \"title\": \"Fuck it I love you\",\n                \"permalink\": \"my-awesome-track-7e292ff7\",\n                \"genre\": \"Other\",\n                \"tags\": [\"chill\", \"vibes\"],\n                \"artwork_url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/artwork/1775571525188_Screenshot 2026-04-07 161757.png\",\n                \"audio_url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/tracks/audio/1775571522112_Lana Del Rey - Fuck it I love you.mp3\",\n                \"duration\": 218,\n                \"preview_start_seconds\": 0,\n                \"play_count\": 0,\n                \"like_count\": 1,\n                \"repost_count\": 0,\n                \"comment_count\": 1,\n                \"artist_id\": {\n                    \"_id\": \"69ceb4dac65280182638c8cb\",\n                    \"username\": \"username\",\n                    \"display_name\": \"username\",\n                    \"avatar_url\": \"https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/users/avatars/1775605627700_avatar.jpg\",\n                    \"is_verified\": true\n                },\n                \"createdAt\": \"2026-04-07T14:18:46.076Z\"\n            }\n        ],\n        \"total\": 1,\n        \"page\": 1,\n        \"limit\": 15\n    }\n}"
+            },
+            {
+              "name": "200 OK – Empty Feed",
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": true,\n    \"data\": {\n        \"tracks\": [],\n        \"total\": 0,\n        \"page\": 1,\n        \"limit\": 15\n    }\n}"
+            },
+            {
+              "name": "400 Bad Request – Invalid Parameters",
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n    \"success\": false,\n    \"message\": \"Invalid page or limit parameters.\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "5b. Get Personal Feed",
           "request": {
             "method": "GET",
             "header": [
