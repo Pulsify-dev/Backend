@@ -362,6 +362,59 @@ const searchPlaylists = async (req, res, next) => {
   }
 };
 
+const updatePlaylistCover = async (req, res, next) => {
+  try {
+    const { playlistId } = req.params;
+    const userId = req.user._id || req.user.user_id;
+
+    if (!playlistId) {
+      return res.status(400).json({
+        success: false,
+        error: "Playlist ID is required",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: "Cover image file is required",
+      });
+    }
+
+    // Get the playlist first to check ownership
+    const playlist = await playlistService.getPlaylist(playlistId);
+    
+    // Get creator_id - handle both populated and unpopulated cases
+    const creatorId = playlist.creator_id._id || playlist.creator_id;
+    
+    if (creatorId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        error: "You can only update your own playlist cover",
+      });
+    }
+
+    // Upload new cover to S3
+    const folderPath = `playlists/${userId}`;
+    const cover_url = await s3Utils.uploadToS3(req.file, folderPath);
+
+    // Update playlist with new cover URL
+    const updatedPlaylist = await playlistService.updatePlaylist(
+      playlistId,
+      userId,
+      { cover_url }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: "Playlist cover updated successfully",
+      data: updatedPlaylist,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 export default {
   createPlaylist,
   getUserPlaylists,
@@ -378,4 +431,5 @@ export default {
   getEmbedCode,
   getPublicPlaylists,
   searchPlaylists,
+  updatePlaylistCover,
 };
