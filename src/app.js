@@ -87,11 +87,11 @@ function getRealIp(req) {
 }
 
 const apiLimiter = rateLimit({
-  windowMs: 5 * 60 * 1000,  // 5-minute window (was 15 min)
-  max: 1000,                 // 1000 requests per window (was 500)
+  windowMs: 15 * 60 * 1000,  // 15-minute window
+  max: 500,                  // 500 requests per window
   message: {
     success: false,
-    error: "Too many requests from this IP, please try again after 5 minutes",
+    error: "Too many requests from this IP, please try again after 15 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
@@ -106,7 +106,7 @@ const apiLimiter = rateLimit({
   handler: (req, res) => {
     res.status(429).json({
       success: false,
-      error: "Too many requests from this IP, please try again after 5 minutes",
+      error: "Too many requests from this IP, please try again after 15 minutes",
       _debug: {
         rate_limit_key: req.__rateLimitKey || getRealIp(req),
         hint: "If this key doesn't match your real IP, your proxy is masking it. Contact backend team.",
