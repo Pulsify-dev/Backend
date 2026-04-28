@@ -118,10 +118,22 @@ const updatePlaylist = async (req, res, next) => {
     const userId = req.user._id || req.user.user_id;
     const { title, description, cover_url } = req.body;
 
+    const updateData = { title, description };
+
+    // Handle file upload if provided
+    if (req.file) {
+      const folderPath = `playlists/${userId}`;
+      const s3Url = await s3Utils.uploadToS3(req.file, folderPath);
+      updateData.cover_url = s3Url;
+    } else if (cover_url) {
+      // Use provided cover_url if no file uploaded
+      updateData.cover_url = cover_url;
+    }
+
     const playlist = await playlistService.updatePlaylist(
       playlistId,
       userId,
-      { title, description, cover_url }
+      updateData
     );
     res.status(200).json({
       success: true,
