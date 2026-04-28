@@ -36,7 +36,9 @@
       "src/services/discovery.service.js",
       "src/services/search.service.js",
       "src/services/subscription.service.js",
-      "src/services/album.service.js"
+      "src/services/album.service.js",
+      "src/services/engagement.service.js",
+      "src/services/playlist.service.js"
     ],
     "reporter": [
       "text"
