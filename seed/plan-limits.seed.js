@@ -24,7 +24,9 @@ const PLAN_LIMIT_ROWS = [
 		album_limit: 2,
 		album_track_limit: 5,
 		is_ad_free: false,
+		ad_interval_seconds: 240,
 		can_offline_listen: false,
+		price_usd: 0,
 	},
 	{
 		plan: "Artist Pro",
@@ -33,7 +35,9 @@ const PLAN_LIMIT_ROWS = [
 		album_limit: null,
 		album_track_limit: null,
 		is_ad_free: true,
+		ad_interval_seconds: null,
 		can_offline_listen: true,
+		price_usd: 9.99,
 	},
 ];
 
