@@ -52,7 +52,9 @@ app.get("/v1/health", async (req, res) => {
 });
 
 // ── Rate Limiting ───────────────────────────────────────────
-// Limit each IP to 500 API requests per 15-minute window
+// Limit each client to 1000 API requests per 5-minute window.
+// Shorter window = less punishment on lockout (5 min vs 15 min).
+// Higher limit  = IP collisions are far less likely to trigger a false ban.
 
 /**
  * Extract the real client IP from proxy headers.
@@ -85,16 +87,32 @@ function getRealIp(req) {
 }
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 500, 
+  windowMs: 5 * 60 * 1000,  // 5-minute window (was 15 min)
+  max: 1000,                 // 1000 requests per window (was 500)
   message: {
     success: false,
-    error: "Too many requests from this IP, please try again after 15 minutes",
+    error: "Too many requests from this IP, please try again after 5 minutes",
   },
   standardHeaders: true,
   legacyHeaders: false,
   // Use the real client IP so each user gets their own rate-limit bucket
-  keyGenerator: (req) => getRealIp(req),
+  keyGenerator: (req) => {
+    const key = getRealIp(req);
+    // Expose the rate-limit key in a response header so devs can debug collisions
+    req.__rateLimitKey = key;
+    return key;
+  },
+  // Attach a header so the frontend team can see which IP bucket they landed in
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: "Too many requests from this IP, please try again after 5 minutes",
+      _debug: {
+        rate_limit_key: req.__rateLimitKey || getRealIp(req),
+        hint: "If this key doesn't match your real IP, your proxy is masking it. Contact backend team.",
+      },
+    });
+  },
   // We handle IP extraction ourselves — disable the IPv6 key-generator validation
   validate: { keyGeneratorIpFallback: false },
   // Use Redis store if Redis is available, otherwise falls back to memory store
