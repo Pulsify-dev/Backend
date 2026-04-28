@@ -11,12 +11,16 @@ const conversationParamSchema = Joi.object({
 });
 
 const startConversationSchema = Joi.object({
-  recipient_id: Joi.string()
-    .pattern(/^[0-9a-fA-F]{24}$/)
+  username: Joi.string()
+    .min(6)
+    .max(20)
+    .pattern(/^[a-zA-Z0-9_]+$/)
     .required()
     .messages({
-      "string.pattern.base": "Invalid recipient ID format",
-      "any.required": "recipient_id is required",
+      "string.pattern.base": "Usernames can only contain letters, numbers, and underscores",
+      "string.min": "Username must be at least 6 characters",
+      "string.max": "Username cannot exceed 20 characters",
+      "any.required": "username is required",
     }),
 });
 

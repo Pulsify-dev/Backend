@@ -18,8 +18,8 @@
       "value": "60d0fe4f5311236168a109ca"
     },
     {
-      "key": "recipientId",
-      "value": "60d0fe4f5311236168a109cb"
+      "key": "recipientUsername",
+      "value": "johndoe"
     }
   ],
   "item": [
@@ -101,7 +101,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"recipient_id\": \"{{recipientId}}\"\n}"
+          "raw": "{\n  \"username\": \"{{recipientUsername}}\"\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/conversations",
@@ -112,7 +112,7 @@
             "conversations"
           ]
         },
-        "description": "## 2. Start or Get Conversation\n\nInitiates a new conversation with a user or fetches the existing conversation document if it already exists.\n\n**Block Handling (Hybrid):**\n- If a block exists **and** the conversation already existed (e.g. users were chatting before the block), returns **200** with the conversation and a populated `block_status`. The frontend should use this to render the restricted chat UI.\n- If a block exists and **no prior conversation exists**, returns **403** with a direction-aware message.\n\nAll non-blocked responses also include `block_status` (with all fields `false`).\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `recipient_id` | String | Yes | MongoDB ObjectId of the user you want to chat with. |"
+        "description": "## 2. Start or Get Conversation\n\nInitiates a new conversation with a user or fetches the existing conversation document if it already exists.\n\n**Block Handling (Hybrid):**\n- If a block exists **and** the conversation already existed (e.g. users were chatting before the block), returns **200** with the conversation and a populated `block_status`. The frontend should use this to render the restricted chat UI.\n- If a block exists and **no prior conversation exists**, returns **403** with a direction-aware message.\n\nAll non-blocked responses also include `block_status` (with all fields `false`).\n\n**Authentication:** Required\n\n### Request Body\n\n| Field | Type | Required | Description |\n|-------|------|----------|-------------|\n| `username` | String | Yes | Username of the user you want to chat with. |"
       },
       "response": [
         {
@@ -183,7 +183,7 @@
             }
           ],
           "cookie": [],
-          "body": "{\n    \"error\": \"recipient_id is required\"\n}"
+          "body": "{\n    \"error\": \"username is required\"\n}"
         },
         {
           "name": "403 Forbidden – Blocked User",

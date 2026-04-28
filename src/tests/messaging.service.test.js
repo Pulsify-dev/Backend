@@ -20,8 +20,9 @@ describe("MessagingService Unit Tests", () => {
 
 	describe("startOrGetConversation()", () => {
 		it("should throw BadRequestError if messaging self", async () => {
+			sinon.stub(userRepository, "findByUsername").resolves({ _id: USER_ID });
 			try {
-				await messagingService.startOrGetConversation(USER_ID, USER_ID);
+				await messagingService.startOrGetConversation(USER_ID, "selfuser");
 				expect.fail("Should have thrown BadRequestError");
 			} catch (err) {
 				expect(err).to.be.instanceOf(BadRequestError);
@@ -29,9 +30,9 @@ describe("MessagingService Unit Tests", () => {
 		});
 
 		it("should throw NotFoundError if recipient does not exist", async () => {
-			sinon.stub(userRepository, "findById").resolves(null);
+			sinon.stub(userRepository, "findByUsername").resolves(null);
 			try {
-				await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+				await messagingService.startOrGetConversation(USER_ID, "testuser");
 				expect.fail("Should have thrown NotFoundError");
 			} catch (err) {
 				expect(err).to.be.instanceOf(NotFoundError);
@@ -39,7 +40,7 @@ describe("MessagingService Unit Tests", () => {
 		});
 
 		it("should throw ForbiddenError if recipient blocked sender (no prior conversation)", async () => {
-			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
+			sinon.stub(userRepository, "findByUsername").resolves({ _id: RECIPIENT_ID });
 			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
 			// resolveBlockStatus: isBlocked(sender, recipient) = false, isBlocked(recipient, sender) = true
 			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(false);
@@ -48,7 +49,7 @@ describe("MessagingService Unit Tests", () => {
 			sinon.stub(conversationRepository, "getByPairId").resolves(null);
 
 			try {
-				await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+				await messagingService.startOrGetConversation(USER_ID, "testuser");
 				expect.fail("Should have thrown ForbiddenError");
 			} catch (err) {
 				expect(err).to.be.instanceOf(ForbiddenError);
@@ -57,7 +58,7 @@ describe("MessagingService Unit Tests", () => {
 		});
 
 		it("should throw ForbiddenError if sender blocked recipient (no prior conversation)", async () => {
-			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
+			sinon.stub(userRepository, "findByUsername").resolves({ _id: RECIPIENT_ID });
 			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
 			// resolveBlockStatus: isBlocked(sender, recipient) = true, isBlocked(recipient, sender) = false
 			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(true);
@@ -66,7 +67,7 @@ describe("MessagingService Unit Tests", () => {
 			sinon.stub(conversationRepository, "getByPairId").resolves(null);
 
 			try {
-				await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+				await messagingService.startOrGetConversation(USER_ID, "testuser");
 				expect.fail("Should have thrown ForbiddenError");
 			} catch (err) {
 				expect(err).to.be.instanceOf(ForbiddenError);
@@ -75,14 +76,14 @@ describe("MessagingService Unit Tests", () => {
 		});
 
 		it("should return existing conversation with block_status when blocked", async () => {
-			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
+			sinon.stub(userRepository, "findByUsername").resolves({ _id: RECIPIENT_ID });
 			const isBlockedStub = sinon.stub(blockRepository, "isBlocked");
 			isBlockedStub.withArgs(USER_ID, RECIPIENT_ID).resolves(true);
 			isBlockedStub.withArgs(RECIPIENT_ID, USER_ID).resolves(false);
 			const existingConvo = { _id: CONVO_ID };
 			sinon.stub(conversationRepository, "getByPairId").resolves(existingConvo);
 
-			const result = await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+			const result = await messagingService.startOrGetConversation(USER_ID, "testuser");
 			expect(result.conversation).to.equal(existingConvo);
 			expect(result.created).to.be.false;
 			expect(result.block_status.is_blocked).to.be.true;
@@ -91,24 +92,24 @@ describe("MessagingService Unit Tests", () => {
 		});
 
 		it("should return existing conversation if pair holds", async () => {
-			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
+			sinon.stub(userRepository, "findByUsername").resolves({ _id: RECIPIENT_ID });
 			sinon.stub(blockRepository, "isBlocked").resolves(false);
 			const existingConvo = { _id: CONVO_ID };
 			sinon.stub(conversationRepository, "getByPairId").resolves(existingConvo);
 
-			const result = await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+			const result = await messagingService.startOrGetConversation(USER_ID, "testuser");
 			expect(result.created).to.be.false;
 			expect(result.conversation).to.equal(existingConvo);
 		});
 
 		it("should create new conversation if none exists", async () => {
-			sinon.stub(userRepository, "findById").resolves({ _id: RECIPIENT_ID });
+			sinon.stub(userRepository, "findByUsername").resolves({ _id: RECIPIENT_ID });
 			sinon.stub(blockRepository, "isBlocked").resolves(false);
 			sinon.stub(conversationRepository, "getByPairId").resolves(null);
 			const newConvo = { _id: CONVO_ID };
 			sinon.stub(conversationRepository, "createConversation").resolves(newConvo);
 
-			const result = await messagingService.startOrGetConversation(USER_ID, RECIPIENT_ID);
+			const result = await messagingService.startOrGetConversation(USER_ID, "testuser");
 			expect(result.created).to.be.true;
 			expect(result.conversation).to.equal(newConvo);
 		});
