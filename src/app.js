@@ -39,8 +39,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/v1", (req, res) => {
   console.log("Pulsify API is Live!");
-  res.status(200).send("Pulsify API is Live!")
-});
+  res.status(200).send("Pulsify API is Live!")});
 
 // Deep health check – pokes the DB to verify full-stack readiness
 app.get("/v1/health", async (req, res) => {
@@ -53,7 +52,9 @@ app.get("/v1/health", async (req, res) => {
 });
 
 // ── Rate Limiting ───────────────────────────────────────────
-// Limit each IP to 2000 API requests per 15-minute window
+// Limit each client to 1000 API requests per 5-minute window.
+// Shorter window = less punishment on lockout (5 min vs 15 min).
+// Higher limit  = IP collisions are far less likely to trigger a false ban.
 
 /**
  * Extract the real client IP from proxy headers.
@@ -86,8 +87,8 @@ function getRealIp(req) {
 }
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 2000,
+  windowMs: 15 * 60 * 1000,  // 15-minute window
+  max: 500,                  // 500 requests per window
   message: {
     success: false,
     error: "Too many requests from this IP, please try again after 15 minutes",
