@@ -39,7 +39,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.get("/v1", (req, res) => {
   console.log("Pulsify API is Live!");
-  res.status(200).send("Pulsify API is Live!")});
+  res.status(200).send("Pulsify API is Live!")
+});
 
 // Deep health check – pokes the DB to verify full-stack readiness
 app.get("/v1/health", async (req, res) => {
@@ -85,8 +86,8 @@ function getRealIp(req) {
 }
 
 const apiLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, 
-  max: 2000, 
+  windowMs: 15 * 60 * 1000,
+  max: 2000,
   message: {
     success: false,
     error: "Too many requests from this IP, please try again after 15 minutes",
@@ -94,7 +95,23 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   // Use the real client IP so each user gets their own rate-limit bucket
-  keyGenerator: (req) => getRealIp(req),
+  keyGenerator: (req) => {
+    const key = getRealIp(req);
+    // Expose the rate-limit key in a response header so devs can debug collisions
+    req.__rateLimitKey = key;
+    return key;
+  },
+  // Attach a header so the frontend team can see which IP bucket they landed in
+  handler: (req, res) => {
+    res.status(429).json({
+      success: false,
+      error: "Too many requests from this IP, please try again after 15 minutes",
+      _debug: {
+        rate_limit_key: req.__rateLimitKey || getRealIp(req),
+        hint: "If this key doesn't match your real IP, your proxy is masking it. Contact backend team.",
+      },
+    });
+  },
   // We handle IP extraction ourselves — disable the IPv6 key-generator validation
   validate: { keyGeneratorIpFallback: false },
   // Use Redis store if Redis is available, otherwise falls back to memory store

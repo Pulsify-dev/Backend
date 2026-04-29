@@ -303,7 +303,7 @@ const updateArtwork = async (trackId, userId, artworkFile) => {
   // Update track with new artwork URL
   const updatedTrack = await trackRepository.updateTrackById(trackId, {
     artwork_url: newArtworkUrl,
-  });
+  }); 
 
   return { artwork_url: newArtworkUrl };
 };

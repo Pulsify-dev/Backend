@@ -32,10 +32,10 @@ const getMyConversations = async (req, res, next) => {
 const startOrGetConversation = async (req, res, next) => {
   try {
     const senderId = req.user.user_id;
-    const { recipient_id: recipientId } = req.body;
+    const { username } = req.body;
 
     const { conversation, created, block_status } =
-      await messagingService.startOrGetConversation(senderId, recipientId);
+      await messagingService.startOrGetConversation(senderId, username);
 
     // If it's a Mongoose document, convert to plain object before spreading
     const conversationData = conversation.toObject ? conversation.toObject() : conversation;

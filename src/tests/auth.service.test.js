@@ -3,6 +3,7 @@ import sinon from "sinon";
 import bcrypt from "bcryptjs";
 import AuthService from "../services/auth.service.js";
 import OAuthFactory from "../services/oauth/oauth-factory.service.js";
+import playlistRepository from "../repositories/playlist.repository.js";
 import {
   BadRequestError,
   UnauthorizedError,
@@ -49,6 +50,7 @@ describe("AuthService - 100% Coverage Suite", () => {
       mockEmailSvc,
       mockCaptchaSvc,
     );
+    sinon.stub(playlistRepository, "create").resolves();
   });
 
   afterEach(() => {
@@ -96,6 +98,18 @@ describe("AuthService - 100% Coverage Suite", () => {
         expect(e.message).to.equal("Invalid or expired CAPTCHA token.");
       }
     });
+
+    it("should still succeed even if playlist creation fails", async () => {
+      mockCaptchaSvc.verify.resolves(true);
+      mockUserRepo.create.resolves({ _id: "u123", email: "test@pulsify.app" });
+      playlistRepository.create.rejects(new Error("DB Error"));
+      mockTokenUtil.generateVerificationToken.returns("v-token");
+      mockEmailSvc.sendVerificationEmail.resolves(true);
+
+      const result = await authService.registerUser(userData);
+
+      expect(result.user_id).to.equal("u123");
+    });
   });
 
   /* -------------------------------------------------------------------------- */
@@ -108,6 +122,7 @@ describe("AuthService - 100% Coverage Suite", () => {
       tier: "Free",
       role: "user",
       is_suspended: false,
+      is_verified: true,
       comparePassword: sinon.stub(),
     };
 
@@ -143,6 +158,20 @@ describe("AuthService - 100% Coverage Suite", () => {
         expect.fail("Should have thrown");
       } catch (e) {
         expect(e).to.be.instanceOf(ForbiddenError);
+      }
+    });
+
+    it("should throw ForbiddenError if user is not verified", async () => {
+      mockUserRepo.findByEmailWithPassword.resolves({
+        ...user,
+        is_verified: false,
+      });
+      try {
+        await authService.loginUser("t@p.app", "pass");
+        expect.fail("Should have thrown");
+      } catch (e) {
+        expect(e).to.be.instanceOf(ForbiddenError);
+        expect(e.message).to.contain("Please verify your email address");
       }
     });
 
@@ -245,6 +274,26 @@ describe("AuthService - 100% Coverage Suite", () => {
       expect(createArgs.email).to.equal("new@test.com");
       expect(createArgs.google_id).to.equal("g2");
       expect(createArgs.is_verified).to.be.true;
+    });
+
+    it("should create new user and succeed even if playlist creation fails", async () => {
+      mockStrat.verifyToken.resolves({
+        providerId: "g3",
+        email: "fail@test.com",
+      });
+      mockUserRepo.findByProviderId.resolves(null);
+      mockUserRepo.findByEmail.resolves(null);
+      mockUserRepo.create.resolves({
+        _id: "u3",
+        tier: "Free",
+        is_suspended: false,
+      });
+      playlistRepository.create.rejects(new Error("DB Error"));
+      mockUserRepo.updateRefreshToken.resolves();
+
+      const res = await authService.socialLogin("google", "tok");
+      expect(mockUserRepo.create.calledOnce).to.be.true;
+      expect(res).to.have.property("access_token");
     });
 
     it("should throw ForbiddenError if social user is suspended", async () => {

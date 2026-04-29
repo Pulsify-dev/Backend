@@ -43,9 +43,19 @@ const planLimitSchema = mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		ad_interval_seconds: {
+			type: Number,
+			default: null,
+		},
 		can_offline_listen: {
 			type: Boolean,
 			default: false,
+		},
+		price_usd: {
+			type: Number,
+			required: true,
+			min: 0,
+			default: 0,
 		},
 	},
 	{

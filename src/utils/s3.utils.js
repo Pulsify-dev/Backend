@@ -2,6 +2,7 @@ import { S3Client, PutObjectCommand, GetObjectCommand, DeleteObjectCommand } fro
 import { BadRequestError } from "./errors.utils.js";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import photoUtils from "./photo.utils.js";
+import crypto from "crypto";
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
@@ -22,7 +23,8 @@ const uploadToS3 = async (file, folder) => {
   
   let fileBuffer = file.buffer;
   let mimetype = file.mimetype;
-  let filename = file.originalname;
+  let originalExt = file.originalname.includes('.') ? file.originalname.substring(file.originalname.lastIndexOf('.')) : '';
+  let filename = crypto.randomUUID() + originalExt;
 
   // Automatically compress images before saving to S3
   if (mimetype.startsWith("image/")) {
@@ -32,7 +34,7 @@ const uploadToS3 = async (file, folder) => {
     filename = filename.replace(/\.[^/.]+$/, "") + ".webp";
   }
 
-  const key = `${folder}/${Date.now()}_${filename}`;
+  const key = `${folder}/${filename}`;
   const params = {
     Bucket: bucketName,
     Key: key,
@@ -50,14 +52,8 @@ const uploadToS3 = async (file, folder) => {
 const deleteFromS3 = async (fileURL) => {
   if (!fileURL) return;
   
-  // Prevent deleting default images
-  if (
-    fileURL.includes("Default.png") || 
-    fileURL.includes("default-playlist-cover") ||
-    fileURL.includes("default-artwork") ||
-    fileURL.includes("default-album-artwork") ||
-    fileURL.includes("default-user-")
-  ) {
+  // Prevent deleting default images - check for the actual default S3 URL
+  if (fileURL.includes("Default.png")) {
     return;
   }
 

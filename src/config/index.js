@@ -31,3 +31,6 @@ export const config = {
     playlistCover: process.env.DEFAULT_PLAYLIST_COVER || "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png",
   }
 };
+
+// Constant for default S3 URL to use across the codebase
+export const DEFAULT_S3_URL = "https://pulsify-s3-dev.s3.eu-central-1.amazonaws.com/Default.png";

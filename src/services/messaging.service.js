@@ -100,14 +100,16 @@ const assertConversationParticipant = async (conversationId, userId) => {
 	return conversation;
 };
 
-const startOrGetConversation = async (senderId, recipientId) => {
-	if (senderId.toString() === recipientId.toString()) {
-		throw new BadRequestError("Cannot create conversation with yourself");
-	}
-
-	const recipient = await userRepository.findById(recipientId);
+const startOrGetConversation = async (senderId, recipientUsername) => {
+	const recipient = await userRepository.findByUsername(recipientUsername);
 	if (!recipient) {
 		throw new NotFoundError("Recipient user not found");
+	}
+
+	const recipientId = recipient._id;
+
+	if (senderId.toString() === recipientId.toString()) {
+		throw new BadRequestError("Cannot create conversation with yourself");
 	}
 
 	// Resolve block status before checking for an existing conversation

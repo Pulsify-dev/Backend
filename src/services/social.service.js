@@ -3,6 +3,7 @@ import Block from "../models/block.model.js";
 import User from "../models/user.model.js";
 import followRepository from "../repositories/follow.repository.js";
 import blockRepository from "../repositories/block.repository.js";
+import { NotFoundError, ConflictError, ForbiddenError } from "../utils/errors.utils.js";
 
 const followUser = async (followerId, followingId) => {
   try {
@@ -11,7 +12,7 @@ const followUser = async (followerId, followingId) => {
       followingId,
     );
     if (existingFollow) {
-      throw new Error("Already following this user");
+      throw new ConflictError("Already following this user");
     }
 
     const isFollowerBlocked = await blockRepository.isBlocked(
@@ -19,12 +20,12 @@ const followUser = async (followerId, followingId) => {
       followerId,
     );
     if (isFollowerBlocked) {
-      throw new Error("Cannot follow a user who has blocked you");
+      throw new ForbiddenError("Cannot follow a user who has blocked you");
     }
 
     const targetUser = await User.findById(followingId);
     if (!targetUser) {
-      throw new Error("User not found");
+      throw new NotFoundError("User not found");
     }
 
     const follow = await followRepository.createFollow(followerId, followingId);
@@ -53,7 +54,7 @@ const unfollowUser = async (followerId, followingId) => {
     followingId,
   );
   if (!existingFollow) {
-    throw new Error("Not following this user");
+    throw new ConflictError("Not following this user");
   }
 
   await followRepository.deleteFollow(followerId, followingId);
@@ -76,7 +77,7 @@ const unfollowUser = async (followerId, followingId) => {
 const getFollowersList = async (userId, page = 1, limit = 20) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
 
   return followRepository.getFollowers(userId, page, limit);
@@ -85,7 +86,7 @@ const getFollowersList = async (userId, page = 1, limit = 20) => {
 const getAllFollowers = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
 
   const followers = await Follow.find({
@@ -106,7 +107,7 @@ const getAllFollowers = async (userId) => {
 const getFollowingList = async (userId, page = 1, limit = 20) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
 
   return followRepository.getFollowing(userId, page, limit);
@@ -115,7 +116,7 @@ const getFollowingList = async (userId, page = 1, limit = 20) => {
 const getAllFollowing = async (userId) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
 
   const following = await Follow.find({
@@ -236,13 +237,13 @@ const blockUser = async (blockerId, blockedId, reason = "") => {
     // Check if user exists
     const targetUser = await User.findById(blockedId);
     if (!targetUser) {
-      throw new Error("User not found");
+      throw new NotFoundError("User not found");
     }
 
     // Check if already blocked
     const existingBlock = await blockRepository.findBlock(blockerId, blockedId);
     if (existingBlock) {
-      throw new Error("User is already blocked");
+      throw new ConflictError("User is already blocked");
     }
 
     // Create block
@@ -281,7 +282,7 @@ const blockUser = async (blockerId, blockedId, reason = "") => {
 const unblockUser = async (blockerId, blockedId) => {
   const existingBlock = await blockRepository.findBlock(blockerId, blockedId);
   if (!existingBlock) {
-    throw new Error("User is not blocked");
+    throw new ConflictError("User is not blocked");
   }
 
   await blockRepository.deleteBlock(blockerId, blockedId);
@@ -292,7 +293,7 @@ const unblockUser = async (blockerId, blockedId) => {
 const getBlockedUsersList = async (userId, page = 1, limit = 20) => {
   const user = await User.findById(userId);
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
 
   return blockRepository.getBlockedUsers(userId, page, limit);
@@ -313,7 +314,7 @@ const getBlockers = async (userId, page = 1, limit = 20) => {
 const updateBlockReason = async (blockerId, blockedId, reason) => {
   const existingBlock = await blockRepository.findBlock(blockerId, blockedId);
   if (!existingBlock) {
-    throw new Error("User is not blocked");
+    throw new ConflictError("User is not blocked");
   }
 
   return blockRepository.updateBlockReason(blockerId, blockedId, reason);
@@ -324,7 +325,7 @@ const getUserSocialCounts = async (userId) => {
     "followers_count following_count",
   );
   if (!user) {
-    throw new Error("User not found");
+    throw new NotFoundError("User not found");
   }
 
   const blockedCount = await blockRepository.countBlockedUsers(userId);

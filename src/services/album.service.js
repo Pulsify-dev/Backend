@@ -173,11 +173,17 @@ class AlbumService {
         createdTracks.map(async (track) => {
           await trackRepository.deleteById(track._id).catch(() => {});
           await S3Utils.deleteFromS3(track.audio_url).catch(() => {});
-          await S3Utils.deleteFromS3(track.artwork_url).catch(() => {});
+          // Skip deletion if it's the default artwork
+          if (track.artwork_url && !track.artwork_url.includes("Default.png")) {
+            await S3Utils.deleteFromS3(track.artwork_url).catch(() => {});
+          }
         }),
       );
 
-      await S3Utils.deleteFromS3(artworkUrl).catch(() => {});
+      // Skip deletion if it's the default artwork
+      if (artworkUrl && !artworkUrl.includes("Default.png")) {
+        await S3Utils.deleteFromS3(artworkUrl).catch(() => {});
+      }
       throw error;
     }
   }

@@ -34,6 +34,7 @@ router.get(
 router.patch(
   "/:playlistId",
   authMiddleware.requireAuth,
+  coverUpload,
   playlistValidation.validateUpdatePlaylist,
   playlistController.updatePlaylist
 );
