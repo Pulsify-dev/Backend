@@ -88,7 +88,7 @@ function getRealIp(req) {
 
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,  // 15-minute window
-  max: 500,                  // 500 requests per window
+  max: 500000,                  // 500 requests per window
   message: {
     success: false,
     error: "Too many requests from this IP, please try again after 15 minutes",
