@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import profileService from "../services/profile.service.js";
 import userRepository from "../repositories/user.repository.js";
 import emailService from "../services/email.service.js";

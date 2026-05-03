@@ -1,4 +1,4 @@
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import crypto from "crypto";
 import OAuthFactory from "./oauth/oauth-factory.service.js";
 import playlistRepository from "../repositories/playlist.repository.js";
@@ -254,7 +254,7 @@ class AuthService {
       throw new BadRequestError("Invalid or expired password reset token.");
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await this.userRepository.updateById(user._id, {
       password: hashedPassword,
