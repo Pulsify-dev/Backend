@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import sinon from "sinon";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import AuthService from "../services/auth.service.js";
 import OAuthFactory from "../services/oauth/oauth-factory.service.js";
 import playlistRepository from "../repositories/playlist.repository.js";

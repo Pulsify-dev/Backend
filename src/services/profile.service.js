@@ -11,7 +11,7 @@ import {
 } from "../utils/errors.utils.js";
 
 import photoUtils from "../utils/photo.utils.js";
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const COVER_MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 
@@ -189,7 +189,7 @@ const changePassword = async (userId, oldPassword, newPassword) => {
   const isMatch = await user.comparePassword(oldPassword, user.password);
   if (!isMatch) throw new ForbiddenError("Incorrect old password.");
 
-  const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+  const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
   await userRepository.updateById(userId, {
     password: hashedNewPassword,
